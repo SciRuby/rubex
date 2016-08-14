@@ -1,0 +1,16 @@
+class Rubex::Parser
+
+end
+
+---- header
+require_relative 'lexer.rex.rb'
+
+---- inner
+def parse file_name
+  @lexer = Rubex::Lexer.new
+  @lexer.parse_file file_name
+end
+
+def next_token
+  @lexer.next_token
+end
