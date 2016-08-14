@@ -1,0 +1,3 @@
+def addition(i32 a, i32 b)
+  a + b
+end

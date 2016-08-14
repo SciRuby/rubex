@@ -45,7 +45,7 @@ WARNING: Specification set to change!
 
 #### File extensions
 
-Rubex files will have an `.xrb` file extension.
+Rubex files will have a `.rubex` file extension.
 
 #### Comments
 
@@ -214,6 +214,12 @@ C arrays of a definite size (static arrays) can be specified using square bracke
 
 If a Ruby array is specified using Ruby's Array literal syntax (`[]`), it will be directly translated into a Ruby Array object. For example the statement `a = []` will store a Ruby Array object in the variable 'a'.
 
+Static arrays can be initialized with Ruby's array literal syntax. So for example, you can initiazile an array of 10 `i16` integers like this:
+```
+i16 a[10] = [1,2,3,4,5,6,7,8,9,10]
+# C equivalent -> int16_t a[10] = {1,2,3,4,5,6,7,8,9,10};
+```
+
 #### Loops
 
 Rubex will itself define a `for` loop for performing integer iterations. The syntax for this will be as follows:
@@ -225,6 +231,22 @@ end
 ```
 
 If the loop variable `i` and lower and upper bounds are all C integer expressions, this loop will be directly compiled into a C for-loop and will be very fast. The direction of the iteration is determined by the relations. If they are from the `{<,<=}` the iteration is upwards, or if they are from the set `{>,>=}`, the iteration is downwards.
+
+Rubex can also translate `.each` method called on `StaticArray` into the equivalent C `for` loops. The only caveat being that since there's no way to dynamically determine the length of C arrays, an argument (an integer) will need to be passed into the `.each` method that will tell Rubex the lenghth. To demonstrate:
+```
+i16 a[10] = [1,2,3,4,5,6,7,8,9,10]
+
+a.each(10) do |x|
+  # do something...
+end
+
+# C equivalent:
+# int size = 10
+# for(int i = 0; i < size; i++) {
+#   i16 x = a[i]
+#   // do something....
+# }
+```
 
 #### Wrapping C functions
 
