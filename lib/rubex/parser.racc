@@ -1,5 +1,38 @@
 class Rubex::Parser
+token 
+  kDEF kEND kRETURN kDTYPE_I32 tLPAREN tRPAREN tIDENTIFIER tPLUS tNL tCOMMA
 
+prechigh
+  left tPLUS
+preclow
+
+rule
+
+   program: compstmt { }
+
+  compstmt: stmts {}
+
+     stmts: stmt tNL {}
+      | {}
+
+    stmt: kDEF fname f_arglist compstmt kEND {  } #method definition
+      | expr {}
+
+    fname: tIDENTIFIER {}
+
+    f_arglist: tLPAREN f_args tRPAREN tNL { }
+
+    f_args: f_args f_normal_arg {}
+      | f_arg {}
+      | {}
+
+    f_arg: f_arg tCOMMA f_normal_arg {} 
+      | f_normal_arg {}
+
+    f_normal_arg: kDTYPE_I32 tIDENTIFIER { print val }
+
+    expr: tIDENTIFIER tPLUS tIDENTIFIER {}
+      | kRETURN expr {}
 end
 
 ---- header

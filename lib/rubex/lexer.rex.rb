@@ -5,13 +5,17 @@
 # Source: lib/rubex/lexer.rex
 #++
 
-module Rubex
-
-class Lexer #< Racc::Parser
+class Rubex::Lexer
   require 'strscan'
 
-  BLANK = /\s+/
-  DIGIT = /\d+/
+  DEF        = /def/
+  RETURN     = /return/
+  IDENTIFIER = /[a-z_][a-zA-Z_0-9]*/
+  LPAREN     = /\(/
+  RPAREN     = /\)/
+  NL         = /\n/
+  COMMA      = /,/
+  PLUS       = /\+/
 
   class ScanError < StandardError ; end
 
@@ -59,10 +63,28 @@ class Lexer #< Racc::Parser
         case state
         when nil then
           case
-          when text = ss.scan(/\d+/) then
-            action { [:DIGIT, text.to_i] }
-          when text = ss.scan(/.|\n/) then
-            action { [text, text] }
+          when text = ss.scan(/#{DEF}/) then
+            action { [:kDEF, text] }
+          when text = ss.scan(/end/) then
+            action { [:kEND, text]  }
+          when text = ss.scan(/#{RETURN}/) then
+            action { [:kRETURN, text] }
+          when text = ss.scan(/i32/) then
+            action { [:kDTYPE_I32, text] }
+          when text = ss.scan(/#{IDENTIFIER}/) then
+            action { [:tIDENTIFIER, text] }
+          when text = ss.scan(/#{LPAREN}/) then
+            action { [:tLPAREN, text] }
+          when text = ss.scan(/#{RPAREN}/) then
+            action { [:tRPAREN, text] }
+          when text = ss.scan(/#{NL}/) then
+            action { [:tNL, text] }
+          when text = ss.scan(/#{COMMA}/) then
+            action { [:tCOMMA, text] }
+          when text = ss.scan(/#{PLUS}/) then
+            action { [:tPLUS, text]}
+          when ss.skip(/ /) then
+            action {}
           else
             text = ss.string[ss.pos .. -1]
             raise ScanError, "can not match (#{state.inspect}): '#{text}'"
@@ -86,5 +108,4 @@ class Lexer #< Racc::Parser
     end
 end # class
 
-   # Lexer
-  end # Rubex
+   # Rubex::Lexer

@@ -4,7 +4,8 @@ module Rubex
   class << self
     def compile file_name
       parser = Rubex::Parser.new
-      parser.prepare(file_name).do_parse
+      parser.parse(file_name)
+      parser.do_parse
     end
   end
 end
