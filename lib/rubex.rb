@@ -1,3 +1,4 @@
+require 'rubex/ast'
 require 'rubex/parser.racc.rb'
 
 module Rubex
@@ -5,7 +6,12 @@ module Rubex
     def compile file_name
       parser = Rubex::Parser.new
       parser.parse(file_name)
-      parser.do_parse
+      a = parser.do_parse
+      p a.inspect
+    end
+
+    def ast file_name
+      
     end
   end
 end

@@ -7,11 +7,14 @@
 require 'racc/parser.rb'
 
 require_relative 'lexer.rex.rb'
+require_relative 'ast.rb'
+
+include Rubex::AST
 
 module Rubex
   class Parser < Racc::Parser
 
-module_eval(<<'...end parser.racc/module_eval...', 'parser.racc', 42)
+module_eval(<<'...end parser.racc/module_eval...', 'parser.racc', 51)
 def parse file_name
   @lexer = Rubex::Lexer.new
   @lexer.parse_file file_name
@@ -24,65 +27,57 @@ end
 ##### State transition tables begin ###
 
 racc_action_table = [
-     5,     5,     8,     8,     8,     9,     7,     7,     7,    23,
-    10,    25,    12,    13,    15,    17,    18,    23,    24,    27,
-    28,    29,    23 ]
+     4,     4,     5,     5,    20,     6,    23,     7,     9,    11,
+    12,    14,    15,    20,    21,    22,    25,    26,    27,    20 ]
 
 racc_action_check = [
-     0,    16,     0,    16,     8,     1,     0,    16,     8,    20,
-     4,    20,     5,     7,     9,    11,    13,    17,    19,    21,
-    23,    25,    27 ]
+     0,    13,     0,    13,    17,     1,    17,     3,     4,     5,
+     6,     8,    11,    14,    15,    16,    18,    20,    23,    25 ]
 
 racc_action_pointer = [
-    -2,     5,   nil,   nil,     0,     4,   nil,     4,     0,    14,
-   nil,     9,   nil,     8,   nil,   nil,    -1,    12,   nil,    15,
-     4,     8,   nil,    12,   nil,    11,   nil,    17,   nil,   nil,
-   nil ]
+    -2,     5,   nil,    -3,     0,     1,    10,   nil,     5,   nil,
+   nil,     3,   nil,    -1,     8,     6,    12,    -1,     5,   nil,
+     9,   nil,   nil,     8,   nil,    14,   nil,   nil,   nil ]
 
 racc_action_default = [
-    -4,   -17,    -1,    -2,   -17,   -17,    -6,   -17,   -17,   -17,
-    -3,   -17,    -7,   -17,   -16,    31,    -4,   -11,   -15,   -17,
-   -17,   -10,   -13,   -17,    -5,   -17,    -9,   -17,   -14,    -8,
-   -12 ]
+    -3,   -15,    -1,   -15,   -15,   -15,   -15,    -2,   -15,    -6,
+    -5,   -15,    29,    -3,   -10,   -15,   -15,   -15,    -9,   -12,
+   -15,   -14,    -4,   -15,    -8,   -15,   -13,    -7,   -11 ]
 
 racc_goto_table = [
-     2,    22,     1,    11,    26,    16,    14,    20,    21,   nil,
-   nil,    30,   nil,   nil,   nil,   nil,    19 ]
+     2,    19,     1,     8,    24,    13,    10,    17,    18,   nil,
+   nil,   nil,    28,    16 ]
 
 racc_goto_check = [
-     2,     9,     1,     5,     9,     6,     7,     8,    10,   nil,
-   nil,     9,   nil,   nil,   nil,   nil,     2 ]
+     2,     8,     1,     4,     8,     5,     6,     7,     9,   nil,
+   nil,   nil,     8,     2 ]
 
 racc_goto_pointer = [
-   nil,     2,     0,   nil,   nil,    -2,    -6,    -2,   -10,   -16,
-    -9 ]
+   nil,     2,     0,   nil,    -1,    -3,     1,    -7,   -13,    -6 ]
 
 racc_goto_default = [
-   nil,   nil,   nil,     3,     4,   nil,   nil,     6,   nil,   nil,
-   nil ]
+   nil,   nil,   nil,     3,   nil,   nil,   nil,   nil,   nil,   nil ]
 
 racc_reduce_table = [
   0, 0, :racc_error,
   1, 13, :_reduce_1,
-  1, 14, :_reduce_2,
-  2, 15, :_reduce_3,
-  0, 15, :_reduce_4,
-  5, 16, :_reduce_5,
+  2, 14, :_reduce_2,
+  0, 14, :_reduce_3,
+  5, 15, :_reduce_4,
+  2, 15, :_reduce_5,
   1, 16, :_reduce_6,
-  1, 17, :_reduce_7,
-  4, 18, :_reduce_8,
-  2, 20, :_reduce_9,
-  1, 20, :_reduce_10,
-  0, 20, :_reduce_11,
-  3, 22, :_reduce_12,
-  1, 22, :_reduce_13,
-  2, 21, :_reduce_14,
-  3, 19, :_reduce_15,
-  2, 19, :_reduce_16 ]
+  4, 17, :_reduce_7,
+  2, 19, :_reduce_8,
+  1, 19, :_reduce_9,
+  0, 19, :_reduce_10,
+  3, 21, :_reduce_11,
+  1, 21, :_reduce_12,
+  2, 20, :_reduce_13,
+  3, 18, :_reduce_14 ]
 
-racc_reduce_n = 17
+racc_reduce_n = 15
 
-racc_shift_n = 31
+racc_shift_n = 29
 
 racc_token_table = {
   false => 0,
@@ -133,7 +128,6 @@ Racc_token_to_s_table = [
   "tCOMMA",
   "$start",
   "program",
-  "compstmt",
   "stmts",
   "stmt",
   "fname",
@@ -149,113 +143,99 @@ Racc_debug_parser = false
 
 # reduce 0 omitted
 
-module_eval(<<'.,.,', 'parser.racc', 10)
+module_eval(<<'.,.,', 'parser.racc', 11)
   def _reduce_1(val, _values, result)
      
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 12)
-  def _reduce_2(val, _values, result)
-    
-    result
-  end
-.,.,
-
 module_eval(<<'.,.,', 'parser.racc', 14)
-  def _reduce_3(val, _values, result)
-    
+  def _reduce_2(val, _values, result)
+     result = Node.new(val[0]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 15)
-  def _reduce_4(val, _values, result)
-    
-    result
-  end
-.,.,
-
-module_eval(<<'.,.,', 'parser.racc', 17)
-  def _reduce_5(val, _values, result)
-     print val 
+  def _reduce_3(val, _values, result)
+     
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 18)
-  def _reduce_6(val, _values, result)
-    
+  def _reduce_4(val, _values, result)
+     result = MethodDef.new(val[1], val[2], val[3]) 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 20)
-  def _reduce_7(val, _values, result)
+module_eval(<<'.,.,', 'parser.racc', 19)
+  def _reduce_5(val, _values, result)
     
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 22)
-  def _reduce_8(val, _values, result)
-     puts val
-    result
-  end
-.,.,
-
-module_eval(<<'.,.,', 'parser.racc', 24)
-  def _reduce_9(val, _values, result)
+  def _reduce_6(val, _values, result)
     
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 25)
-  def _reduce_10(val, _values, result)
-    
-    result
-  end
-.,.,
-
-module_eval(<<'.,.,', 'parser.racc', 26)
-  def _reduce_11(val, _values, result)
-    
+  def _reduce_7(val, _values, result)
+     
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 28)
-  def _reduce_12(val, _values, result)
+  def _reduce_8(val, _values, result)
     
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 29)
-  def _reduce_13(val, _values, result)
+  def _reduce_9(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 31)
-  def _reduce_14(val, _values, result)
-     print val 
+module_eval(<<'.,.,', 'parser.racc', 30)
+  def _reduce_10(val, _values, result)
+    
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 33)
-  def _reduce_15(val, _values, result)
+  def _reduce_11(val, _values, result)
     
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 34)
-  def _reduce_16(val, _values, result)
+  def _reduce_12(val, _values, result)
+    
+    result
+  end
+.,.,
+
+module_eval(<<'.,.,', 'parser.racc', 37)
+  def _reduce_13(val, _values, result)
+     
+    result
+  end
+.,.,
+
+module_eval(<<'.,.,', 'parser.racc', 40)
+  def _reduce_14(val, _values, result)
     
     result
   end

@@ -8,35 +8,44 @@ preclow
 
 rule
 
-   program: compstmt { }
+  program:
+    stmts { }
 
-  compstmt: stmts {}
+  stmts:
+    stmt tNL { result = Node.new(val[0]) }
+  | { }
 
-     stmts: stmt tNL {}
-      | {}
+  stmt: 
+    kDEF fname f_arglist stmts kEND { result = MethodDef.new(val[1], val[2], val[3]) } #method definition
+  | kRETURN expr {}
 
-    stmt: kDEF fname f_arglist compstmt kEND {  } #method definition
-      | expr {}
+  fname:
+    tIDENTIFIER {}
 
-    fname: tIDENTIFIER {}
+  f_arglist:
+    tLPAREN f_args tRPAREN tNL { }
 
-    f_arglist: tLPAREN f_args tRPAREN tNL { }
+  f_args: 
+    f_args f_normal_arg {}
+  | f_arg {}
+  | {}
 
-    f_args: f_args f_normal_arg {}
-      | f_arg {}
-      | {}
+  f_arg:
+    f_arg tCOMMA f_normal_arg {} 
+  | f_normal_arg {}
 
-    f_arg: f_arg tCOMMA f_normal_arg {} 
-      | f_normal_arg {}
+  f_normal_arg:
+    kDTYPE_I32 tIDENTIFIER { }
 
-    f_normal_arg: kDTYPE_I32 tIDENTIFIER { print val }
-
-    expr: tIDENTIFIER tPLUS tIDENTIFIER {}
-      | kRETURN expr {}
+  expr:
+    tIDENTIFIER tPLUS tIDENTIFIER {}
 end
 
 ---- header
 require_relative 'lexer.rex.rb'
+require_relative 'ast.rb'
+
+include Rubex::AST
 
 ---- inner
 def parse file_name
