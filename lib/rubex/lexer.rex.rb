@@ -15,7 +15,13 @@ class Rubex::Lexer
   RPAREN     = /\)/
   NL         = /\n/
   COMMA      = /,/
+  EXPO       = /\*\*/
+  MULTIPLY   = /\*/
+  DIVIDE     = /\//
   PLUS       = /\+/
+  MINUS      = /\-/
+  MODULUS    = /%/
+  EQUAL      = /=/
 
   class ScanError < StandardError ; end
 
@@ -83,6 +89,18 @@ class Rubex::Lexer
             action { [:tCOMMA, text] }
           when text = ss.scan(/#{PLUS}/) then
             action { [:tPLUS, text]}
+          when text = ss.scan(/#{MINUS}/) then
+            action { [:tMINUS, text]}
+          when text = ss.scan(/#{MULTIPLY}/) then
+            action { [:tMULTIPLY, text]}
+          when text = ss.scan(/#{DIVIDE}/) then
+            action { [:tDIVIDE, text]}
+          when text = ss.scan(/#{EXPO}/) then
+            action { [:tEXPO, text]}
+          when text = ss.scan(/#{MODULUS}/) then
+            action { [:tMODULUS, text]}
+          when text = ss.scan(/#{EXPO}/) then
+            action { [:tEXPO, text]}
           when ss.skip(/ /) then
             action {}
           else

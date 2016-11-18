@@ -6,12 +6,13 @@ module Rubex
     def compile file_name
       parser = Rubex::Parser.new
       parser.parse(file_name)
-      a = parser.do_parse
-      p a.inspect
+      p parser.do_parse.inspect
     end
 
     def ast file_name
-      
+      parser = Rubex::Parser.new
+      parser.parse(file_name)
+      parser.do_parse
     end
   end
 end

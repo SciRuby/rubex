@@ -8,7 +8,15 @@ macros
   RPAREN          /\)/
   NL              /\n/
   COMMA           /,/
+
+  # operators
+  EXPO            /\*\*/
+  MULTIPLY        /\*/
+  DIVIDE          /\//
   PLUS            /\+/
+  MINUS           /\-/
+  MODULUS         /%/
+  EQUAL           /=/
 rules
   /#{DEF}/  { [:kDEF, text] }
   /end/  { [:kEND, text]  }
@@ -21,8 +29,18 @@ rules
   /#{RPAREN}/     { [:tRPAREN, text] }
   /#{NL}/         { [:tNL, text] }
   /#{COMMA}/      { [:tCOMMA, text] }
-  /#{PLUS}/       { [:tPLUS, text]}
 
+  # operators
+
+  /#{PLUS}/       { [:tPLUS, text]}
+  /#{MINUS}/      { [:tMINUS, text]}
+  /#{MULTIPLY}/   { [:tMULTIPLY, text]}
+  /#{DIVIDE}/     { [:tDIVIDE, text]}
+  /#{EXPO}/       { [:tEXPO, text]}
+  /#{MODULUS}/    { [:tMODULUS, text]}
+  /#{EXPO}/       { [:tEXPO, text]}
+
+  # whitespace
 
   / /             {}
 inner

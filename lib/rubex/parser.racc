@@ -3,7 +3,11 @@ token
   kDEF kEND kRETURN kDTYPE_I32 tLPAREN tRPAREN tIDENTIFIER tPLUS tNL tCOMMA
 
 prechigh
-  left tPLUS
+  left tEXPO
+  left tMULTIPLY tDIVIDE tMODULUS
+  left tPLUS tMINUS
+
+  right tEQUAL
 preclow
 
 rule
@@ -17,28 +21,28 @@ rule
 
   stmt: 
     kDEF fname f_arglist stmts kEND { result = MethodDef.new(val[1], val[2], val[3]) } #method definition
-  | kRETURN expr {}
+  | kRETURN expr { result = Statement::Return.new val[1] }
 
   fname:
     tIDENTIFIER {}
 
   f_arglist:
-    tLPAREN f_args tRPAREN tNL { }
+    tLPAREN f_args tRPAREN tNL { result = val[1] }
 
-  f_args: 
-    f_args f_normal_arg {}
-  | f_arg {}
-  | {}
-
-  f_arg:
-    f_arg tCOMMA f_normal_arg {} 
-  | f_normal_arg {}
+  f_args:
+    f_args tCOMMA f_normal_arg 
+      { 
+        result = ArgumentList.new
+        result.push val[2]
+        result.push val[0]
+      } 
+  | f_normal_arg { }
 
   f_normal_arg:
-    kDTYPE_I32 tIDENTIFIER { }
+    kDTYPE_I32 tIDENTIFIER { result = CBaseType.new val[0], val[1] }
 
   expr:
-    tIDENTIFIER tPLUS tIDENTIFIER {}
+    tIDENTIFIER tPLUS tIDENTIFIER { result = Expression::Addition.new val[0], val[2] }
 end
 
 ---- header

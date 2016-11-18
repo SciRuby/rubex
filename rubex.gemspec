@@ -26,4 +26,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'racc', '~> 1.4.14'
   spec.add_development_dependency 'rake', '~> 11.2'
   spec.add_development_dependency 'rspec', '~> 3.4'
+  spec.add_development_dependency 'awesome_print'
 end
