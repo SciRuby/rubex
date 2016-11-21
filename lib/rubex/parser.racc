@@ -13,15 +13,20 @@ preclow
 rule
 
   program:
-    stmts { }
+    stmts { result = Node.new(val) }
 
   stmts:
-    stmt tNL { result = Node.new(val[0]) }
-  | { }
-
+    stmts stmt tNL { result = [val[0], val[1]] }
+  | stmt tNL { result = [val[0]] }
+  
   stmt: 
-    kDEF fname f_arglist stmts kEND { result = MethodDef.new(val[1], val[2], val[3]) } #method definition
+    kDEF fname f_arglist stmts kEND 
+      { 
+        result = MethodDef.new(val[1], val[2])
+        result.add_statements val[3]
+      }
   | kRETURN expr { result = Statement::Return.new val[1] }
+  | {}
 
   fname:
     tIDENTIFIER {}
