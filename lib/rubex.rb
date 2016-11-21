@@ -1,4 +1,5 @@
 require 'rubex/ast'
+require 'rubex/symbol_table'
 require 'rubex/parser.racc.rb'
 
 module Rubex
@@ -20,7 +21,8 @@ module Rubex
       raise "Must be a Rubex::AST::Node, not #{tree.class}" unless 
         tree.is_a? Rubex::AST::Node
 
-      tree.process_statements target_name, code
+      scope = Rubex::SymbolTable::Scope::Klass.new
+      tree.process_statements target_name, code, scope
     end
 
     def extract_target_name path
