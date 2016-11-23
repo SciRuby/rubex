@@ -1,5 +1,5 @@
 require 'rubex/ast/node'
-require 'rubex/ast/method_def'
+require 'rubex/ast/ruby_method_def'
 require 'rubex/ast/c_base_type'
 require 'rubex/ast/argument_list'
 require 'rubex/ast/statement'

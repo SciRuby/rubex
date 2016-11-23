@@ -1,10 +1,11 @@
 module Rubex
   module AST
-    class MethodDef
+    class RubyMethodDef
       attr_reader :name, :args, :statements, :c_name
       
       def initialize name, args
-        @name, @args = name.to_sym, args
+        @name, @args = name, args
+        @c_name = Rubex::FUNC_PREFIX + name
         @statements = []
       end
 

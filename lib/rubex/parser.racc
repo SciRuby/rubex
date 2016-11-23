@@ -22,7 +22,7 @@ rule
   stmt: 
     kDEF fname f_arglist stmts kEND 
       { 
-        result = MethodDef.new(val[1], val[2])
+        result = RubyMethodDef.new(val[1], val[2])
         result.add_statements val[3]
       }
   | kRETURN expr { result = Statement::Return.new val[1] }

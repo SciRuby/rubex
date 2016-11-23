@@ -12,14 +12,15 @@ module Rubex
       end
 
       def process_statements target_name, code
-        # TODO: Put error detection logic here.
         generate_preamble code
       end
 
      private
 
       def generate_preamble code
-        code << ""
+        code << "#include <ruby.h>"
+        code << "\n"
+
       end
     end
   end
