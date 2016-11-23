@@ -28,8 +28,8 @@ module Rubex
       raise "Must be a Rubex::AST::Node, not #{tree.class}" unless 
         tree.is_a? Rubex::AST::Node
 
-      scope = Rubex::SymbolTable::Scope::Klass.new :Object, :rb_cObject
-      tree.process_statements target_name, code, scope
+      tree.process_statements target_name, code
+      ap tree
     end
 
     def extract_target_name path

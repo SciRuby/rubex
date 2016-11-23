@@ -1,10 +1,10 @@
 module Rubex
   module AST
     class CBaseType
-      attr_reader :base_type, :name_string
+      attr_reader :type, :name
 
-      def initialize base_type, name_string
-        @base_type, @name_string = base_type, name_string
+      def initialize type, name
+        @type, @name = type, name
       end
     end
   end

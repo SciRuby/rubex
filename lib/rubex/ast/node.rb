@@ -9,33 +9,33 @@ module Rubex
       end
 
       def add_child child
-        ap child
         @statements.concat child
       end
 
       def process_statements target_name, code
-        generate_preamble code
+        @scope = Rubex::SymbolTable::Scope::Klass.new 'Object'
         generate_symbol_table_entries
+        generate_preamble code
       end
 
+      # Pretty print the AST
       def pp
         h = {}
-        # h["Node"] = 
+        # TODO
       end
 
      private
 
       def generate_preamble code
-        code << "#include <ruby.h>"
+        code << "#include <ruby.h>\n"
+        code << "#include <stdint.h>\n"
         code << "\n"
       end
 
       def generate_symbol_table_entries
-        @scope = Rubex::SymbolTable::Scope::Klass.new :Object
         @statements.each do |stat|
-
+          stat.generate_symbol_table_entries @scope
         end
-
       end
     end
   end

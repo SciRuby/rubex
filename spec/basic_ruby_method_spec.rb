@@ -15,14 +15,14 @@ describe Rubex do
         # method = MethodDef.new('addition', arguments)
         # expr = Expression::Addition.new 'a', 'b'
         # statements = Statement::Return.new expr
-        p = Rubex.ast @path
-        ap p.inspect
+        # p = Rubex.ast @path
+        # ap p.inspect
       end
     end
 
     context ".compile" do
       it "generates valid C code" do
-        # Rubex.compile @path
+        Rubex.compile @path
       end
     end
 

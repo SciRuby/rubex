@@ -1,7 +1,12 @@
 module Rubex
   module AST
     class ArgumentList
+      include Enumerable
       attr_reader :args
+
+      def each &block
+        @args.each(&block)
+      end
 
       def initialize
         @args = []
