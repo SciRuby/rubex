@@ -3,6 +3,7 @@ module Rubex
 
   FUNC_PREFIX = RUBEX_PREFIX + "f_"
   VAR_PREFIX  = RUBEX_PREFIX + "v_"
+  CLASS_PREFIX = RUBEX_PREFIX + "c_"
   ARGS_PREFIX = RUBEX_PREFIX + "args_"
 
   TYPE_MAPPINGS = {

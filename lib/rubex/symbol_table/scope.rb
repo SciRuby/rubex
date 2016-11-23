@@ -18,11 +18,17 @@ module Rubex
       class Klass
         include Rubex::SymbolTable::Scope
 
-        attr_reader :name
+        attr_reader :name, :c_name
 
         def initialize name
           name == 'Object' ? super(nil) : super
           @name = name
+          
+          if Rubex::CLASS_MAPPINGS.has_key? name
+            @c_name = Rubex::CLASS_MAPPINGS[name]
+          else
+            @c_name = Rubex::CLASS_PREFIX + name
+          end
         end
       end
 

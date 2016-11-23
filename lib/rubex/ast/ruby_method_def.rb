@@ -30,6 +30,12 @@ module Rubex
         @scope.outer_scope = outer_scope
         @scope.declare_args @args
       end
+
+      def analyse_expressions outer_scope
+        @statements.each do |stat|
+          stat.analyse_expressions
+        end
+      end
     end
   end
 end

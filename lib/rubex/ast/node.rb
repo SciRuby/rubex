@@ -15,12 +15,12 @@ module Rubex
       def process_statements target_name, code
         @scope = Rubex::SymbolTable::Scope::Klass.new 'Object'
         generate_symbol_table_entries
+        analyse_expressions
         generate_preamble code
       end
 
       # Pretty print the AST
       def pp
-        h = {}
         # TODO
       end
 
@@ -35,6 +35,12 @@ module Rubex
       def generate_symbol_table_entries
         @statements.each do |stat|
           stat.generate_symbol_table_entries @scope
+        end
+      end
+
+      def analyse_expressions
+        @statements.each do |stat|
+          stat.analyse_expressions @scope
         end
       end
     end
