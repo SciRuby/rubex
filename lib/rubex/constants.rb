@@ -7,7 +7,8 @@ module Rubex
   ARGS_PREFIX = RUBEX_PREFIX + "args_"
 
   TYPE_MAPPINGS = {
-    'i32' => 'int32_t'
+    'i32' => Rubex::DataType::CInt32,
+    'object' => Rubex::DataType::RubyObject
   }
 
   CLASS_MAPPINGS = {

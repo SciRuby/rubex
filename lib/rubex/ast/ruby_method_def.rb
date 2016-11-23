@@ -18,7 +18,7 @@ module Rubex
         @name, @args = name, args
         @c_name = Rubex::FUNC_PREFIX + name
         @statements = []
-        @return_type = 'VALUE'
+        @return_type = Rubex::DataType::RubyObject.new
       end
 
       def add_statements statements
@@ -28,12 +28,13 @@ module Rubex
       def generate_symbol_table_entries outer_scope
         @scope = Rubex::SymbolTable::Scope::Local.new
         @scope.outer_scope = outer_scope
+        @scope.return_type = @return_type.dup
         @scope.declare_args @args
       end
 
       def analyse_expressions outer_scope
         @statements.each do |stat|
-          stat.analyse_expressions
+          stat.analyse_expression @scope
         end
       end
     end

@@ -1,3 +1,4 @@
+require 'rubex/data_type'
 require 'rubex/constants'
 require 'rubex/ast'
 require 'rubex/symbol_table'
