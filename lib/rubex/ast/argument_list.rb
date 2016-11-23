@@ -8,7 +8,7 @@ module Rubex
       end
 
       def push arg
-        @args << arg.to_sym
+        @args << arg
       end
     end
   end

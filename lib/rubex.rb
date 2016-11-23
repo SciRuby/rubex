@@ -1,4 +1,4 @@
-require 'rubex/naming'
+require 'rubex/constants'
 require 'rubex/ast'
 require 'rubex/symbol_table'
 require 'rubex/parser.racc.rb'

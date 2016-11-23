@@ -156,7 +156,7 @@ Racc_debug_parser = false
 
 module_eval(<<'.,.,', 'parser.racc', 15)
   def _reduce_1(val, _values, result)
-     result = Node.new(val) 
+     result = Node.new(val[0]) 
     result
   end
 .,.,
@@ -177,7 +177,7 @@ module_eval(<<'.,.,', 'parser.racc', 19)
 
 module_eval(<<'.,.,', 'parser.racc', 24)
   def _reduce_4(val, _values, result)
-            result = MethodDef.new(val[1], val[2])
+            result = RubyMethodDef.new(val[1], val[2])
         result.add_statements val[3]
       
     result

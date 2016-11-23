@@ -13,7 +13,7 @@ preclow
 rule
 
   program:
-    stmts { result = Node.new(val) }
+    stmts { result = Node.new(val[0]) }
 
   stmts:
     stmts stmt tNL { result = [val[0], val[1]] }
