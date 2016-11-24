@@ -18,7 +18,7 @@ module Rubex
         analyse_expressions
         generate_preamble code
         generate_code code
-        generate_init_method code
+        generate_init_method target_name, code
       end
 
       # Pretty print the AST
@@ -47,10 +47,12 @@ module Rubex
       end
 
       def generate_code code
-        
+        @statements.each do |stat|
+          stat.generate_code code
+        end
       end
 
-      def generate_init_method code
+      def generate_init_method target_name, code
         
       end
     end
