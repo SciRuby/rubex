@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Rubex do
   context "basic Rubex Ruby callable method" do
     before do
-      @path = 'spec/fixtures/basic_ruby_method.rubex'
+      @path = 'spec/fixtures/basic_ruby_method/basic_ruby_method.rubex'
       include Rubex::AST
     end
 

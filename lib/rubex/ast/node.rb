@@ -17,6 +17,8 @@ module Rubex
         generate_symbol_table_entries
         analyse_expressions
         generate_preamble code
+        generate_code code
+        generate_init_method code
       end
 
       # Pretty print the AST
@@ -42,6 +44,14 @@ module Rubex
         @statements.each do |stat|
           stat.analyse_expressions @scope
         end
+      end
+
+      def generate_code code
+        
+      end
+
+      def generate_init_method code
+        
       end
     end
   end

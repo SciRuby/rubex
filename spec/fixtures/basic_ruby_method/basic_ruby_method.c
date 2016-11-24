@@ -9,7 +9,8 @@ VALUE __rubex_f_addition(VALUE __rubex_self, VALUE __rubex_arg_a, VALUE __rubex_
   return INT2NUM(__rubex_v_a + __rubex_v_b);
 }
 
+void
 Init_basic_ruby_method(void)
 {
-  // set ruby method
+  rb_define_method(rb_cObject, "addition", __rubex_f_addition, 2);
 }
