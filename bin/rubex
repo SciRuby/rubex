@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require 'rubex'
+
+file_name = ARGV[0]
+if File.exists? file_name
+  file_name = Dir.pwd + "/#{file_name}"
+end
+
+Rubex.compile file_name
