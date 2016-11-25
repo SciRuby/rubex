@@ -48,8 +48,9 @@ module Rubex
     private
 
       def generate_function_definition code
+        declare_args code
         generate_arg_checking code
-        declare_and_init_args code
+        init_args code
         generate_statements code
       end
 
@@ -59,9 +60,14 @@ module Rubex
         end
       end
 
-      def declare_and_init_args code
-        @scope.arg_entries.each_with_index do |arg, i|
+      def declare_args code
+        @scope.arg_entries.each do |arg|
           code.declare_variable arg
+        end
+      end
+
+      def init_args code
+        @scope.arg_entries.each_with_index do |arg, i|
           code << arg.c_name + '=' + arg.type.from_ruby_function + '(' + 
             'argv[' + i.to_s + ']);' + "\n"
         end

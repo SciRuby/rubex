@@ -9,26 +9,31 @@ describe Rubex do
 
     context ".ast" do
       it "returns a valid Abstract Syntax Tree" do
-        # arguments = ArgumentList.new
-        # arguments.push CBaseType.new 'i32', 'a'
-        # arguments.push CBaseType.new 'i32', 'b'
-        # method = MethodDef.new('addition', arguments)
-        # expr = Expression::Addition.new 'a', 'b'
-        # statements = Statement::Return.new expr
-        # p = Rubex.ast @path
-        # ap p.inspect
+        arguments  = ArgumentList.new
+        arguments.push CBaseType.new('i32', 'b')
+        arguments.push CBaseType.new('i32', 'a')
+        method     = RubyMethodDef.new('addition', arguments)
+        expr       = Expression::Addition.new 'a', 'b'
+        statements = Statement::Return.new expr
+        node       = Node.new method
+
+        # TODO: Define == method on all nodes of AST.
+        # expect(Rubex.ast(@path)).to eq(node)
       end
     end
 
     context ".compile" do
       it "generates valid C code" do
-        Rubex.compile @path
+        Rubex.compile @path, true
       end
     end
 
     context ".extconf" do
       it "generates extconf for creating Makefile" do
+        f = "require 'mkmf'\n"
+        f << "create_makefile('basic_ruby_method/basic_ruby_method')\n"
 
+        expect(Rubex.extconf("basic_ruby_method")).to eq(f)
       end
     end
   end

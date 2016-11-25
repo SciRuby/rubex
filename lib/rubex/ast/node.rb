@@ -4,7 +4,6 @@ module Rubex
       attr_reader :statements
 
       def initialize statements
-        ap statements
         @statements = statements.is_a?(Array) ? statements : [statements]
       end
 

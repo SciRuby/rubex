@@ -47,6 +47,10 @@ module Rubex
         c_name + ", -1);\n"
     end
 
+    def to_s
+      @code
+    end
+
   private
 
     def write_func_prototype return_type, c_name, args
