@@ -11,8 +11,8 @@ module Rubex
       tree = ast path
       target_name = extract_target_name path
       code = Rubex::CodeWriter.new target_name
-
       generate_code tree, target_name, code
+      extconf target_name
     end
 
     def ast path
@@ -21,17 +21,19 @@ module Rubex
       parser.do_parse
     end
 
+    def extconf target_name
+      
+    end
+
     def generate_code tree, target_name, code
       raise "Must be a Rubex::AST::Node, not #{tree.class}" unless 
         tree.is_a? Rubex::AST::Node
-
       tree.process_statements target_name, code
-      # ap tree
-      puts code.code
+      code
     end
 
     def extract_target_name path
-      
+      File.basename(path).split('.')[0]      
     end
   end
 end

@@ -53,7 +53,19 @@ module Rubex
       end
 
       def generate_init_method target_name, code
-        
+        name = "Init_#{target_name}"
+        code.new_line
+        code.write_func_declaration "void", name, "void"
+        code.write_func_definition_header "void", name, "void"
+
+        @statements.each do |stat|
+          if stat.is_a? Rubex::AST::RubyMethodDef
+            code.define_instance_method_under @scope, stat.name, stat.c_name
+          end
+        end
+
+        code << "\n"
+        code << "}\n"
       end
     end
   end

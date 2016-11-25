@@ -9,19 +9,14 @@ module Rubex
       @indent = 0
     end
 
-    def write_func_declaration return_type, c_name
-      @code << "#{return_type} #{c_name} "
-      @code << "("
-      @code << "int argc, VALUE* argv, VALUE #{Rubex::ARG_PREFIX}self"
-      @code << ");"
+    def write_func_declaration return_type, c_name, args=""
+      write_func_prototype return_type, c_name, args
+      @code << ";"
       new_line
     end
 
-    def write_func_definition_header return_type, c_name
-      @code << "#{return_type} #{c_name} "
-      @code << "("
-      @code << "int argc, VALUE* argv, VALUE #{Rubex::ARG_PREFIX}self"
-      @code << ")"
+    def write_func_definition_header return_type, c_name, args=""
+      write_func_prototype return_type, c_name, args
       @code << "\n"
       @code << "{\n"
     end
@@ -45,6 +40,24 @@ module Rubex
     def dedent
       raise "Cannot dedent, already 0." if @indent == 0
       @indent -= 1
+    end
+
+    def define_instance_method_under scope, name, c_name
+      @code << "rb_define_method(" + scope.c_name + " ,\"" + name + "\", " + 
+        c_name + ", -1);\n"
+    end
+
+  private
+
+    def write_func_prototype return_type, c_name, args
+      @code << "#{return_type} #{c_name} "
+      @code << "("
+      if args.empty?
+        @code << "int argc, VALUE* argv, VALUE #{Rubex::ARG_PREFIX}self"
+      else
+        @code << args
+      end
+      @code << ")"      
     end
   end
 end
