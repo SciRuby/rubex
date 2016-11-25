@@ -10,7 +10,7 @@ module Rubex
     def compile path
       tree = ast path
       target_name = extract_target_name path
-      code = Rubex::CodeWriter.new
+      code = Rubex::CodeWriter.new target_name
 
       generate_code tree, target_name, code
     end
@@ -26,8 +26,8 @@ module Rubex
         tree.is_a? Rubex::AST::Node
 
       tree.process_statements target_name, code
-      ap tree
-      ap code
+      # ap tree
+      puts code.code
     end
 
     def extract_target_name path

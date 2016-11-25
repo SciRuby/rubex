@@ -215,8 +215,8 @@ module_eval(<<'.,.,', 'parser.racc', 34)
 module_eval(<<'.,.,', 'parser.racc', 39)
   def _reduce_9(val, _values, result)
             result = ArgumentList.new
-        result.push val[2]
         result.push val[0]
+        result.push val[2]
       
     result
   end

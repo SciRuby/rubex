@@ -4,7 +4,7 @@ module Rubex
   FUNC_PREFIX = RUBEX_PREFIX + "f_"
   VAR_PREFIX  = RUBEX_PREFIX + "v_"
   CLASS_PREFIX = RUBEX_PREFIX + "c_"
-  ARGS_PREFIX = RUBEX_PREFIX + "args_"
+  ARG_PREFIX = RUBEX_PREFIX + "arg_"
 
   TYPE_MAPPINGS = {
     'i32' => Rubex::DataType::CInt32,

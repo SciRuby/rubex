@@ -45,8 +45,33 @@ module Rubex
         code << "}"
       end
 
+    private
+
       def generate_function_definition code
-        
+        generate_arg_checking code
+        declare_and_init_args code
+        generate_statements code
+      end
+
+      def generate_statements code
+        @statements.each do |stat|
+          stat.generate_code code, @scope
+        end
+      end
+
+      def declare_and_init_args code
+        @scope.arg_entries.each_with_index do |arg, i|
+          code.declare_variable arg
+          code << arg.c_name + '=' + arg.type.from_ruby_function + '(' + 
+            'argv[' + i.to_s + ']);' + "\n"
+        end
+      end
+
+      def generate_arg_checking code
+        code << 'if (argc != ' + @scope.arg_entries.size.to_s + ")\n"
+        code << "{\n"
+        code << %Q{rb_raise(rb_eArgError, "Need #{@scope.arg_entries.size} args, not %d", argc);\n}
+        code << "}\n"
       end
     end
   end

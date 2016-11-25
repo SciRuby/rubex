@@ -38,8 +38,8 @@ rule
     f_args tCOMMA f_normal_arg 
       { 
         result = ArgumentList.new
-        result.push val[2]
         result.push val[0]
+        result.push val[2]
       } 
   | f_normal_arg { }
 

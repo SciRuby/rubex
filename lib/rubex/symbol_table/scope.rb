@@ -39,7 +39,7 @@ module Rubex
         # args - Rubex::AST::ArgumentList. Creates sym. table entries for args.
         def declare_args args
           args.each do |arg|
-            c_name = Rubex::ARGS_PREFIX + arg.name
+            c_name = Rubex::ARG_PREFIX + arg.name
             type = Rubex::TYPE_MAPPINGS[arg.type].new
             entry = Rubex::SymbolTable::Entry.new arg.name, c_name, type 
 
