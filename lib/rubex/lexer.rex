@@ -28,6 +28,8 @@ rules
 
   # Data Types
 
+  /unsigned long long int/ { [:kDTYPE_ULLINT, text] }
+  /unsigned long int/      { [:kDTYPE_ULINT, text] }
   /unsigned int/           { [:kDTYPE_UINT, text] }
   /long int/               { [:kDTYPE_LINT, text] }
   /long long int/          { [:kDTYPE_LLINT, text] }
@@ -46,8 +48,6 @@ rules
   /f64/                    { [:kDTYPE_F64, text] }
   /double/                 { [:kDTYPE_F64, text] }
   /object/                 { [:kDTYPE_ROBJ, text] }
-  # /unsigned long long int/ { [:kDTYPE_ULLINT, text] }
-  # /unsigned long int/      { [:kDTYPE_ULINT, text] }
   # /long double/            { [:kDTYPE_LF64, text] }
   # /long f64/               { [:kDTYPE_LF64, text] }
 

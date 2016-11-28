@@ -13,7 +13,7 @@ module Rubex
     end
 
     class Int8
-      def to_s; "i8"; end
+      def to_s; "int8_t"; end
 
       def to_ruby_function(arg); "INT2NUM(#{arg})"; end
 
@@ -21,7 +21,7 @@ module Rubex
     end
 
     class Int16
-      def to_s; "i16"; end
+      def to_s; "int16_t"; end
 
       def to_ruby_function(arg); "INT2NUM(#{arg})"; end
 
@@ -37,7 +37,7 @@ module Rubex
     end
 
     class Int64
-      def to_s; "i64"; end
+      def to_s; "int64_t"; end
 
       def to_ruby_function(arg); "INT2NUM(#{arg})"; end
 
@@ -45,7 +45,7 @@ module Rubex
     end
 
     class UInt8
-      def to_s; "ui8"; end
+      def to_s; "uint8_t"; end
 
       def to_ruby_function(arg); "UINT2NUM(#{arg})"; end
 
@@ -53,7 +53,7 @@ module Rubex
     end
 
     class UInt16
-      def to_s; "ui16"; end
+      def to_s; "uint16_t"; end
 
       def to_ruby_function(arg); "UINT2NUM(#{arg})"; end
 
@@ -61,7 +61,7 @@ module Rubex
     end
 
     class UInt32
-      def to_s; "ui32"; end
+      def to_s; "uint32_t"; end
 
       def to_ruby_function(arg); "UINT2NUM(#{arg})"; end
 
@@ -69,7 +69,7 @@ module Rubex
     end
 
     class UInt64
-      def to_s; "ui64"; end
+      def to_s; "uint64_t"; end
 
       def to_ruby_function(arg); "UINT2NUM(#{arg})"; end
 
@@ -100,18 +100,34 @@ module Rubex
       def from_ruby_function(arg); "NUM2LONG(#{arg})"; end
     end
 
+    class ULInt
+      def to_s; "unsigned long int"; end
+
+      def to_ruby_function(arg); "ULONG2NUM(#{arg})"; end
+
+      def from_ruby_function(arg); "NUM2ULONG(#{arg})"; end
+    end
+
     class LLInt
       def to_s; "long long int"; end
 
       def to_ruby_function(arg); "LL2NUM(#{arg})"; end
 
-      def from_ruby_function(arg); "NUM2INT(#{arg})"; end
+      def from_ruby_function(arg); "NUM2LL(#{arg})"; end
+    end
+
+    class ULLInt
+      def to_s; "unsigned long long int"; end
+
+      def to_ruby_function(arg); "ULL2NUM(#{arg})"; end
+
+      def from_ruby_function(arg); "NUM2ULL(#{arg})"; end
     end
 
     class F32
       def to_s; "float"; end
 
-      def to_ruby_function(arg); "rb_float_new(#{arg})"; end
+      def to_ruby_function(arg); "rb_float_new((double)#{arg})"; end
 
       def from_ruby_function(arg); "(float)NUM2DBL(#{arg})"; end
     end
@@ -121,7 +137,7 @@ module Rubex
 
       def to_ruby_function(arg); "rb_float_new(#{arg})"; end
 
-      def from_ruby_function(arg); "(float)NUM2DBL(#{arg})"; end
+      def from_ruby_function(arg); "NUM2DBL(#{arg})"; end
     end
 
     # TODO: How to store this in a Ruby class? Use BigDecimal?
