@@ -1,0 +1,11 @@
+def addition(float a, ui64 b, i32 qq)
+  f32 c = 5.6
+  i32 d
+  i32 e, f = 7
+  char q = 'e'
+  yy = 't'
+
+  print q
+
+  return a + c
+end

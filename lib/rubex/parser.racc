@@ -1,7 +1,15 @@
 class Rubex::Parser
 token 
-  kDEF kEND kRETURN kDTYPE_I32 tLPAREN tRPAREN tIDENTIFIER tPLUS tNL tCOMMA
+  kDEF kEND kRETURN 
 
+  kDTYPE_UINT kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16  
+  kDTYPE_I32  kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64 
+  kDTYPE_INT  kDTYPE_F32  kDTYPE_F32   kDTYPE_F64  kDTYPE_F64  kDTYPE_LF64
+  kDTYPE_LF64 kDTYPE_ROBJ 
+
+  tLPAREN tRPAREN tIDENTIFIER tNL tCOMMA tSQUOTE
+
+  tPLUS tMINUS tMULTIPLY tDIVIDE tEXPO tMODULUS tEQUAL
 prechigh
   left tEXPO
   left tMULTIPLY tDIVIDE tMODULUS
@@ -47,7 +55,13 @@ rule
     kDTYPE_I32 tIDENTIFIER { result = CBaseType.new val[0], val[1] }
 
   expr:
-    tIDENTIFIER tPLUS tIDENTIFIER { result = Expression::Addition.new val[0], val[2] }
+    tIDENTIFIER binary_op tIDENTIFIER 
+      { 
+        result = Expression::Addition.new val[0], val[2]
+      }
+
+  binary_op:
+    tPLUS | tMINUS | tMULTIPLY | tDIVIDE | tEXPO | tMODULUS { result = val[0] }
 end
 
 ---- header
