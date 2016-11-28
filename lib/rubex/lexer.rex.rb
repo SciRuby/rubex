@@ -22,7 +22,7 @@ class Rubex::Lexer
   PLUS       = /\+/
   MINUS      = /\-/
   MODULUS    = /%/
-  EQUAL      = /=/
+  ASSIGN     = /=/
 
   class ScanError < StandardError ; end
 
@@ -142,8 +142,8 @@ class Rubex::Lexer
             action { [:tMODULUS, text]}
           when text = ss.scan(/#{EXPO}/) then
             action { [:tEXPO, text]}
-          when text = ss.scan(/#{EQUAL}/) then
-            action { [:tEQUAL, text] }
+          when text = ss.scan(/#{ASSIGN}/) then
+            action { [:tASSIGN, text] }
           when ss.skip(/ /) then
             action {}
           else

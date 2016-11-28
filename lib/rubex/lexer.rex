@@ -18,7 +18,7 @@ macros
   PLUS            /\+/
   MINUS           /\-/
   MODULUS         /%/
-  EQUAL           /=/
+  ASSIGN          /=/
 rules
   # Reserved words
 
@@ -69,7 +69,7 @@ rules
   /#{EXPO}/       { [:tEXPO, text]}
   /#{MODULUS}/    { [:tMODULUS, text]}
   /#{EXPO}/       { [:tEXPO, text]}
-  /#{EQUAL}/      { [:tEQUAL, text] }
+  /#{ASSIGN}/      { [:tASSIGN, text] }
 
   # whitespace
 

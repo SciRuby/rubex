@@ -9,13 +9,13 @@ token
 
   tLPAREN tRPAREN tIDENTIFIER tNL tCOMMA tSQUOTE
 
-  tPLUS tMINUS tMULTIPLY tDIVIDE tEXPO tMODULUS tEQUAL
+  tPLUS tMINUS tMULTIPLY tDIVIDE tEXPO tMODULUS tASSIGN
 prechigh
   left tEXPO
   left tMULTIPLY tDIVIDE tMODULUS
   left tPLUS tMINUS
 
-  right tEQUAL
+  right tASSIGN
 preclow
 
 rule
@@ -38,10 +38,25 @@ rule
     stmts stmt eol { result = [val[0], val[1]] }
   | stmt eol { result = [val[0]] }
   
-  stmt: 
-    kRETURN expr { result = Statement::Return.new val[1] }
+  stmt:
+    var_decl_or_init {  }
+  | kRETURN expr { result = Statement::Return.new val[1] }
   | {}
 
+  var_decl_or_init:
+    var_decl_or_init tCOMMA normal_decl {}
+  | var_decl_or_init tCOMMA normal_init {}
+  | normal_decl {}
+  | normal_init {}
+
+  normal_decl:
+    dtype tIDENTIFIER {}
+
+  normal_init:
+    dtype tIDENTIFIER tASSIGN literal {}
+
+  literal:
+    
   f_name:
     tIDENTIFIER {}
 
