@@ -32,6 +32,7 @@ module Rubex
     def new_line
       @code << "\n"
     end
+    alias :nl :new_line
 
     def indent
       @indent += 1

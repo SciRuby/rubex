@@ -68,8 +68,9 @@ module Rubex
 
       def init_args code
         @scope.arg_entries.each_with_index do |arg, i|
-          code << arg.c_name + '=' + arg.type.from_ruby_function + '(' + 
-            'argv[' + i.to_s + ']);' + "\n"
+          code << arg.c_name + '=' + arg.type.from_ruby_function("argv[#{i}]")
+          code << ";"
+          code.nl
         end
       end
 

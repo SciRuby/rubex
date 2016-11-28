@@ -15,6 +15,7 @@ class Rubex::Lexer
   RPAREN     = /\)/
   NL         = /\n/
   COMMA      = /,/
+  SQUOTE     = /'/
   EXPO       = /\*\*/
   MULTIPLY   = /\*/
   DIVIDE     = /\//
@@ -75,8 +76,46 @@ class Rubex::Lexer
             action { [:kEND, text]  }
           when text = ss.scan(/#{RETURN}/) then
             action { [:kRETURN, text] }
+          when text = ss.scan(/unsigned long long int/) then
+            action { [:kDTYPE_ULLINT, text] }
+          when text = ss.scan(/unsigned long int/) then
+            action { [:kDTYPE_ULINT, text] }
+          when text = ss.scan(/unsigned int/) then
+            action { [:kDTYPE_UINT, text] }
+          when text = ss.scan(/long int/) then
+            action { [:kDTYPE_LINT, text] }
+          when text = ss.scan(/long long int/) then
+            action { [:kDTYPE_LLINT, text] }
+          when text = ss.scan(/char/) then
+            action { [:kDTYPE_CHAR, text] }
+          when text = ss.scan(/i8/) then
+            action { [:kDTYPE_I8, text] }
+          when text = ss.scan(/i16/) then
+            action { [:kDTYPE_I16, text] }
           when text = ss.scan(/i32/) then
             action { [:kDTYPE_I32, text] }
+          when text = ss.scan(/i64/) then
+            action { [:kDTYPE_I64, text] }
+          when text = ss.scan(/u8/) then
+            action { [:kDTYPE_UI8, text] }
+          when text = ss.scan(/u16/) then
+            action { [:kDTYPE_UI16, text] }
+          when text = ss.scan(/u32/) then
+            action { [:kDTYPE_UI32, text] }
+          when text = ss.scan(/u64/) then
+            action { [:kDTYPE_UI64, text] }
+          when text = ss.scan(/int/) then
+            action { [:kDTYPE_INT, text] }
+          when text = ss.scan(/f32/) then
+            action { [:kDTYPE_F32, text] }
+          when text = ss.scan(/float/) then
+            action { [:kDTYPE_F32, text] }
+          when text = ss.scan(/f64/) then
+            action { [:kDTYPE_F64, text] }
+          when text = ss.scan(/double/) then
+            action { [:kDTYPE_F64, text] }
+          when text = ss.scan(/object/) then
+            action { [:kDTYPE_ROBJ, text] }
           when text = ss.scan(/#{IDENTIFIER}/) then
             action { [:tIDENTIFIER, text] }
           when text = ss.scan(/#{LPAREN}/) then
@@ -87,6 +126,8 @@ class Rubex::Lexer
             action { [:tNL, text] }
           when text = ss.scan(/#{COMMA}/) then
             action { [:tCOMMA, text] }
+          when text = ss.scan(/#{SQUOTE}/) then
+            action { [:tSQUOTE, text] }
           when text = ss.scan(/#{PLUS}/) then
             action { [:tPLUS, text]}
           when text = ss.scan(/#{MINUS}/) then
@@ -101,6 +142,8 @@ class Rubex::Lexer
             action { [:tMODULUS, text]}
           when text = ss.scan(/#{EXPO}/) then
             action { [:tEXPO, text]}
+          when text = ss.scan(/#{EQUAL}/) then
+            action { [:tEQUAL, text] }
           when ss.skip(/ /) then
             action {}
           else

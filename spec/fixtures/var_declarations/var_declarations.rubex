@@ -1,4 +1,4 @@
-def addition(float a, ui64 b, i32 qq)
+def addition(float a, u64 b, i32 qq)
   f32 c = 5.6
   i32 d
   i32 e, f = 7

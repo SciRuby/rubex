@@ -29,13 +29,10 @@ module Rubex
           when Rubex::AST::Expression::Addition
             left  = @expression.left
             right = @expression.right
-            code << @return_type.to_ruby_function
-            code << "("
-            code << local_scope[left].c_name
-            code << " + "
-            code << local_scope[right].c_name
-            code << ")"
-            code << ";\n"
+            code << @return_type.to_ruby_function( 
+              "#{local_scope[left].c_name} + #{local_scope[right].c_name}")
+            code << ";"
+            code.new_line
           end
         end
 
@@ -44,8 +41,8 @@ module Rubex
         def result_type_for left_type, right_type
           dtype = Rubex::DataType
 
-          if left_type.is_a?(dtype::CInt32) && right_type.is_a?(dtype::CInt32)
-            return dtype::CInt32.new
+          if left_type.is_a?(dtype::Int32) && right_type.is_a?(dtype::Int32)
+            return dtype::Int32.new
           end
         end
       end

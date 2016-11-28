@@ -21,26 +21,32 @@ preclow
 rule
 
   program:
-    stmts { result = Node.new(val[0]) }
+    methods { result = Node.new(val[0]) }
 
-  stmts:
-    stmts stmt tNL { result = [val[0], val[1]] }
-  | stmt tNL { result = [val[0]] }
-  
-  stmt: 
-    kDEF fname f_arglist stmts kEND 
+  methods:
+    methods ruby_method { result = val[1] }
+  | {}
+
+  ruby_method:
+    kDEF f_name f_arglist stmts kEND eol
       { 
         result = RubyMethodDef.new(val[1], val[2])
         result.add_statements val[3]
       }
-  | kRETURN expr { result = Statement::Return.new val[1] }
+
+  stmts:
+    stmts stmt eol { result = [val[0], val[1]] }
+  | stmt eol { result = [val[0]] }
+  
+  stmt: 
+    kRETURN expr { result = Statement::Return.new val[1] }
   | {}
 
-  fname:
+  f_name:
     tIDENTIFIER {}
 
   f_arglist:
-    tLPAREN f_args tRPAREN tNL { result = val[1] }
+    tLPAREN f_args tRPAREN eol { result = val[1] }
 
   f_args:
     f_args tCOMMA f_normal_arg 
@@ -52,7 +58,7 @@ rule
   | f_normal_arg { }
 
   f_normal_arg:
-    kDTYPE_I32 tIDENTIFIER { result = CBaseType.new val[0], val[1] }
+    dtype tIDENTIFIER { result = CBaseType.new val[0], val[1] }
 
   expr:
     tIDENTIFIER binary_op tIDENTIFIER 
@@ -60,8 +66,20 @@ rule
         result = Expression::Addition.new val[0], val[2]
       }
 
+  dtype:
+    kDTYPE_UINT  | kDTYPE_LINT | kDTYPE_LLINT | kDTYPE_CHAR | kDTYPE_I8   | 
+    kDTYPE_I16   | kDTYPE_I32  | kDTYPE_I64   | kDTYPE_UI8  | kDTYPE_UI16 | 
+    kDTYPE_UI32  | kDTYPE_UI64 | kDTYPE_INT   | kDTYPE_F32  | kDTYPE_F64  | 
+    kDTYPE_LF64  | kDTYPE_ROBJ | kDTYPE_ULINT | kDTYPE_ULLINT 
+      {
+        result = val[0]
+      }
+
   binary_op:
     tPLUS | tMINUS | tMULTIPLY | tDIVIDE | tEXPO | tMODULUS { result = val[0] }
+
+  eol:
+    tNL {}
 end
 
 ---- header
