@@ -1,6 +1,15 @@
 module Rubex
   module AST
     class Statement
+      class VariableDeclaration
+        attr_reader :dtype, :name, :c_name, :value
+
+        def initialize dtype, name, value
+          @dtype, @name, @vale = dtype, name, value
+          @c_name = Rubex::VAR_PREFIX + name
+        end
+      end
+      
       class Return
         attr_reader :expression, :return_type
 

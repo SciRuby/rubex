@@ -1,15 +1,17 @@
 class Rubex::Parser
 token 
-  kDEF kEND kRETURN 
+  kDEF kEND kRETURN kPRINT
 
   kDTYPE_UINT  kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16  
   kDTYPE_I32   kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64 
   kDTYPE_INT   kDTYPE_F32  kDTYPE_F64   kDTYPE_LF64 kDTYPE_LF64 kDTYPE_ROBJ 
   kDTYPE_ULINT kDTYPE_ULLINT
 
-  tLPAREN tRPAREN tIDENTIFIER tNL tCOMMA tSQUOTE
+  tLPAREN tRPAREN tIDENTIFIER tNL tCOMMA tSQUOTE EOF
 
   tPLUS tMINUS tMULTIPLY tDIVIDE tEXPO tMODULUS tASSIGN
+
+  tINTEGER tFLOAT tSINGLE_CHAR
 prechigh
   left tEXPO
   left tMULTIPLY tDIVIDE tMODULUS
@@ -41,21 +43,29 @@ rule
   stmt:
     var_decl_or_init {  }
   | kRETURN expr { result = Statement::Return.new val[1] }
+  | kPRINT expr { }
   | {}
 
   var_decl_or_init:
-    var_decl_or_init tCOMMA normal_decl {}
-  | var_decl_or_init tCOMMA normal_init {}
+    dtype decl_or_init { } # ctype declarations and inits
+  | normal_init {} # ruby inits
+
+  decl_or_init:
+    decl_or_init tCOMMA normal_init {}
+  | decl_or_init tCOMMA normal_decl {}
   | normal_decl {}
   | normal_init {}
 
   normal_decl:
-    dtype tIDENTIFIER {}
+    tIDENTIFIER {}
 
   normal_init:
-    dtype tIDENTIFIER tASSIGN literal {}
+    tIDENTIFIER tASSIGN literal {}
 
   literal:
+    tINTEGER {}
+  | tFLOAT   {}
+  | tSINGLE_CHAR { result = val[0][1] }
     
   f_name:
     tIDENTIFIER {}
@@ -76,10 +86,11 @@ rule
     dtype tIDENTIFIER { result = CBaseType.new val[0], val[1] }
 
   expr:
-    tIDENTIFIER binary_op tIDENTIFIER 
+    tIDENTIFIER binary_op tIDENTIFIER
       { 
         result = Expression::Addition.new val[0], val[2]
       }
+  | tIDENTIFIER {}
 
   dtype:
     kDTYPE_UINT  | kDTYPE_LINT | kDTYPE_LLINT | kDTYPE_CHAR | kDTYPE_I8   | 

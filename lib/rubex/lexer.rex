@@ -1,14 +1,19 @@
 class Rubex::Lexer
 macros
+  # reserved words
+
   DEF             /def/
   RETURN          /return/
+  PRINT           /print/
 
-  IDENTIFIER      /[a-z_][a-zA-Z_0-9]*/
+  IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN          /\(/
   RPAREN          /\)/
   NL              /\n/
   COMMA           /,/
   SQUOTE          /'/
+  INTEGER         /-?\d+/
+  FLOAT           /-?\d+\.\d+/
 
   # operators
 
@@ -20,11 +25,19 @@ macros
   MODULUS         /%/
   ASSIGN          /=/
 rules
+
+  # literals
+
+  /'.\'/          { [:tSINGLE_CHAR, text] }
+  /#{FLOAT}/      { [:tFLOAT, text] }
+  /#{INTEGER}/    { [:tINTEGER, text] }
+
   # Reserved words
 
-  /#{DEF}/  { [:kDEF, text] }
-  /end/  { [:kEND, text]  }
+  /#{DEF}/    { [:kDEF, text] }
+  /end/       { [:kEND, text]  }
   /#{RETURN}/ { [:kRETURN, text] }
+  /#{PRINT}/  { [:kPRINT, text]  }
 
   # Data Types
 
@@ -53,12 +66,11 @@ rules
 
   # Keywords
 
-  /#{IDENTIFIER}/ { [:tIDENTIFIER, text] }
-  /#{LPAREN}/     { [:tLPAREN, text] }
-  /#{RPAREN}/     { [:tRPAREN, text] }
-  /#{NL}/         { [:tNL, text] }
-  /#{COMMA}/      { [:tCOMMA, text] }
-  /#{SQUOTE}/     { [:tSQUOTE, text] }
+  /#{IDENTIFIER}/         { [:tIDENTIFIER, text] }
+  /#{LPAREN}/             { [:tLPAREN, text] }
+  /#{RPAREN}/             { [:tRPAREN, text] }
+  /#{NL}/                 { [:tNL, text] }
+  /#{COMMA}/              { [:tCOMMA, text] }
 
   # operators
 
@@ -69,11 +81,12 @@ rules
   /#{EXPO}/       { [:tEXPO, text]}
   /#{MODULUS}/    { [:tMODULUS, text]}
   /#{EXPO}/       { [:tEXPO, text]}
-  /#{ASSIGN}/      { [:tASSIGN, text] }
+  /#{ASSIGN}/     { [:tASSIGN, text] }
 
   # whitespace
 
-  / /             {}
+  /\s+/
+  /./             { [text, text] }
 inner
   def do_parse
     # this is a stub since oedipus lex uses this internally.

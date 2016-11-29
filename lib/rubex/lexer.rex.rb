@@ -10,12 +10,15 @@ class Rubex::Lexer
 
   DEF        = /def/
   RETURN     = /return/
-  IDENTIFIER = /[a-z_][a-zA-Z_0-9]*/
+  PRINT      = /print/
+  IDENTIFIER = /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN     = /\(/
   RPAREN     = /\)/
   NL         = /\n/
   COMMA      = /,/
   SQUOTE     = /'/
+  INTEGER    = /-?\d+/
+  FLOAT      = /-?\d+\.\d+/
   EXPO       = /\*\*/
   MULTIPLY   = /\*/
   DIVIDE     = /\//
@@ -70,12 +73,20 @@ class Rubex::Lexer
         case state
         when nil then
           case
+          when text = ss.scan(/'.\'/) then
+            action { [:tSINGLE_CHAR, text] }
+          when text = ss.scan(/#{FLOAT}/) then
+            action { [:tFLOAT, text] }
+          when text = ss.scan(/#{INTEGER}/) then
+            action { [:tINTEGER, text] }
           when text = ss.scan(/#{DEF}/) then
             action { [:kDEF, text] }
           when text = ss.scan(/end/) then
             action { [:kEND, text]  }
           when text = ss.scan(/#{RETURN}/) then
             action { [:kRETURN, text] }
+          when text = ss.scan(/#{PRINT}/) then
+            action { [:kPRINT, text]  }
           when text = ss.scan(/unsigned long long int/) then
             action { [:kDTYPE_ULLINT, text] }
           when text = ss.scan(/unsigned long int/) then
@@ -126,8 +137,6 @@ class Rubex::Lexer
             action { [:tNL, text] }
           when text = ss.scan(/#{COMMA}/) then
             action { [:tCOMMA, text] }
-          when text = ss.scan(/#{SQUOTE}/) then
-            action { [:tSQUOTE, text] }
           when text = ss.scan(/#{PLUS}/) then
             action { [:tPLUS, text]}
           when text = ss.scan(/#{MINUS}/) then
@@ -144,8 +153,10 @@ class Rubex::Lexer
             action { [:tEXPO, text]}
           when text = ss.scan(/#{ASSIGN}/) then
             action { [:tASSIGN, text] }
-          when ss.skip(/ /) then
-            action {}
+          when ss.skip(/\s+/) then
+            # do nothing
+          when text = ss.scan(/./) then
+            action { [text, text] }
           else
             text = ss.string[ss.pos .. -1]
             raise ScanError, "can not match (#{state.inspect}): '#{text}'"
