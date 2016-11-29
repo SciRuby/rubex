@@ -33,11 +33,10 @@ rule
     kDEF f_name f_arglist stmts kEND eol
       { 
         result = RubyMethodDef.new(val[1], val[2], val[3])
-        ap val[3]
       }
 
   stmts:
-    stmts stmt eol { result = val[0] ? [*val[0], val[1]] : val[1]; puts "res"; ap result }
+    stmts stmt eol { result = [*val[0], *val[1]]; }
   | stmt eol { result = val[0] }
   
   stmt:
@@ -54,6 +53,7 @@ rule
       }
   | kRETURN expr { result = Statement::Return.new val[1] }
   | kPRINT expr { result = Statement::Print.new val[1] }
+  | {}
 
   var_decl_or_init:
     dtype decl_or_init 

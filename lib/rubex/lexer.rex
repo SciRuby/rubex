@@ -71,6 +71,7 @@ rules
   /#{LPAREN}/             { [:tLPAREN, text] }
   /#{RPAREN}/             { [:tRPAREN, text] }
   /#{COMMA}/              { [:tCOMMA, text] }
+  /#{NL}/                 { [:tNL, text] }
 
   # operators
 
@@ -85,8 +86,7 @@ rules
 
   # whitespace
 
-  # /^#{NL}\s?$?/
-  /#{NL}/                 { [:tNL, text] }
+  /^\n\s*$/ { puts "text :::::: #{text}"}
   /\s+/
 
 inner

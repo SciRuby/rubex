@@ -135,6 +135,8 @@ class Rubex::Lexer
             action { [:tRPAREN, text] }
           when text = ss.scan(/#{COMMA}/) then
             action { [:tCOMMA, text] }
+          when text = ss.scan(/#{NL}/) then
+            action { [:tNL, text] }
           when text = ss.scan(/#{PLUS}/) then
             action { [:tPLUS, text]}
           when text = ss.scan(/#{MINUS}/) then
@@ -151,8 +153,8 @@ class Rubex::Lexer
             action { [:tEXPO, text]}
           when text = ss.scan(/#{ASSIGN}/) then
             action { [:tASSIGN, text] }
-          when text = ss.scan(/#{NL}/) then
-            action { [:tNL, text] }
+          when text = ss.scan(/^\n\s*$/) then
+            action { puts "text :::::: #{text}"}
           when ss.skip(/\s+/) then
             # do nothing
           else
