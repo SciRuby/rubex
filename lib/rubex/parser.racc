@@ -43,24 +43,30 @@ rule
   stmt:
     var_decl_or_init {  }
   | kRETURN expr { result = Statement::Return.new val[1] }
-  | kPRINT expr { }
+  | kPRINT expr { result = Statement::Print.new val[1] }
   | {}
 
   var_decl_or_init:
-    dtype decl_or_init { } # ctype declarations and inits
-  | normal_init {} # ruby inits
+    dtype decl_or_init 
+      { 
+        result = Statement::VariableDeclaration.new val[0], *val[1] 
+      }
+  | normal_init 
+      {
+        result = Statement::VariableDeclaration.new 'object', *val[0]
+      } # ruby inits
 
   decl_or_init:
-    decl_or_init tCOMMA normal_init {}
-  | decl_or_init tCOMMA normal_decl {}
-  | normal_decl {}
-  | normal_init {}
+    decl_or_init tCOMMA normal_init { result = val[2] }
+  | decl_or_init tCOMMA normal_decl { result = val[2] }
+  | normal_decl {result = val[0]}
+  | normal_init {result = val[0]}
 
   normal_decl:
-    tIDENTIFIER {}
+    tIDENTIFIER { }
 
   normal_init:
-    tIDENTIFIER tASSIGN literal {}
+    tIDENTIFIER tASSIGN literal { result = [val[0], val[2]] }
 
   literal:
     tINTEGER {}
@@ -71,16 +77,14 @@ rule
     tIDENTIFIER {}
 
   f_arglist:
-    tLPAREN f_args tRPAREN eol { result = val[1] }
+    tLPAREN f_args tRPAREN eol { result = ArgumentList.new val[1] }
 
   f_args:
     f_args tCOMMA f_normal_arg 
       { 
-        result = ArgumentList.new
-        result.push val[0]
-        result.push val[2]
+        result = [*val[0], val[2]]
       } 
-  | f_normal_arg { }
+  | f_normal_arg { result = val[0] }
 
   f_normal_arg:
     dtype tIDENTIFIER { result = CBaseType.new val[0], val[1] }

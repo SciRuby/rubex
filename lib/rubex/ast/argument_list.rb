@@ -8,8 +8,8 @@ module Rubex
         @args.each(&block)
       end
 
-      def initialize
-        @args = []
+      def initialize args
+        @args = args
       end
 
       def push arg

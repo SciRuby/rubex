@@ -4,9 +4,21 @@ module Rubex
       class VariableDeclaration
         attr_reader :dtype, :name, :c_name, :value
 
-        def initialize dtype, name, value
-          @dtype, @name, @vale = dtype, name, value
+        def initialize dtype, name, value=nil
+          unless Rubex::TYPE_MAPPINGS.has_key?(dtype)
+            raise "Dtype #{dtype} is not supported."
+          end
+
+          @dtype, @name, @value = Rubex::TYPE_MAPPINGS[dtype].new, name, value
           @c_name = Rubex::VAR_PREFIX + name
+        end
+      end
+
+      class Print
+        attr_reader :expression
+
+        def initialize expression
+          @expression = expression
         end
       end
       

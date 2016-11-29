@@ -22,7 +22,9 @@ module Rubex
     'unsigned long int'      => Rubex::DataType::ULInt,
     'long long int'          => Rubex::DataType::LLInt,
     'unsigned long long int' => Rubex::DataType::ULLInt,
+    'f32'                    => Rubex::DataType::F32,
     'float'                  => Rubex::DataType::F32,
+    'f64'                    => Rubex::DataType::F64,
     'double'                 => Rubex::DataType::F64,
     'object'                 => Rubex::DataType::RubyObject
   }

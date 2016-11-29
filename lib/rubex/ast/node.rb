@@ -22,10 +22,32 @@ module Rubex
 
       # Pretty print the AST
       def pp
-        # TODO
+        tree = {}
+        tree[self.class.to_s] = {}
+        tree[self.class.to_s]['statements'] = {}
+        stats = tree[self.class.to_s]['statements']
+
+        recursive_pp stats, self
+
+        tree
       end
 
      private
+
+      def recursive_pp hash, object        
+        (object.instance_variables).each do |var|
+          if var == :@statements
+            object.instance_variable_get(var).each do |stat|
+              hash[stat.class.to_s] = {}
+              hash[stat.class.to_s]['statements'] = {}
+              temp = hash[stat.class.to_s]['statements']
+              recursive_pp temp, stat
+            end
+          else
+            hash[var.to_s] = object.instance_variable_get(var).inspect
+          end
+        end
+      end
 
       def generate_preamble code
         code << "#include <ruby.h>\n"
