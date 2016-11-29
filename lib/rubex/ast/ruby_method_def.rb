@@ -14,15 +14,12 @@ module Rubex
       # Return type of the function.
       attr_reader :return_type
       
-      def initialize name, args
+      def initialize name, args, statements
         @name, @args = name, args
         @c_name = Rubex::FUNC_PREFIX + name
         @statements = []
-        @return_type = Rubex::DataType::RubyObject.new
-      end
-
-      def add_statements statements
         statements.each { |s| @statements << s }
+        @return_type = Rubex::DataType::RubyObject.new
       end
 
       def generate_symbol_table_entries outer_scope

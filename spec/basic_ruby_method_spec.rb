@@ -9,14 +9,14 @@ describe Rubex do
 
     context ".ast" do
       it "returns a valid Abstract Syntax Tree" do
-        arguments  = ArgumentList.new[
-          CBaseType.new('i32', 'b'),
-          CBaseType.new('i32', 'a')
-        ]
-        method     = RubyMethodDef.new('addition', arguments)
-        expr       = Expression::Addition.new 'a', 'b'
-        statements = Statement::Return.new expr
-        node       = Node.new method
+        # arguments  = ArgumentList.new[
+        #   CBaseType.new('i32', 'b'),
+        #   CBaseType.new('i32', 'a')
+        # ]
+        # method     = RubyMethodDef.new('addition', arguments)
+        # expr       = Expression::Addition.new 'a', 'b'
+        # statements = Statement::Return.new expr
+        # node       = Node.new method
 
         # TODO: Define == method on all nodes of AST.
         # expect(Rubex.ast(@path)).to eq(node)
@@ -25,7 +25,8 @@ describe Rubex do
 
     context ".compile" do
       it "generates valid C code" do
-        # Rubex.compile @path, true
+        # c, e = Rubex.compile @path, true
+        # puts c
       end
     end
 

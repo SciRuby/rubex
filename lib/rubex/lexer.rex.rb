@@ -133,8 +133,6 @@ class Rubex::Lexer
             action { [:tLPAREN, text] }
           when text = ss.scan(/#{RPAREN}/) then
             action { [:tRPAREN, text] }
-          when text = ss.scan(/#{NL}/) then
-            action { [:tNL, text] }
           when text = ss.scan(/#{COMMA}/) then
             action { [:tCOMMA, text] }
           when text = ss.scan(/#{PLUS}/) then
@@ -153,10 +151,10 @@ class Rubex::Lexer
             action { [:tEXPO, text]}
           when text = ss.scan(/#{ASSIGN}/) then
             action { [:tASSIGN, text] }
+          when text = ss.scan(/#{NL}/) then
+            action { [:tNL, text] }
           when ss.skip(/\s+/) then
             # do nothing
-          when text = ss.scan(/./) then
-            action { [text, text] }
           else
             text = ss.string[ss.pos .. -1]
             raise ScanError, "can not match (#{state.inspect}): '#{text}'"

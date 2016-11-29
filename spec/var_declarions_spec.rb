@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'pp'
+
 describe Rubex do
   context "Rubex Ruby method with variable initialization and declaration" do
     before do
@@ -10,7 +11,7 @@ describe Rubex do
       it "generates a valid AST" do
         a = Rubex.ast @path
         pp a
-        ap a.pp
+        # ap a.pp
       end
     end
 

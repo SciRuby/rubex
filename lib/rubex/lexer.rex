@@ -26,6 +26,7 @@ macros
   ASSIGN          /=/
 rules
 
+
   # literals
 
   /'.\'/          { [:tSINGLE_CHAR, text] }
@@ -69,7 +70,6 @@ rules
   /#{IDENTIFIER}/         { [:tIDENTIFIER, text] }
   /#{LPAREN}/             { [:tLPAREN, text] }
   /#{RPAREN}/             { [:tRPAREN, text] }
-  /#{NL}/                 { [:tNL, text] }
   /#{COMMA}/              { [:tCOMMA, text] }
 
   # operators
@@ -85,8 +85,10 @@ rules
 
   # whitespace
 
+  # /^#{NL}\s?$?/
+  /#{NL}/                 { [:tNL, text] }
   /\s+/
-  /./             { [text, text] }
+
 inner
   def do_parse
     # this is a stub since oedipus lex uses this internally.

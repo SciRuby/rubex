@@ -32,41 +32,56 @@ rule
   ruby_method:
     kDEF f_name f_arglist stmts kEND eol
       { 
-        result = RubyMethodDef.new(val[1], val[2])
-        result.add_statements val[3]
+        result = RubyMethodDef.new(val[1], val[2], val[3])
+        ap val[3]
       }
 
   stmts:
-    stmts stmt eol { result = [val[0], val[1]] }
-  | stmt eol { result = [val[0]] }
+    stmts stmt eol { result = val[0] ? [*val[0], val[1]] : val[1]; puts "res"; ap result }
+  | stmt eol { result = val[0] }
   
   stmt:
-    var_decl_or_init {  }
+    var_decl_or_init
+      { 
+        variables = []
+        dtype = val[0][:dtype]
+        val[0][:decl_or_init].each do |di|
+          var = Statement::VariableDeclaration.new(dtype, di[:name], di[:value])
+          variables << var
+        end
+
+        result = variables
+      }
   | kRETURN expr { result = Statement::Return.new val[1] }
   | kPRINT expr { result = Statement::Print.new val[1] }
-  | {}
 
   var_decl_or_init:
     dtype decl_or_init 
       { 
-        result = Statement::VariableDeclaration.new val[0], *val[1] 
+        result = {
+          dtype: val[0],
+          decl_or_init: val[1]
+        }
       }
   | normal_init 
       {
-        result = Statement::VariableDeclaration.new 'object', *val[0]
-      } # ruby inits
+        result = {
+          dtype: 'object',
+          decl_or_init: [val[0]]
+        }
+      }
 
   decl_or_init:
-    decl_or_init tCOMMA normal_init { result = val[2] }
-  | decl_or_init tCOMMA normal_decl { result = val[2] }
-  | normal_decl {result = val[0]}
-  | normal_init {result = val[0]}
+    decl_or_init tCOMMA normal_init { result = [*val[0], val[2]] }
+  | decl_or_init tCOMMA normal_decl { result = [*val[0], val[2]] }
+  | normal_decl { result = [val[0]] }
+  | normal_init { result = [val[0]] }
 
   normal_decl:
-    tIDENTIFIER { }
+    tIDENTIFIER { result = { name: val[0] } }
 
   normal_init:
-    tIDENTIFIER tASSIGN literal { result = [val[0], val[2]] }
+    tIDENTIFIER tASSIGN literal { result = { name: val[0], value: val[2] } }
 
   literal:
     tINTEGER {}
@@ -84,7 +99,7 @@ rule
       { 
         result = [*val[0], val[2]]
       } 
-  | f_normal_arg { result = val[0] }
+  | f_normal_arg { result = [val[0]] }
 
   f_normal_arg:
     dtype tIDENTIFIER { result = CBaseType.new val[0], val[1] }
@@ -109,7 +124,7 @@ rule
     tPLUS | tMINUS | tMULTIPLY | tDIVIDE | tEXPO | tMODULUS { result = val[0] }
 
   eol:
-    tNL {}
+    tNL {result = val[0]}
 end
 
 ---- header
@@ -119,9 +134,11 @@ require_relative 'ast.rb'
 include Rubex::AST
 
 ---- inner
+
 def parse file_name
   @lexer = Rubex::Lexer.new
   @lexer.parse_file file_name
+  @yydebug = true
 end
 
 def next_token
