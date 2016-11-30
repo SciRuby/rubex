@@ -1,7 +1,8 @@
 module Rubex
   module AST
-    class Statement
+    module Statement
       class VariableDeclaration
+        include Rubex::AST::Statement
         attr_reader :dtype, :name, :c_name, :value
 
         def initialize dtype, name, value=nil
@@ -12,17 +13,35 @@ module Rubex
           @dtype, @name, @value = Rubex::TYPE_MAPPINGS[dtype].new, name, value
           @c_name = Rubex::VAR_PREFIX + name
         end
+
+        def analyse_expression local_scope
+          # TODO: Have type checks for knowing if correct literal assignment
+          # is taking place. For example, a char should not be assigned a float.
+        end
       end
 
       class Print
-        attr_reader :expression
+        include Rubex::AST::Statement
+        attr_reader :expression, :print_type
 
         def initialize expression
           @expression = expression
         end
+
+        def analyse_expression local_scope
+          if @expression.is_a? String
+            entry = local_scope[@expression]
+          elsif @expression.class.to_s =~ "Rubex::AST::Expression"
+            # TODO: Determine print type of expression.
+          end
+
+          
+
+        end
       end
       
       class Return
+        include Rubex::AST::Statement
         attr_reader :expression, :return_type
 
         def initialize expression

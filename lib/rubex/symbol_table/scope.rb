@@ -1,13 +1,24 @@
 module Rubex
   module SymbolTable
     module Scope
-      attr_accessor :entries, :outer_scope, :arg_entries, :return_type
+      attr_accessor :entries
+      attr_accessor :outer_scope
+      attr_accessor :arg_entries
+      attr_accessor :return_type
+      attr_accessor :var_entries
 
       def initialize outer_scope=nil
         @outer_scope = outer_scope
         @entries = {}
         @arg_entries = []
+        @var_entries = []
         @return_type = nil
+      end
+
+      def check_entry name
+        if @entries.has_key? name
+          raise "Symbol name #{name} already exists in this scope."
+        end
       end
     end
   end
@@ -43,8 +54,24 @@ module Rubex
             type = Rubex::TYPE_MAPPINGS[arg.type].new
             entry = Rubex::SymbolTable::Entry.new arg.name, c_name, type 
 
-            @entries[arg.name] = entry
+            name = arg.name
+            check_entry name
+            @entries[name] = entry
             @arg_entries << entry
+          end
+        end
+
+        # vars - [Rubex::AST::Statement::ArgumentDeclaration]
+        def declare_vars vars
+          vars.each do |var|
+            c_name = Rubex::VAR_PREFIX + var.name
+            type = Rubex::TYPE_MAPPINGS[var.type].new
+            entry = Rubex::SymbolTable::Entry.new var.name, c_name, type
+
+            name = var.name
+            check_entry name
+            @entries[name] = entry
+            @var_entries << entry
           end
         end
 

@@ -27,6 +27,11 @@ module Rubex
         @scope.outer_scope = outer_scope
         @scope.return_type = @return_type.dup
         @scope.declare_args @args
+        
+        variables = @statements.select do |s| 
+          s.is_a?(Rubex::AST::Statement::VariableDeclaration)
+        end 
+        @scope.declare_vars variables
       end
 
       def analyse_expressions outer_scope
