@@ -3,20 +3,24 @@ module Rubex
     module Statement
       class VariableDeclaration
         include Rubex::AST::Statement
-        attr_reader :dtype, :name, :c_name, :value
+        attr_reader :type, :name, :c_name, :value
 
-        def initialize dtype, name, value=nil
-          unless Rubex::TYPE_MAPPINGS.has_key?(dtype)
-            raise "Dtype #{dtype} is not supported."
+        def initialize type, name, value=nil
+          unless Rubex::TYPE_MAPPINGS.has_key?(type)
+            raise "type #{type} is not supported."
           end
 
-          @dtype, @name, @value = Rubex::TYPE_MAPPINGS[dtype].new, name, value
+          @type, @name, @value = Rubex::TYPE_MAPPINGS[type].new, name, value
           @c_name = Rubex::VAR_PREFIX + name
         end
 
         def analyse_expression local_scope
           # TODO: Have type checks for knowing if correct literal assignment
           # is taking place. For example, a char should not be assigned a float.
+        end
+
+        def generate_code code, local_scope
+          
         end
       end
 
@@ -31,12 +35,15 @@ module Rubex
         def analyse_expression local_scope
           if @expression.is_a? String
             entry = local_scope[@expression]
+            raise "Invalid expression #{@expression} to print." unless entry
+            @print_type = entry.type
           elsif @expression.class.to_s =~ "Rubex::AST::Expression"
             # TODO: Determine print type of expression.
           end
+        end
 
+        def generate_code code, local_scope
           
-
         end
       end
       
@@ -79,10 +86,12 @@ module Rubex
        private
 
         def result_type_for left_type, right_type
-          dtype = Rubex::DataType
+          type = Rubex::DataType
 
-          if left_type.is_a?(dtype::Int32) && right_type.is_a?(dtype::Int32)
-            return dtype::Int32.new
+          if left_type.is_a?(type::Int32) && right_type.is_a?(type::Int32)
+            return type::Int32.new
+          elsif left_type.is_a?(type::F32) && right_type.is_a?(type::F32)
+            return type::F32.new
           end
         end
       end

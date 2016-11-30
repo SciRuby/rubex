@@ -9,14 +9,16 @@ describe Rubex do
 
     context ".ast" do
       it "generates a valid AST" do
-        a = Rubex.ast @path
-        pp a
+        # a = Rubex.ast @path
+        # pp a
         # ap a.pp
       end
     end
 
     context ".compile" do
-
+      it "compiles to valid C code" do
+        a = Rubex.compile @path
+      end
     end
   end
 end

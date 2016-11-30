@@ -65,8 +65,7 @@ module Rubex
         def declare_vars vars
           vars.each do |var|
             c_name = Rubex::VAR_PREFIX + var.name
-            type = Rubex::TYPE_MAPPINGS[var.type].new
-            entry = Rubex::SymbolTable::Entry.new var.name, c_name, type
+            entry = Rubex::SymbolTable::Entry.new var.name, c_name, var.type
 
             name = var.name
             check_entry name

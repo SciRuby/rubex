@@ -1,6 +1,8 @@
 module Rubex
   module DataType
-
+    # Citations
+    #   Printf arguments:
+    #     http://www.thinkage.ca/english/gcos/expl/c/lib/printf.html
     module IntHelpers
       def to_ruby_function(arg); "INT2NUM(#{arg})"; end
 
@@ -45,6 +47,7 @@ module Rubex
     end
 
     class Int32
+      include IntHelpers
       def to_s; "int32_t"; end
 
       def from_ruby_function(arg); "(int32_t)NUM2INT(#{arg})"; end
@@ -84,7 +87,7 @@ module Rubex
     class UInt64
       def to_s; "uint64_t"; end
 
-      def to_ruby_function(arg); "UINT2NUM(#{arg})"; end
+      def to_ruby_function(arg); "ULONG2NUM(#{arg})"; end
 
       def from_ruby_function(arg); "(int64_t)NUM2UINT(#{arg})"; end
     end
@@ -97,9 +100,8 @@ module Rubex
     end
 
     class UInt
+      include UIntHelpers
       def to_s; "unsigned int"; end
-
-      def to_ruby_function(arg); "UINT2NUM(#{arg})"; end
 
       def from_ruby_function(arg); "(unsigned int)NUM2UINT(#{arg})"; end
     end
@@ -139,7 +141,7 @@ module Rubex
     class F32
       def to_s; "float"; end
 
-      def to_ruby_function(arg); "rb_float_new((double)#{arg})"; end
+      def to_ruby_function(arg); "rb_float_new((double)(#{arg}))"; end
 
       def from_ruby_function(arg); "(float)NUM2DBL(#{arg})"; end
     end

@@ -11,6 +11,7 @@ module Rubex
       tree = ast path
       target_name = extract_target_name path
       code = generate_code tree, target_name
+      pp tree
       ext = extconf target_name
       
       return [code, ext] if test
