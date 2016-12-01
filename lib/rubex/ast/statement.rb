@@ -66,8 +66,8 @@ module Rubex
           right_type = local_scope[right].type
 
           @return_type = result_type_for left_type, right_type
-          # TODO: Raise error if return_type is not compatible with the return
-          # type of the function.
+          # TODO: Raise error if return_type as inferred from the
+          # is not compatible with the return statement type.
         end
 
         def generate_code code, local_scope
@@ -88,10 +88,8 @@ module Rubex
         def result_type_for left_type, right_type
           type = Rubex::DataType
 
-          if left_type.is_a?(type::Int32) && right_type.is_a?(type::Int32)
-            return type::Int32.new
-          elsif left_type.is_a?(type::F32) && right_type.is_a?(type::F32)
-            return type::F32.new
+          if left_type.class == right_type.class
+            return left_type.class.new
           end
         end
       end

@@ -86,7 +86,7 @@ rule
   literal:
     tINTEGER {}
   | tFLOAT   {}
-  | tSINGLE_CHAR { result = val[0][1] }
+  | tSINGLE_CHAR { result = val[0] }
     
   f_name:
     tIDENTIFIER {}

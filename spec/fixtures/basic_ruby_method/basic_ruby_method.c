@@ -5,7 +5,6 @@ VALUE __rubex_f_addition(int argc, VALUE *argv, VALUE __rubex_self)
 {
   int32_t __rubex_v_a = NUM2INT(argv[0]);
   int32_t __rubex_v_b = NUM2INT(argv[1]);
-
   return INT2NUM(__rubex_v_a + __rubex_v_b);
 }
 

@@ -27,7 +27,7 @@ module Rubex
         @scope.outer_scope = outer_scope
         @scope.return_type = @return_type.dup
         @scope.declare_args @args
-        
+
         variables = @statements.select do |s| 
           s.is_a?(Rubex::AST::Statement::VariableDeclaration)
         end 
@@ -51,8 +51,10 @@ module Rubex
 
       def generate_function_definition code
         declare_args code
+        declare_vars code
         generate_arg_checking code
         init_args code
+        init_vars code
         generate_statements code
       end
 
@@ -68,11 +70,23 @@ module Rubex
         end
       end
 
+      def declare_vars code
+        @scope.var_entries.each do |var|
+          code.declare_variable var
+        end
+      end
+
       def init_args code
         @scope.arg_entries.each_with_index do |arg, i|
           code << arg.c_name + '=' + arg.type.from_ruby_function("argv[#{i}]")
           code << ";"
           code.nl
+        end
+      end
+
+      def init_vars code
+        @scope.var_entries.select { |v| v.value }.each do |var|
+          code.init_variable var
         end
       end
 

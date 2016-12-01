@@ -453,7 +453,7 @@ module_eval(<<'.,.,', 'parser.racc', 87)
 
 module_eval(<<'.,.,', 'parser.racc', 88)
   def _reduce_21(val, _values, result)
-     result = val[0][1] 
+     result = val[0] 
     result
   end
 .,.,

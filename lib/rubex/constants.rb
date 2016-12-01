@@ -32,4 +32,12 @@ module Rubex
   CLASS_MAPPINGS = {
     'Object' => 'rb_cObject'
   }
+
+  # Maps regexes to the type of the variable for conversion from literal
+  # to the correct type of Ruby object.
+  LITERAL_MAPPINGS = {
+    /'.\'/       => Rubex::DataType::Char,
+    /-?\d+/      => Rubex::DataType::Int,
+    /-?\d+\.\d+/ => Rubex::DataType::F64
+  }
 end

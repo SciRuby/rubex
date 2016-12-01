@@ -52,7 +52,7 @@ module Rubex
           args.each do |arg|
             c_name = Rubex::ARG_PREFIX + arg.name
             type = Rubex::TYPE_MAPPINGS[arg.type].new
-            entry = Rubex::SymbolTable::Entry.new arg.name, c_name, type 
+            entry = Rubex::SymbolTable::Entry.new arg.name, c_name, type, arg.value 
 
             name = arg.name
             check_entry name
@@ -65,7 +65,8 @@ module Rubex
         def declare_vars vars
           vars.each do |var|
             c_name = Rubex::VAR_PREFIX + var.name
-            entry = Rubex::SymbolTable::Entry.new var.name, c_name, var.type
+            entry = Rubex::SymbolTable::Entry.new( 
+              var.name, c_name, var.type, var.value)
 
             name = var.name
             check_entry name

@@ -12,12 +12,12 @@ NULLCMD = :
 #### Start of system configuration section. ####
 
 srcdir = .
-topdir = /home/sameer/.rvm/rubies/ruby-2.3.0/include/ruby-2.3.0
+topdir = /home/sameer/.rvm/rubies/ruby-2.2.1/include/ruby-2.2.0
 hdrdir = $(topdir)
-arch_hdrdir = /home/sameer/.rvm/rubies/ruby-2.3.0/include/ruby-2.3.0/i686-linux
+arch_hdrdir = /home/sameer/.rvm/rubies/ruby-2.2.1/include/ruby-2.2.0/i686-linux
 PATH_SEPARATOR = :
 VPATH = $(srcdir):$(arch_hdrdir)/ruby:$(hdrdir)/ruby
-prefix = $(DESTDIR)/home/sameer/.rvm/rubies/ruby-2.3.0
+prefix = $(DESTDIR)/home/sameer/.rvm/rubies/ruby-2.2.1
 rubysitearchprefix = $(rubylibprefix)/$(sitearch)
 rubyarchprefix = $(rubylibprefix)/$(arch)
 rubylibprefix = $(libdir)/$(RUBY_BASE_NAME)
@@ -75,7 +75,6 @@ COUTFLAG = -o $(empty)
 
 RUBY_EXTCONF_H = 
 cflags   =  $(optflags) $(debugflags) $(warnflags)
-cxxflags =  $(optflags) $(debugflags) $(warnflags)
 optflags = -O3 -fno-fast-math
 debugflags = -ggdb3
 warnflags = -Wall -Wextra -Wno-unused-parameter -Wno-parentheses -Wno-long-long -Wno-missing-field-initializers -Wunused-variable -Wpointer-arith -Wwrite-strings -Wdeclaration-after-statement -Wimplicit-function-declaration -Wdeprecated-declarations -Wno-packed-bitfield-compat
@@ -103,7 +102,7 @@ RUBY_BASE_NAME = ruby
 
 arch = i686-linux
 sitearch = $(arch)
-ruby_version = 2.3.0
+ruby_version = 2.2.0
 ruby = $(bindir)/$(RUBY_BASE_NAME)
 RUBY = $(ruby)
 ruby_headers = $(hdrdir)/ruby.h $(hdrdir)/ruby/ruby.h $(hdrdir)/ruby/defines.h $(hdrdir)/ruby/missing.h $(hdrdir)/ruby/intern.h $(hdrdir)/ruby/st.h $(hdrdir)/ruby/subst.h $(arch_hdrdir)/ruby/config.h
@@ -134,7 +133,7 @@ extout =
 extout_prefix = 
 target_prefix = /basic_ruby_method
 LOCAL_LIBS = 
-LIBS = $(LIBRUBYARG_SHARED)  -lpthread -lgmp -ldl -lcrypt -lm   -lc
+LIBS = $(LIBRUBYARG_SHARED)  -lpthread -ldl -lcrypt -lm   -lc
 ORIG_SRCS = basic_ruby_method.c
 SRCS = $(ORIG_SRCS) 
 OBJS = basic_ruby_method.o
@@ -159,7 +158,7 @@ CLEANLIBS     = $(TARGET).so
 CLEANOBJS     = *.o  *.bak
 
 all:    $(DLLIB)
-static: $(STATIC_LIB) install-rb
+static: $(STATIC_LIB)
 .PHONY: all install static install-so install-rb
 .PHONY: clean clean-so clean-static clean-rb
 

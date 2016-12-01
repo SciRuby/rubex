@@ -24,7 +24,11 @@ module Rubex
     class Char
       def to_s; "char";  end
 
-      def to_ruby_function(arg) ; "rb_str_new2(&#{arg})"; end
+      def to_ruby_function(arg, literal=false)
+        return "rb_str_new2(\"#{arg}\")" if literal
+        
+        "rb_str_new2(&#{arg})"
+      end
 
       def from_ruby_function(arg); "(char)NUM2INT(#{arg})"; end
 

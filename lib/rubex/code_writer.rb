@@ -22,7 +22,29 @@ module Rubex
     end
 
     def declare_variable var
-      @code << "#{var.type.to_s} #{var.c_name};\n"
+      @code << "#{var.type.to_s} #{var.c_name};"
+      new_line
+    end
+
+    def init_variable var
+      if var.type.is_a? Rubex::DataType::RubyObject
+        literal_type = nil
+        Rubex::LITERAL_MAPPINGS.each do |regex, type|
+          literal_type = type.new if var.value.match(regex)
+        end
+
+        if literal_type.is_a? Rubex::DataType::Char
+          value = var.value[1]
+        else
+          value = var.value
+        end
+
+        @code << "#{var.c_name} = #{literal_type.to_ruby_function(value, true)};"
+      else
+        @code << "#{var.c_name} = #{var.value};"
+      end
+      
+      new_line
     end
     
     def << s
