@@ -43,7 +43,12 @@ module Rubex
         end
 
         def generate_code code, local_scope
-          
+          entry = local_scope[@expression]
+          type = entry.type
+
+          code.new_line
+          code << type.printf(entry.c_name)
+          code.new_line
         end
       end
       

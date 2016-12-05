@@ -6,19 +6,23 @@ module Rubex
     module IntHelpers
       def to_ruby_function(arg); "INT2NUM(#{arg})"; end
 
-      def cprintf(arg); "printf(%d, #{arg});"; end
+      def printf(arg); "printf(\"%d\", #{arg});"; end
     end
 
     module UIntHelpers
       def to_ruby_function(arg); "UINT2NUM(#{arg})"; end
 
-      def cprintf(arg); "printf(%u, #{arg});"; end
+      def printf(arg); "printf(\"%u\", #{arg});"; end
+    end
+
+    module FloatHelpers
+      def printf(arg); "printf(\"%f\", #{arg});"; end
     end
 
     class RubyObject
       def to_s; "VALUE"; end
 
-      def cprintf(arg); "printf(%ld, #{arg});"; end
+      def printf(arg); "printf(\"%ld\", #{arg});"; end
     end
 
     class Char
@@ -32,7 +36,7 @@ module Rubex
 
       def from_ruby_function(arg); "(char)NUM2INT(#{arg})"; end
 
-      def cprintf(arg); "printf(%c, #{arg});" end
+      def printf(arg); "printf(\"%c\", #{arg});" end
     end
 
     class Int8
@@ -64,7 +68,7 @@ module Rubex
 
       def from_ruby_function(arg); "(int64_t)NUM2LONG(#{arg})"; end
 
-      def cprintf(arg); "printf(%l, #{arg});" end
+      def printf(arg); "printf(\"%l\", #{arg});" end
     end
 
     class UInt8
@@ -143,6 +147,7 @@ module Rubex
     end
 
     class F32
+      include FloatHelpers
       def to_s; "float"; end
 
       def to_ruby_function(arg); "rb_float_new((double)(#{arg}))"; end
@@ -151,6 +156,7 @@ module Rubex
     end
 
     class F64
+      include FloatHelpers
       def to_s; "double"; end
 
       def to_ruby_function(arg); "rb_float_new(#{arg})"; end
