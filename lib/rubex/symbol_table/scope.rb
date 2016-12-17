@@ -75,8 +75,16 @@ module Rubex
           end
         end
 
+        def add_var name, type, value
+          c_name = Rubex::VAR_PREFIX + name
+          entry = Rubex::SymbolTable::Entry.new(
+            name, c_name, type, value)
+          @entries[name] = entry
+        end
+
         def [] entry
-          @entries[entry] or raise "Symbol #{entry} does not exist in this scope."
+          @entries[entry] or raise(Rubex::SymbolNotFoundError, 
+            "Symbol #{entry} does not exist in this scope.")
         end
       end # class Local
     end

@@ -1,3 +1,4 @@
+require 'rubex/error'
 require 'rubex/code_writer'
 require 'rubex/data_type'
 require 'rubex/constants'
@@ -13,7 +14,7 @@ module Rubex
       code = generate_code tree, target_name
       ext = extconf target_name
       
-      return [code, ext] if test
+      return [tree, code, ext] if test
       write_files target_name, code, ext
     end
 

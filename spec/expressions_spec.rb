@@ -9,11 +9,16 @@ describe Rubex do
     context ".ast" do
       it "generates the AST" do
         t = Rubex.ast @path
+
+        # pp t
       end
     end
     context ".compile" do
       it "compiles to valid C file" do
-        c, e = Rubex.compile @path, true
+        t, c, e = Rubex.compile @path, true
+
+        pp t
+        puts c
       end
     end
   end

@@ -4,8 +4,8 @@ token
 
   kDTYPE_UINT  kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16  
   kDTYPE_I32   kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64 
-  kDTYPE_INT   kDTYPE_F32  kDTYPE_F64   kDTYPE_LF64 kDTYPE_LF64 kDTYPE_ROBJ 
-  kDTYPE_ULINT kDTYPE_ULLINT
+  kDTYPE_INT   kDTYPE_F32  kDTYPE_F64   kDTYPE_LF64 kDTYPE_ROBJ kDTYPE_ULINT 
+  kDTYPE_ULLINT
 
   tLPAREN tRPAREN tIDENTIFIER tNL tCOMMA tSQUOTE EOF
 
@@ -53,6 +53,11 @@ rule
       }
   | kRETURN expr { result = Statement::Return.new val[1] }
   | kPRINT expr { result = Statement::Print.new val[1] }
+  | normal_init 
+    {
+      match = val[0]
+      result = Statement::Assign.new match[:name], match[:value]
+    }
   | {}
 
   var_decl_or_init:
@@ -61,13 +66,6 @@ rule
         result = {
           dtype: val[0],
           decl_or_init: val[1]
-        }
-      }
-  | normal_init 
-      {
-        result = {
-          dtype: 'object',
-          decl_or_init: [val[0]]
         }
       }
 
@@ -81,7 +79,7 @@ rule
     tIDENTIFIER { result = { name: val[0] } }
 
   normal_init:
-    tIDENTIFIER tASSIGN literal { result = { name: val[0], value: val[2] } }
+    tIDENTIFIER tASSIGN expr { result = { name: val[0], value: val[2] } }
 
   literal:
     tINTEGER {}
@@ -105,10 +103,12 @@ rule
     dtype tIDENTIFIER { result = CBaseType.new val[0], val[1] }
 
   expr:
-    tIDENTIFIER binary_op tIDENTIFIER
+    expr binary_op expr
       { 
-        result = Expression::Addition.new val[0], val[2]
+        result = Expression::Binary.new val[0], val[1], val[2]
       }
+  | tLPAREN expr tRPAREN { result = val[1] }
+  | literal {}
   | tIDENTIFIER {}
 
   dtype:
