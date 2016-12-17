@@ -133,7 +133,7 @@ module Rubex
           if @ruby_obj_init
             code << "VALUE "
           end
-          code << "#{local_scope[@lhs].c_name} = #{@rhs.generate_code}\n"
+          code << "#{local_scope[@lhs].c_name} = #{@rhs.generate_code};\n"
         end
       end
     end

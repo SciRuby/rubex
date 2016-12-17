@@ -41,7 +41,10 @@ module Rubex
 
         @code << "#{var.c_name} = #{literal_type.to_ruby_function(value, true)};"
       else
-        @code << "#{var.c_name} = #{var.value};"
+        @code << "#{var.c_name} = "
+        if var.value.is_a? Rubex::AST::Expression
+          @code << "#{var.value.generate_code};"
+        end
       end
       
       new_line
