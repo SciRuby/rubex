@@ -15,9 +15,9 @@ module Rubex
           analyse_return_type local_scope, self
         end
 
-        def generate_code
+        def generate_code local_scope
           code = ""
-          recursive_generate_code(code, self)
+          recursive_generate_code(local_scope, code, self)
           code
         end
 
@@ -62,16 +62,33 @@ module Rubex
           t
         end
 
-        def recursive_generate_code code, tree
+        def recursive_generate_code local_scope, code, tree
           if tree.respond_to? :left
-            recursive_generate_code code, tree.left
+            recursive_generate_code local_scope, code, tree.left
             if tree.left.is_a?(Rubex::AST::Expression) && 
                tree.right.is_a?(Rubex::AST::Expression)
               code << "#{tree.operator}"
             else
-              code << "(#{tree.left} #{tree.operator} #{tree.right})"
+              str = "("
+              if local_scope.has_entry? tree.left
+                l = local_scope[tree.left]
+                str << "#{l.c_name} "
+              else
+                str << "#{tree.left}"
+              end
+
+              str << " #{tree.operator} "
+
+              if local_scope.has_entry? tree.right
+                r = local_scope[tree.right]
+                str << "#{r.c_name}"
+              else
+                str << "#{tree.right}"
+              end
+              str << ")"
+              code << str
             end
-            recursive_generate_code code, tree.right
+            recursive_generate_code local_scope, code, tree.right
           end
         end
       end

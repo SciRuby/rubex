@@ -86,7 +86,7 @@ module Rubex
 
       def init_vars code
         @scope.var_entries.select { |v| v.value }.each do |var|
-          code.init_variable var
+          code.init_variable var, @scope
         end
       end
 

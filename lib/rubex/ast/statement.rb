@@ -135,9 +135,9 @@ module Rubex
           str = "#{local_scope[@lhs].c_name} = "
           if @ruby_obj_init
             str.prepend "VALUE "
-            str << "#{@rhs.return_type.to_ruby_function(@rhs.generate_code)}"
+            str << "#{@rhs.return_type.to_ruby_function(@rhs.generate_code(local_scope))}"
           else
-            str << "#{@rhs.generate_code}"
+            str << "#{@rhs.generate_code(local_scope)}"
           end
           str << ";\n"
           code << str

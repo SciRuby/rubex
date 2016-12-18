@@ -26,7 +26,7 @@ module Rubex
       new_line
     end
 
-    def init_variable var
+    def init_variable var, local_scope=nil
       if var.type.is_a? Rubex::DataType::RubyObject
         literal_type = nil
         Rubex::LITERAL_MAPPINGS.each do |regex, type|
@@ -43,7 +43,7 @@ module Rubex
       else
         @code << "#{var.c_name} = "
         if var.value.is_a? Rubex::AST::Expression
-          @code << "#{var.value.generate_code};"
+          @code << "#{var.value.generate_code(local_scope)};"
         end
       end
       
