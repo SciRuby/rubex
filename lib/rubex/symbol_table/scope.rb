@@ -86,6 +86,10 @@ module Rubex
           @entries[entry] or raise(Rubex::SymbolNotFoundError, 
             "Symbol #{entry} does not exist in this scope.")
         end
+
+        def has_entry? entry
+          !!@entries[entry]
+        end
       end # class Local
     end
   end

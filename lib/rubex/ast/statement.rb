@@ -118,22 +118,29 @@ module Rubex
 
         def analyse_expression local_scope
           # LHS symbol has been declared.
-          begin
+          @lhs.analyse_expression(local_scope) if @lhs.is_a? Rubex::AST::Expression
+          @rhs.analyse_expression(local_scope) if @rhs.is_a? Rubex::AST::Expression
+
+          if local_scope.has_entry? @lhs
             lhs = local_scope[@lhs]
-            # TODO: Add code to analyse whether RHS dtype is compatible with LHS
-            # dtype. Also check for lvalue etc.
-          rescue Rubex::SymbolNotFoundError => e
+            # TODO: Type checking between lhs and rhs.
+          else
             # If LHS is an IDENTIFIER assume that its a Ruby object being assigned.
             local_scope.add_var @lhs, Rubex::DataType::RubyObject, @rhs
-            @ruby_obj_init = true
+            @ruby_obj_init = true            
           end
         end
 
         def generate_code code, local_scope
+          str = "#{local_scope[@lhs].c_name} = "
           if @ruby_obj_init
-            code << "VALUE "
+            str.prepend "VALUE "
+            str << "#{@rhs.return_type.to_ruby_function(@rhs.generate_code)}"
+          else
+            str << "#{@rhs.generate_code}"
           end
-          code << "#{local_scope[@lhs].c_name} = #{@rhs.generate_code};\n"
+          str << ";\n"
+          code << str
         end
       end
     end

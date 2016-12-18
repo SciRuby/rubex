@@ -13,6 +13,10 @@ module Rubex
       ].each do |dtype|
         define_method(dtype) { return false }
       end
+
+      def == other
+        self.class == other.class
+      end
     end
 
     module IntHelpers
