@@ -11,16 +11,29 @@ module Rubex
         end
 
         def analyse_expression local_scope
-          # TODO: analyse expression for dtype compatibility.
+          analyse_return_type local_scope, self
         end
 
         def generate_code
           code = ""
-          inorder_traverse(code, self)
+          recursive_generate_code(code, self)
           code
         end
 
-        def inorder_traverse code, tree
+      private
+
+        def analyse_return_type local_scope, expr_tree
+          if tree.respond_to? :left
+            analyse_return_type local_scope, expr_tree.left
+
+            if tree.left.is_a?(Rubex::AST::Expression) &&
+               tree.right.is_a?(Rubex::AST::Expression)
+
+            end
+          end
+        end
+
+        def recursive_generate_code code, tree
           if tree.respond_to? :left
             inorder_traverse code, tree.left
             if tree.left.is_a?(Rubex::AST::Expression) && 

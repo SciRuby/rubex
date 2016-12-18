@@ -1,4 +1,5 @@
 require 'rubex/error'
+require 'rubex/helpers'
 require 'rubex/code_writer'
 require 'rubex/data_type'
 require 'rubex/constants'
