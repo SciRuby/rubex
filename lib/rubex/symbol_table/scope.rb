@@ -6,6 +6,7 @@ module Rubex
       attr_accessor :arg_entries
       attr_accessor :return_type
       attr_accessor :var_entries
+      attr_accessor :ruby_obj_entries
 
       def initialize outer_scope=nil
         @outer_scope = outer_scope
@@ -13,6 +14,7 @@ module Rubex
         @arg_entries = []
         @var_entries = []
         @return_type = nil
+        @ruby_obj_entries = []
       end
 
       def check_entry name
@@ -75,11 +77,12 @@ module Rubex
           end
         end
 
-        def add_var name, type, value
+        def add_ruby_obj name, value
           c_name = Rubex::VAR_PREFIX + name
           entry = Rubex::SymbolTable::Entry.new(
-            name, c_name, type, value)
+            name, c_name, Rubex::DataType::RubyObject.new, value)
           @entries[name] = entry
+          @ruby_obj_entries << entry
         end
 
         def [] entry

@@ -91,8 +91,16 @@ module Rubex
             code.new_line
           else
             entry = local_scope[@expression]
-            code << @return_type.to_ruby_function(
-              "#{entry.c_name}")
+            if local_scope.return_type.object?
+              code << if @return_type.object?
+                "#{entry.c_name}" 
+              else
+                @return_type.to_ruby_function("#{entry.c_name}")
+              end
+            else
+              raise "C functions not yet implemented. Can only return object."
+            end
+
             code << ";"
             code.nl
           end
@@ -126,7 +134,7 @@ module Rubex
             # TODO: Type checking between lhs and rhs.
           else
             # If LHS is an IDENTIFIER assume that its a Ruby object being assigned.
-            local_scope.add_var @lhs, Rubex::DataType::RubyObject, @rhs
+            local_scope.add_ruby_obj @lhs, @rhs
             @ruby_obj_init = true            
           end
         end
@@ -134,7 +142,6 @@ module Rubex
         def generate_code code, local_scope
           str = "#{local_scope[@lhs].c_name} = "
           if @ruby_obj_init
-            str.prepend "VALUE "
             str << "#{@rhs.return_type.to_ruby_function(@rhs.generate_code(local_scope))}"
           else
             str << "#{@rhs.generate_code(local_scope)}"
