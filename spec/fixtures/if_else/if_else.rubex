@@ -1,0 +1,22 @@
+def adder(int a, i64 b, f64 c)
+  i32 d
+
+  if a < 5
+    d = 5
+  elsif b == 44
+    d = 44
+  elsif c >= 211
+    d = 211
+  else
+    d = 666
+  end
+
+  if d > 32
+    d = 69
+  end
+
+  d = 5643 if d + 4 == 69
+  if c - 43 >= 321 then b = -43 end
+
+  return d
+end

@@ -1,16 +1,16 @@
 require 'spec_helper'
 
 describe Rubex do
-  context "Rubex method with arithmetic expressions" do
+  context "Rubex method with if-elsif-else blocks" do
     before do
-      @path = 'spec/fixtures/expressions/expressions.rubex'
+      @path = 'spec/fixtures/expressions/if_else.rubex'
     end
 
     context ".ast" do
       it "generates the AST" do
-        # t = Rubex.ast @path
+        t = Rubex.ast @path
 
-        # pp t
+        pp t
       end
     end
     context ".compile" do
