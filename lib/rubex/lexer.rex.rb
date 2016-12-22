@@ -9,8 +9,13 @@ class Rubex::Lexer
   require 'strscan'
 
   DEF        = /def/
+  END        = /end/
   RETURN     = /return/
   PRINT      = /print/
+  IF         = /if/
+  ELSE       = /else/
+  ELSIF      = /elsif/
+  THEN       = /then/
   IDENTIFIER = /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN     = /\(/
   RPAREN     = /\)/
@@ -80,13 +85,21 @@ class Rubex::Lexer
           when text = ss.scan(/#{INTEGER}/) then
             action { [:tINTEGER, text] }
           when text = ss.scan(/#{DEF}/) then
-            action { [:kDEF, text] }
-          when text = ss.scan(/end/) then
-            action { [:kEND, text]  }
+            action { [:kDEF   , text] }
+          when text = ss.scan(/#{END}/) then
+            action { [:kEND   , text] }
           when text = ss.scan(/#{RETURN}/) then
             action { [:kRETURN, text] }
           when text = ss.scan(/#{PRINT}/) then
-            action { [:kPRINT, text]  }
+            action { [:kPRINT , text] }
+          when text = ss.scan(/#{IF}/) then
+            action { [:kIF    , text] }
+          when text = ss.scan(/#{ELSIF}/) then
+            action { [:kELSIF , text] }
+          when text = ss.scan(/#{ELSE}/) then
+            action { [:kELSE  , text] }
+          when text = ss.scan(/#{THEN}/) then
+            action { [:kTHEN  , text] }
           when text = ss.scan(/unsigned long long int/) then
             action { [:kDTYPE_ULLINT, text] }
           when text = ss.scan(/unsigned long int/) then

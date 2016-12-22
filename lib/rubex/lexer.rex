@@ -3,8 +3,13 @@ macros
   # reserved words
 
   DEF             /def/
+  END             /end/
   RETURN          /return/
   PRINT           /print/
+  IF              /if/
+  ELSE            /else/
+  ELSIF           /elsif/
+  THEN            /then/
 
   IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN          /\(/
@@ -35,10 +40,14 @@ rules
 
   # Reserved words
 
-  /#{DEF}/    { [:kDEF, text] }
-  /end/       { [:kEND, text]  }
+  /#{DEF}/    { [:kDEF   , text] }
+  /#{END}/    { [:kEND   , text] }
   /#{RETURN}/ { [:kRETURN, text] }
-  /#{PRINT}/  { [:kPRINT, text]  }
+  /#{PRINT}/  { [:kPRINT , text] }
+  /#{IF}/     { [:kIF    , text] }
+  /#{ELSIF}/  { [:kELSIF , text] }
+  /#{ELSE}/   { [:kELSE  , text] }
+  /#{THEN}/   { [:kTHEN  , text] }
 
   # Data Types
 

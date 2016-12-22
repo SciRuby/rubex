@@ -1,6 +1,6 @@
 class Rubex::Parser
 token 
-  kDEF kEND kRETURN kPRINT
+  kDEF kEND kRETURN kPRINT kIF kELSIF kELSE kTHEN
 
   kDTYPE_UINT  kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16  
   kDTYPE_I32   kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64 
@@ -36,7 +36,7 @@ rule
       }
 
   stmts:
-    stmts stmt eol { result = [*val[0], *val[1]]; }
+    stmts stmt eol { result = [*val[0], *val[1]] }
   | stmt eol { result = val[0] }
   
   stmt:
@@ -48,8 +48,8 @@ rule
           var = Statement::VariableDeclaration.new(dtype, di[:name], di[:value])
           variables << var
         end
-
-        result = variables
+  
+          result = variables
       }
   | kRETURN expr { result = Statement::Return.new val[1] }
   | kPRINT expr { result = Statement::Print.new val[1] }
@@ -58,7 +58,15 @@ rule
       match = val[0]
       result = Statement::Assign.new match[:name], match[:value]
     }
+  | if_block { result = Statement::IfBlock.new val[0] }
   | {}
+
+  if_block:
+    if_stmt eol stmts kEND {}
+  | if_stmt kTHEN stmts kEND {}
+
+  if_stmt:
+    kIF expr { }
 
   var_decl_or_init:
     dtype decl_or_init 
