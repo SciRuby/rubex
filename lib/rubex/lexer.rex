@@ -3,7 +3,6 @@ macros
   # reserved words
 
   DEF             /def/
-  END             /end/
   RETURN          /return/
   PRINT           /print/
   IF              /if/
@@ -17,6 +16,7 @@ macros
   NL              /\n/
   COMMA           /,/
   SQUOTE          /'/
+  SCOLON          /;/
   INTEGER         /-?\d+/
   FLOAT           /-?\d+\.\d+/
 
@@ -41,7 +41,7 @@ rules
   # Reserved words
 
   /#{DEF}/    { [:kDEF   , text] }
-  /#{END}/    { [:kEND   , text] }
+  /end/       { [:kEND   , text] }
   /#{RETURN}/ { [:kRETURN, text] }
   /#{PRINT}/  { [:kPRINT , text] }
   /#{IF}/     { [:kIF    , text] }
@@ -80,6 +80,7 @@ rules
   /#{LPAREN}/             { [:tLPAREN, text] }
   /#{RPAREN}/             { [:tRPAREN, text] }
   /#{COMMA}/              { [:tCOMMA, text] }
+  /#{SCOLON}/             { [:tSCOLON, text] }
   /#{NL}/                 { [:tNL, text] }
 
   # operators
@@ -95,7 +96,7 @@ rules
 
   # whitespace
 
-  /^\n\s*$/ { puts "text :::::: #{text}"}
+  /^\n\s*$/
   /\s+/
 
 inner

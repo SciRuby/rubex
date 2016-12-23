@@ -9,7 +9,6 @@ class Rubex::Lexer
   require 'strscan'
 
   DEF        = /def/
-  END        = /end/
   RETURN     = /return/
   PRINT      = /print/
   IF         = /if/
@@ -22,6 +21,7 @@ class Rubex::Lexer
   NL         = /\n/
   COMMA      = /,/
   SQUOTE     = /'/
+  SCOLON     = /;/
   INTEGER    = /-?\d+/
   FLOAT      = /-?\d+\.\d+/
   EXPO       = /\*\*/
@@ -86,7 +86,7 @@ class Rubex::Lexer
             action { [:tINTEGER, text] }
           when text = ss.scan(/#{DEF}/) then
             action { [:kDEF   , text] }
-          when text = ss.scan(/#{END}/) then
+          when text = ss.scan(/end/) then
             action { [:kEND   , text] }
           when text = ss.scan(/#{RETURN}/) then
             action { [:kRETURN, text] }
@@ -148,6 +148,8 @@ class Rubex::Lexer
             action { [:tRPAREN, text] }
           when text = ss.scan(/#{COMMA}/) then
             action { [:tCOMMA, text] }
+          when text = ss.scan(/#{SCOLON}/) then
+            action { [:tSCOLON, text] }
           when text = ss.scan(/#{NL}/) then
             action { [:tNL, text] }
           when text = ss.scan(/#{PLUS}/) then
@@ -166,8 +168,8 @@ class Rubex::Lexer
             action { [:tEXPO, text]}
           when text = ss.scan(/#{ASSIGN}/) then
             action { [:tASSIGN, text] }
-          when text = ss.scan(/^\n\s*$/) then
-            action { puts "text :::::: #{text}"}
+          when ss.skip(/^\n\s*$/) then
+            # do nothing
           when ss.skip(/\s+/) then
             # do nothing
           else

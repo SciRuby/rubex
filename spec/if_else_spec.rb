@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Rubex do
   context "Rubex method with if-elsif-else blocks" do
     before do
-      @path = 'spec/fixtures/expressions/if_else.rubex'
+      @path = 'spec/fixtures/if_else/if_else.rubex'
     end
 
     context ".ast" do

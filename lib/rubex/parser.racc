@@ -7,7 +7,7 @@ token
   kDTYPE_INT   kDTYPE_F32  kDTYPE_F64   kDTYPE_LF64 kDTYPE_ROBJ kDTYPE_ULINT 
   kDTYPE_ULLINT
 
-  tLPAREN tRPAREN tIDENTIFIER tNL tCOMMA tSQUOTE EOF
+  tLPAREN tRPAREN tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON EOF
 
   tPLUS tMINUS tMULTIPLY tDIVIDE tEXPO tMODULUS tASSIGN
 
@@ -30,15 +30,19 @@ rule
   | {}
 
   ruby_method:
-    kDEF f_name f_arglist stmts kEND eol
+    kDEF f_name f_arglist compstmt kEND eol
       { 
         result = RubyMethodDef.new(val[1], val[2], val[3])
       }
 
+  compstmt:
+    stmts opt_terms { result = val[0] }
+
   stmts:
-    stmts stmt eol { result = [*val[0], *val[1]] }
-  | stmt eol { result = val[0] }
-  
+    stmts terms stmt { result = [*val[0], *val[2]] }
+  | stmt 
+  | {}
+
   stmt:
     var_decl_or_init
       { 
@@ -58,15 +62,22 @@ rule
       match = val[0]
       result = Statement::Assign.new match[:name], match[:value]
     }
-  | if_block { result = Statement::IfBlock.new val[0] }
-  | {}
+  | kIF expr then if_tail kEND 
+    { 
+      result = Statement::IfBlock.new val[0]
+    }
+  | stmt kIF expr {}
 
-  if_block:
-    if_stmt eol stmts kEND {}
-  | if_stmt kTHEN stmts kEND {}
+  then:
+    kTHEN {}
+  | eol {}
 
-  if_stmt:
-    kIF expr { }
+  if_tail:
+    opt_else {}
+  | kELSIF expr then stmts if_tail {}
+
+  opt_else:
+    kELSE stmts {}
 
   var_decl_or_init:
     dtype decl_or_init 
@@ -130,6 +141,18 @@ rule
 
   binary_op:
     tPLUS | tMINUS | tMULTIPLY | tDIVIDE | tEXPO | tMODULUS { result = val[0] }
+
+  opt_terms:
+    {}
+  | terms {}
+
+  terms:
+    term {}
+  | terms term {}
+
+  term:
+    tNL {}
+  | tSCOLON
 
   eol:
     tNL {result = val[0]}
