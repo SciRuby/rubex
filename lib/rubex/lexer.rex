@@ -29,8 +29,17 @@ macros
   MINUS           /\-/
   MODULUS         /%/
   ASSIGN          /=/
-rules
+  NEQ             /!=/
+  EQ              /==/
+  LT              /</
+  LTEQ            /<=/
+  GT              />/
+  GTEQ            />=/
+  CMP             /<=>/
+  ANDOP           /&&/
+  OROP            /\|\|/
 
+rules
 
   # literals
 
@@ -92,7 +101,19 @@ rules
   /#{EXPO}/       { [:tEXPO, text]}
   /#{MODULUS}/    { [:tMODULUS, text]}
   /#{EXPO}/       { [:tEXPO, text]}
+  /#{EQ}/         { [:tEQ, text]  }
+  /#{NEQ}/        { [:tNEQ, text]  }
   /#{ASSIGN}/     { [:tASSIGN, text] }
+  /#{CMP}/        { [:tCMP, text] }
+
+  /#{LTEQ}/       { [:tLTEQ, text] }
+  /#{LT}/         { [:tLT, text] }
+
+  /#{GTEQ}/       { [:tGTEQ, text] }
+  /#{GT}/         { [:tGT, text] }
+
+  /#{ANDOP}/      { [:tANDOP, text] }
+  /#{OROP}/       { [:tOROP, text] }
 
   # whitespace
 

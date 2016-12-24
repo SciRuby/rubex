@@ -31,6 +31,15 @@ class Rubex::Lexer
   MINUS      = /\-/
   MODULUS    = /%/
   ASSIGN     = /=/
+  NEQ        = /!=/
+  EQ         = /==/
+  LT         = /</
+  LTEQ       = /<=/
+  GT         = />/
+  GTEQ       = />=/
+  CMP        = /<=>/
+  ANDOP      = /&&/
+  OROP       = /\|\|/
 
   class ScanError < StandardError ; end
 
@@ -166,8 +175,26 @@ class Rubex::Lexer
             action { [:tMODULUS, text]}
           when text = ss.scan(/#{EXPO}/) then
             action { [:tEXPO, text]}
+          when text = ss.scan(/#{EQ}/) then
+            action { [:tEQ, text]  }
+          when text = ss.scan(/#{NEQ}/) then
+            action { [:tNEQ, text]  }
           when text = ss.scan(/#{ASSIGN}/) then
             action { [:tASSIGN, text] }
+          when text = ss.scan(/#{CMP}/) then
+            action { [:tCMP, text] }
+          when text = ss.scan(/#{LTEQ}/) then
+            action { [:tLTEQ, text] }
+          when text = ss.scan(/#{LT}/) then
+            action { [:tLT, text] }
+          when text = ss.scan(/#{GTEQ}/) then
+            action { [:tGTEQ, text] }
+          when text = ss.scan(/#{GT}/) then
+            action { [:tGT, text] }
+          when text = ss.scan(/#{ANDOP}/) then
+            action { [:tANDOP, text] }
+          when text = ss.scan(/#{OROP}/) then
+            action { [:tOROP, text] }
           when ss.skip(/^\n\s*$/) then
             # do nothing
           when ss.skip(/\s+/) then

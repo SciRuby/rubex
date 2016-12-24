@@ -149,6 +149,12 @@ module Rubex
           str << ";\n"
           code << str
         end
+      end # Assign
+
+      class IfBlock
+        def initialize
+          
+        end
       end
     end
   end
