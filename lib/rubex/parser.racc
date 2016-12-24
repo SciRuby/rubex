@@ -36,7 +36,7 @@ rule
   | {}
 
   ruby_method:
-    kDEF f_name f_arglist compstmt kEND eol
+    kDEF f_name f_arglist compstmt kEND opt_terms
       { 
         result = RubyMethodDef.new(val[1], val[2], val[3])
       }
@@ -70,21 +70,27 @@ rule
       result = Statement::Assign.new match[:name], match[:value]
     }
   | kIF expr then compstmt if_tail kEND 
-    { 
-      result = Statement::IfBlock.new val[0]
+    {  
+      stmts = [*val[3], *val[4]]
+      result = Statement::IfBlock.new val[1], stmts
     }
-  | stmt kIF expr {}
+  | stmt kIF expr { result = Statement::IfBlock.new val[2], val[0] }
 
   then:
     kTHEN {}
   | eol {}
 
   if_tail:
-    opt_else {}
-  | kELSIF expr then compstmt if_tail {}
+    {}
+  | opt_else {}
+  | kELSIF expr then compstmt if_tail 
+    { 
+      stmts = [*val[3], *val[4]]
+      result = Statement::IfBlock::Elsif.new val[1], stmts
+    }
 
   opt_else:
-    kELSE compstmt {}
+    kELSE compstmt { result = Statement::IfBlock::Else.new val[1] }
 
   var_decl_or_init:
     dtype decl_or_init 

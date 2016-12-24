@@ -149,11 +149,29 @@ module Rubex
           str << ";\n"
           code << str
         end
-      end # Assign
+      end # class Assign
 
       class IfBlock
-        def initialize
-          
+        attr_reader :expr, :statements
+
+        def initialize expr, statements
+          @expr, @statements = expr, statements
+        end
+
+        class Elsif
+          attr_reader :expr, :statements
+
+          def initialize expr, statements
+            @expr, @statements = expr, statements
+          end
+        end
+
+        class Else
+          attr_reader :statements
+
+          def initialize statements
+            @statements = statements
+          end
         end
       end
     end

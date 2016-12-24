@@ -7,6 +7,10 @@ def adder(int a, i64 b, f64 c)
     d = 44
   elsif c >= 211
     d = 211
+
+    if c == 225
+      d = 221
+    end
   else
     d = 666
   end
