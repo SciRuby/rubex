@@ -13,17 +13,23 @@ token
   tGTEQ tCMP   tANDOP    tOROP
 
   tINTEGER tFLOAT tSINGLE_CHAR
-prechigh
-  right tASSIGN
 
-  left tOROP
-  left tANDOP
-  nonassoc tEQ tCMP tNEQ
-  left tLT tLTEQ tGT tGTEQ
-  left tMULTIPLY tDIVIDE tMODULUS
-  left tPLUS tMINUS
+prechigh
   right tEXPO
 
+
+  left tMULTIPLY tDIVIDE tMODULUS
+  left tPLUS
+  left tMINUS
+  left tLT
+  left tLTEQ
+  left tGT
+  left tGTEQ
+  nonassoc tEQ tCMP tNEQ
+  left tANDOP
+  left tOROP
+
+  right tASSIGN
 preclow
 
 rule
@@ -135,9 +141,9 @@ rule
     dtype tIDENTIFIER { result = CBaseType.new val[0], val[1] }
 
   expr:
-    expr binary_op expr
+    binary_op
       {
-        result = Expression::Binary.new val[0], val[1], val[2]
+
       }
   | tLPAREN expr tRPAREN { result = val[1] }
   | literal {}
@@ -153,11 +159,20 @@ rule
       }
 
   binary_op:
-    tPLUS | tMINUS | tMULTIPLY | tDIVIDE | tEXPO | tMODULUS | tEQ | tLT |
-    tLTEQ |   tGT  |     tGTEQ |     tCMP| tANDOP| tOROP
-      {
-        result = val[0]
-      }
+    expr tPLUS     expr { result = binary_op val }|
+    expr tMINUS    expr { result = binary_op val }|
+    expr tMULTIPLY expr { result = binary_op val }|
+    expr tDIVIDE   expr { result = binary_op val }|
+    expr tEXPO     expr { result = binary_op val }|
+    expr tMODULUS  expr { result = binary_op val }|
+    expr tEQ       expr { result = binary_op val }|
+    expr tLT       expr { result = binary_op val }|
+    expr tLTEQ     expr { result = binary_op val }|
+    expr tGT       expr { result = binary_op val }|
+    expr tGTEQ     expr { result = binary_op val }|
+    expr tCMP      expr { result = binary_op val }|
+    expr tANDOP    expr { result = binary_op val }|
+    expr tOROP     expr { result = binary_op val }
 
   opt_terms:
     {}
@@ -191,4 +206,8 @@ end
 
 def next_token
   @lexer.next_token
+end
+
+def binary_op val
+  Expression::Binary.new val[0], val[1], val[2]
 end

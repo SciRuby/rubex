@@ -12,6 +12,7 @@ module Rubex
         end
 
         def analyse_statement local_scope
+          puts "#{self.inspect}"
           analyse_return_type local_scope, self
         end
 
@@ -51,6 +52,7 @@ module Rubex
             t = local_scope[node].type
           else
             Rubex::LITERAL_MAPPINGS.each do |regex, type|
+              puts "#{node.inspect}"
               if regex.match(node)
                 t = type.new
                 break
