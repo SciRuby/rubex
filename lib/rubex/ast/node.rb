@@ -14,7 +14,7 @@ module Rubex
       def process_statements target_name, code
         @scope = Rubex::SymbolTable::Scope::Klass.new 'Object'
         generate_symbol_table_entries
-        analyse_expressions
+        analyse_statements
         generate_preamble code
         generate_code code
         generate_init_method target_name, code
@@ -61,9 +61,9 @@ module Rubex
         end
       end
 
-      def analyse_expressions
+      def analyse_statements
         @statements.each do |stat|
-          stat.analyse_expressions @scope
+          stat.analyse_statements @scope
         end
       end
 

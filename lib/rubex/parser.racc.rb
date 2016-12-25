@@ -482,7 +482,7 @@ module_eval(<<'.,.,', 'parser.racc', 55)
           var = Statement::VariableDeclaration.new(dtype, di[:name], di[:value])
           variables << var
         end
-  
+
           result = variables
       
     result
@@ -523,7 +523,7 @@ module_eval(<<'.,.,', 'parser.racc', 73)
 
 module_eval(<<'.,.,', 'parser.racc', 76)
   def _reduce_14(val, _values, result)
-     result = Statement::IfBlock.new val[2], val[0] 
+     result = Statement::IfBlock.new val[2], [*val[0]] 
     result
   end
 .,.,
@@ -783,7 +783,7 @@ module_eval(<<'.,.,', 'parser.racc', 151)
 
 module_eval(<<'.,.,', 'parser.racc', 158)
   def _reduce_72(val, _values, result)
-            result = val[0] 
+            result = val[0]
       
     result
   end

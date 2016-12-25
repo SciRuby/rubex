@@ -14,13 +14,13 @@ module Rubex
           @c_name = Rubex::VAR_PREFIX + name
         end
 
-        def analyse_expression local_scope
+        def analyse_statement local_scope
           # TODO: Have type checks for knowing if correct literal assignment
           # is taking place. For example, a char should not be assigned a float.
         end
 
         def generate_code code, local_scope
-          
+
         end
       end
 
@@ -32,7 +32,7 @@ module Rubex
           @expression = expression
         end
 
-        def analyse_expression local_scope
+        def analyse_statement local_scope
           if @expression.is_a? String
             entry = local_scope[@expression]
             raise "Invalid expression #{@expression} to print." unless entry
@@ -51,7 +51,7 @@ module Rubex
           code.new_line
         end
       end
-      
+
       class Return
         include Rubex::AST::Statement
         attr_reader :expression, :return_type
@@ -60,7 +60,7 @@ module Rubex
           @expression = expression
         end
 
-        def analyse_expression local_scope
+        def analyse_statement local_scope
           case @expression
           when Rubex::AST::Expression::Binary
             left  = @expression.left
@@ -85,7 +85,7 @@ module Rubex
           when Rubex::AST::Expression::Binary
             left  = @expression.left
             right = @expression.right
-            code << @return_type.to_ruby_function( 
+            code << @return_type.to_ruby_function(
               "#{local_scope[left].c_name} #{@expression.operator} #{local_scope[right].c_name}")
             code << ";"
             code.new_line
@@ -93,7 +93,7 @@ module Rubex
             entry = local_scope[@expression]
             if local_scope.return_type.object?
               code << if @return_type.object?
-                "#{entry.c_name}" 
+                "#{entry.c_name}"
               else
                 @return_type.to_ruby_function("#{entry.c_name}")
               end
@@ -124,27 +124,28 @@ module Rubex
           @lhs, @rhs = lhs, rhs
         end
 
-        def analyse_expression local_scope
+        def analyse_statement local_scope
           # LHS symbol has been declared.
-          @lhs.analyse_expression(local_scope) if @lhs.is_a? Rubex::AST::Expression
-          @rhs.analyse_expression(local_scope) if @rhs.is_a? Rubex::AST::Expression
+          @lhs.analyse_statement(local_scope) if @lhs.is_a? Rubex::AST::Expression
+          @rhs.analyse_statement(local_scope) if @rhs.is_a? Rubex::AST::Expression
 
           if local_scope.has_entry? @lhs
             lhs = local_scope[@lhs]
-            # TODO: Type checking between lhs and rhs.
+            # TODO: Type checking between lhs and rhs. Also see if LHS is a legit
+            # lvalue.
           else
             # If LHS is an IDENTIFIER assume that its a Ruby object being assigned.
             local_scope.add_ruby_obj @lhs, @rhs
-            @ruby_obj_init = true            
+            @ruby_obj_init = true
           end
         end
 
         def generate_code code, local_scope
           str = "#{local_scope[@lhs].c_name} = "
           if @ruby_obj_init
-            str << "#{@rhs.return_type.to_ruby_function(@rhs.generate_code(local_scope))}"
+            str << "#{@rhs.return_type.to_ruby_function(@rhs.c_code(local_scope))}"
           else
-            str << "#{@rhs.generate_code(local_scope)}"
+            str << "#{@rhs.c_code(local_scope)}"
           end
           str << ";\n"
           code << str
@@ -158,13 +159,49 @@ module Rubex
           @expr, @statements = expr, statements
         end
 
+        def analyse_statement local_scope
+          if @expr.is_a? Rubex::AST::Expression
+            @expr.analyse_statement(local_scope)
+          else
+            @expr = local_scope[@expr]
+          end
+
+          @statements.each do |stat|
+            stat.analyse_statement local_scope
+          end
+        end
+
+        def generate_code code, local_scope
+          code << "if (#{@expr.c_code(local_scope)}) "
+          code.lbrace
+          code.nl
+          code.indent
+          @statements.each do |stat|
+            stat.generate_code code, local_scope
+            code.nl
+          end
+          code.dedent
+          code.rbrace
+          code.nl
+        end
+
         class Elsif
           attr_reader :expr, :statements
 
           def initialize expr, statements
             @expr, @statements = expr, statements
           end
-        end
+
+          def analyse_statement local_scope
+            @statements.each do |stat|
+              stat.analyse_statement local_scope
+            end
+          end
+
+          def generate_code code, local_scope
+
+          end
+        end # class Elsif
 
         class Else
           attr_reader :statements
@@ -172,7 +209,17 @@ module Rubex
           def initialize statements
             @statements = statements
           end
-        end
+
+          def analyse_statement local_scope
+            @statements.each do |stat|
+              stat.analyse_statement local_scope
+            end
+          end
+
+          def generate_code code, local_scope
+
+          end
+        end # class Else
       end
     end
   end

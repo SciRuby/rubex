@@ -34,9 +34,9 @@ module Rubex
         @scope.declare_vars variables
       end
 
-      def analyse_expressions outer_scope
+      def analyse_statements outer_scope
         @statements.each do |stat|
-          stat.analyse_expression @scope
+          stat.analyse_statement @scope
         end
       end
 

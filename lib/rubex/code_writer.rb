@@ -46,10 +46,10 @@ module Rubex
           @code << "#{var.value.generate_code(local_scope)};"
         end
       end
-      
+
       new_line
     end
-    
+
     def << s
       @code << s
     end
@@ -69,12 +69,20 @@ module Rubex
     end
 
     def define_instance_method_under scope, name, c_name
-      @code << "rb_define_method(" + scope.c_name + " ,\"" + name + "\", " + 
+      @code << "rb_define_method(" + scope.c_name + " ,\"" + name + "\", " +
         c_name + ", -1);\n"
     end
 
     def to_s
       @code
+    end
+
+    def lbrace
+      @code << "{"
+    end
+
+    def rbrace
+      @code << "}"
     end
 
   private
@@ -87,7 +95,7 @@ module Rubex
       else
         @code << args
       end
-      @code << ")"      
+      @code << ")"
     end
   end
 end

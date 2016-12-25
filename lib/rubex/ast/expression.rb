@@ -11,11 +11,11 @@ module Rubex
           @left, @operator, @right = left, operator, right
         end
 
-        def analyse_expression local_scope
+        def analyse_statement local_scope
           analyse_return_type local_scope, self
         end
 
-        def generate_code local_scope
+        def c_code local_scope
           code = ""
           recursive_generate_code(local_scope, code, self)
           code
@@ -30,14 +30,14 @@ module Rubex
             if tree.left.is_a?(Rubex::AST::Expression) &&
                tree.right.is_a?(Rubex::AST::Expression)
 
-              tree.return_type = 
+              tree.return_type =
                Rubex::Helpers.result_type_for(
                  tree.left.return_type, tree.right.return_type)
             else
               left_type = type_for local_scope, left
               right_type = type_for local_scope, right
 
-              tree.return_type = 
+              tree.return_type =
                 Rubex::Helpers.result_type_for left_type, right_type
             end
 
@@ -65,7 +65,7 @@ module Rubex
         def recursive_generate_code local_scope, code, tree
           if tree.respond_to? :left
             recursive_generate_code local_scope, code, tree.left
-            if tree.left.is_a?(Rubex::AST::Expression) && 
+            if tree.left.is_a?(Rubex::AST::Expression) &&
                tree.right.is_a?(Rubex::AST::Expression)
               code << "#{tree.operator}"
             else

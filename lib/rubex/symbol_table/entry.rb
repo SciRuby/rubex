@@ -13,6 +13,10 @@ module Rubex
       def initialize name, c_name, type, value
         @name, @c_name, @type, @value = name, c_name, type, value
       end
+
+      def generate_code local_scope
+        c_name
+      end
     end
   end
 end
