@@ -14,7 +14,7 @@ module Rubex
         @name, @c_name, @type, @value = name, c_name, type, value
       end
 
-      def generate_code local_scope
+      def c_code local_scope
         c_name
       end
     end
