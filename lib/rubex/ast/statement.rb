@@ -153,58 +153,66 @@ module Rubex
       end # class Assign
 
       class IfBlock
+        module Helper
+          def analyse_statement local_scope
+            if @expr.is_a? Rubex::AST::Expression
+              @expr.analyse_statement(local_scope)
+            else
+              @expr = local_scope[@expr]
+            end
+
+            @statements.each do |stat|
+              stat.analyse_statement local_scope
+            end            
+          end
+
+          def generate_code_for_statement stat, code, local_scope
+            if stat != "else"
+              code << "#{stat} (#{@expr.c_code(local_scope)}) "
+            else
+              code << "#{stat}"
+            end
+
+            code.lbrace
+            code.nl
+            code.indent
+            @statements.each do |stat|
+              stat.generate_code code, local_scope
+              code.nl
+            end
+            code.dedent
+            code.rbrace
+            code.nl
+          end
+        end
+
         attr_reader :expr, :statements
+        include Rubex::AST::Statement::IfBlock::Helper
 
         def initialize expr, statements
           @expr, @statements = expr, statements
         end
 
-        def analyse_statement local_scope
-          if @expr.is_a? Rubex::AST::Expression
-            @expr.analyse_statement(local_scope)
-          else
-            @expr = local_scope[@expr]
-          end
-
-          @statements.each do |stat|
-            stat.analyse_statement local_scope
-          end
-        end
-
         def generate_code code, local_scope
-          code << "if (#{@expr.c_code(local_scope)}) "
-          code.lbrace
-          code.nl
-          code.indent
-          @statements.each do |stat|
-            stat.generate_code code, local_scope
-            code.nl
-          end
-          code.dedent
-          code.rbrace
-          code.nl
+          generate_code_for_statement "if", code, local_scope
         end
 
         class Elsif
           attr_reader :expr, :statements
+          include Rubex::AST::Statement::IfBlock::Helper
 
           def initialize expr, statements
             @expr, @statements = expr, statements
           end
 
-          def analyse_statement local_scope
-            @statements.each do |stat|
-              stat.analyse_statement local_scope
-            end
-          end
-
           def generate_code code, local_scope
-
+            generate_code_for_statement "else if", code, local_scope
           end
         end # class Elsif
 
         class Else
           attr_reader :statements
+          include Rubex::AST::Statement::IfBlock::Helper
 
           def initialize statements
             @statements = statements
@@ -217,7 +225,7 @@ module Rubex
           end
 
           def generate_code code, local_scope
-
+            generate_code_for_statement "else", code, local_scope
           end
         end # class Else
       end
