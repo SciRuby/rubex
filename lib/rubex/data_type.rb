@@ -3,13 +3,14 @@ module Rubex
     # Citations
     #   Printf arguments:
     #     http://www.thinkage.ca/english/gcos/expl/c/lib/printf.html
-    module Boolean
+    module Helpers
+      include ::Comparable
       [
         :float?, :float32?, :float64?,
         :int?, :int8?, :int16?, :int32?, :int64?, 
         :uint?, :uint8?, :uint16?, :uint32?, :uint64?,
         :lint?, :ulint?, :llint?, :ullint?,
-        :char?, :object?
+        :char?, :object?, :bool?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -20,32 +21,32 @@ module Rubex
     end
 
     module IntHelpers
-      include Boolean
+      include Helpers
       def to_ruby_function(arg); "INT2NUM(#{arg})"; end
 
       def printf(arg); "printf(\"%d\", #{arg});"; end
-
-      def int?; true; end
     end
 
     module UIntHelpers
-      include Boolean
+      include Helpers
       def to_ruby_function(arg); "UINT2NUM(#{arg})"; end
 
       def printf(arg); "printf(\"%u\", #{arg});"; end
-
-      def uint?; true; end
     end
 
     module FloatHelpers
-      include Boolean
+      include Helpers
       def printf(arg); "printf(\"%f\", #{arg});"; end
+    end
 
-      def float?; true; end
+    class Boolean
+      include Helpers
+
+      def bool?; true; end
     end
 
     class RubyObject
-      include Boolean
+      include Helpers
       def to_s; "VALUE"; end
 
       def printf(arg); "printf(\"%ld\", #{arg});"; end
@@ -67,6 +68,16 @@ module Rubex
       def printf(arg); "printf(\"%c\", #{arg});" end
 
       def char?; true; end
+
+      def <=> other
+        if not other.char?
+          return -1
+        elsif other.char?
+          return 0
+        else
+          return 1
+        end
+      end
     end
 
     # class CString
@@ -81,6 +92,16 @@ module Rubex
       def from_ruby_function(arg); "(int8_t)NUM2INT(#{arg})"; end
 
       def int8?; true; end
+
+      def <=> other
+        if not other.char? || other.int8?
+          return 1
+        elsif other.int8?
+          return 0
+        else
+          return -1
+        end
+      end
     end
 
     class Int16
@@ -90,6 +111,16 @@ module Rubex
       def from_ruby_function(arg); "(int16_t)NUM2INT(#{arg})"; end
 
       def int16?; true; end
+
+      def <=> other
+        if not other.char? || other.int8? || other.int16?
+          return 1
+        elsif other.int16?
+          return 0
+        else
+          return -1
+        end
+      end
     end
 
     class Int32
@@ -99,6 +130,16 @@ module Rubex
       def from_ruby_function(arg); "(int32_t)NUM2INT(#{arg})"; end
 
       def int32?; true; end
+
+      def <=> other
+        if not other.char? || other.int8? || other.int16? || other.int32? || other.int?
+          return 1
+        elsif other.int32? || other.int?
+          return 0
+        else
+          return -1
+        end
+      end
     end
 
     class Int64
@@ -112,6 +153,17 @@ module Rubex
       def printf(arg); "printf(\"%l\", #{arg});" end
 
       def int64?; true; end
+
+      def <=> other
+        if not other.char? || other.int8? || other.int16? || other.int32? ||
+          other.int64? || other.int?
+          return 1
+        elsif other.int64?
+          return 0
+        else
+          return -1
+        end
+      end
     end
 
     class UInt8
@@ -159,6 +211,17 @@ module Rubex
       def from_ruby_function(arg); "NUM2INT(#{arg})"; end
 
       def int?; true; end
+
+      def <=> other
+        if not other.char? || other.int8? || other.int16? || other.int32? ||
+          other.int?
+          return 1
+        elsif other.int64?
+          return 0
+        else
+          return -1
+        end
+      end
     end
 
     class UInt
@@ -234,6 +297,18 @@ module Rubex
       def from_ruby_function(arg); "NUM2DBL(#{arg})"; end
 
       def float64?; true; end
+
+      def <=> other
+        if not other.char? || other.int8?   || other.int16? || other.int32? ||
+          other.int64?     || other.int?    || other.uint8? || other.uint16?||
+          other.uint32?    || other.uint64? || other.float32?
+          return 1
+        elsif other.float64?
+          return 0
+        else
+          return -1
+        end
+      end
     end
 
     # TODO: How to store this in a Ruby class? Use BigDecimal?
