@@ -1,6 +1,10 @@
 module Rubex
   module AST
     module Statement
+      include Rubex::Helpers::NodeTypeMethods
+
+      def statement?; true; end
+      
       class VariableDeclaration
         include Rubex::AST::Statement
         attr_reader :type, :name, :c_name, :value

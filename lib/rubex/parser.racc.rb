@@ -669,21 +669,21 @@ module_eval(<<'.,.,', 'parser.racc', 119)
 
 module_eval(<<'.,.,', 'parser.racc', 122)
   def _reduce_28(val, _values, result)
-    
+     result = Literal::Int.new val[0]    
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 123)
   def _reduce_29(val, _values, result)
-    
+     result = Literal::Double.new val[0] 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 124)
   def _reduce_30(val, _values, result)
-     result = val[0] 
+     result = Literal::Char.new val[0]   
     result
   end
 .,.,

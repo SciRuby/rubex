@@ -3,16 +3,19 @@ module Rubex
     module Expression
       class Binary
         include Rubex::AST::Expression
+        include Rubex::Helpers::NodeTypeMethods
 
-        attr_reader   :left, :operator, :right
-        attr_accessor :return_type
+        attr_reader :operator
+        attr_accessor :left, :right
+        # Final return type of expression
+        attr_accessor :type
 
         def initialize left, operator, right
           @left, @operator, @right = left, operator, right
         end
 
         def analyse_statement local_scope
-          puts "#{self.inspect}"
+          analyse_left_and_right_nodes local_scope, self
           analyse_return_type local_scope, self
         end
 
@@ -22,26 +25,29 @@ module Rubex
           code
         end
 
+        def expression?; true; end
+
       private
+
+        def analyse_left_and_right_nodes local_scope, tree
+          if tree.respond_to? :left
+            analyse_left_and_right_nodes local_scope, tree.left
+            if local_scope.has_entry? tree.left
+              tree.left = local_scope[tree.left]
+            end
+
+            if local_scope.has_entry? tree.right
+              tree.right = local_scope[tree.right]
+            end
+            analyse_left_and_right_nodes local_scope, tree.right
+          end
+        end
 
         def analyse_return_type local_scope, tree
           if tree.respond_to? :left
             analyse_return_type local_scope, tree.left
-
-            if tree.left.is_a?(Rubex::AST::Expression) &&
-               tree.right.is_a?(Rubex::AST::Expression)
-
-              tree.return_type =
-               Rubex::Helpers.result_type_for(
-                 tree.left.return_type, tree.right.return_type)
-            else
-              left_type = type_for local_scope, left
-              right_type = type_for local_scope, right
-
-              tree.return_type =
-                Rubex::Helpers.result_type_for left_type, right_type
-            end
-
+            tree.type = Rubex::Helpers.result_type_for(
+                   tree.left.type, tree.right.type)
             analyse_return_type local_scope, tree.right
           end
         end

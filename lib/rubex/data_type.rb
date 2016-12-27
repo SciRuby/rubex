@@ -69,6 +69,10 @@ module Rubex
       def char?; true; end
     end
 
+    # class CString
+    #   # TODO: define string behaviour.
+    # end
+
     class Int8
       include IntHelpers
 

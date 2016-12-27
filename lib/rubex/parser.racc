@@ -120,9 +120,9 @@ rule
     tIDENTIFIER tASSIGN expr { result = { name: val[0], value: val[2] } }
 
   literal:
-    tINTEGER {}
-  | tFLOAT   {}
-  | tSINGLE_CHAR { result = val[0] }
+    tINTEGER     { result = Literal::Int.new val[0]    }
+  | tFLOAT       { result = Literal::Double.new val[0] }
+  | tSINGLE_CHAR { result = Literal::Char.new val[0]   }
 
   f_name:
     tIDENTIFIER {}

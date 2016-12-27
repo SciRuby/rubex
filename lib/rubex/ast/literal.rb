@@ -1,18 +1,40 @@
 module Rubex
   module AST
     module Literal
+      include Rubex::Helpers::NodeTypeMethods
       attr_reader :literal
+
       def initialize literal
         @literal = literal
       end
 
-      class Double; include Rubex::AST::Literal;  end
+      def literal?; true; end
 
-      class Int;  include Rubex::AST::Literal;  end
+      class Double
+        include Rubex::AST::Literal
 
-      class Str; include Rubex::AST::Literal;  end
+        def type
+          Rubex::DataType::F64.new
+        end
+      end
 
-      class Char; include Rubex::AST::Literal;  end
+      class Int
+        include Rubex::AST::Literal
+
+        def type
+          Rubex::DataType::Int.new
+        end
+      end
+
+      # class Str; include Rubex::AST::Literal;  end
+
+      class Char
+        include Rubex::AST::Literal
+
+        def type
+          Rubex::DataType::Char.new
+        end
+      end
     end
   end
 end
