@@ -30,7 +30,7 @@ module Rubex
       private
 
         def analyse_left_and_right_nodes local_scope, tree
-          if tree.respond_to? :left
+          if tree.respond_to?(:left)
             analyse_left_and_right_nodes local_scope, tree.left
             if local_scope.has_entry? tree.left
               tree.left = local_scope[tree.left]
@@ -58,49 +58,24 @@ module Rubex
           end
         end
 
-        def type_for local_scope, node
-          t = nil
-          if local_scope.has_entry? node
-            t = local_scope[node].type
-          else
-            Rubex::LITERAL_MAPPINGS.each do |regex, type|
-              puts "#{node.inspect}"
-              if regex.match(node)
-                t = type.new
-                break
-              end
-            end
-          end
-
-          raise "Cannot identify type of literal #{node}." if t.nil?
-          t
-        end
-
         def recursive_generate_code local_scope, code, tree
           if tree.respond_to? :left
             recursive_generate_code local_scope, code, tree.left
-            if tree.left.is_a?(Rubex::AST::Expression) &&
-               tree.right.is_a?(Rubex::AST::Expression)
-              code << "#{tree.operator}"
-            else
-              str = "("
-              if local_scope.has_entry? tree.left
-                l = local_scope[tree.left]
-                str << "#{l.c_name} "
-              else
-                str << "#{tree.left}"
-              end
 
-              str << " #{tree.operator} "
-
-              if local_scope.has_entry? tree.right
-                r = local_scope[tree.right]
-                str << "#{r.c_name}"
-              else
-                str << "#{tree.right}"
+            if !tree.left.is_a?(Rubex::AST::Expression)
+              if !tree.right.is_a?(Rubex::AST::Expression)
+                code << "("
               end
-              str << ")"
-              code << str
+              code << "#{tree.left.c_name}"
+            end
+
+            code << " #{tree.operator} "
+
+            if !tree.right.is_a?(Rubex::AST::Expression)
+              code << "#{tree.right.c_name}"
+              if !tree.left.is_a?(Rubex::AST::Expression)
+                code << ")"
+              end
             end
             recursive_generate_code local_scope, code, tree.right
           end

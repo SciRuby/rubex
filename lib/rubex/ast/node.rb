@@ -52,7 +52,7 @@ module Rubex
       def generate_preamble code
         code << "#include <ruby.h>\n"
         code << "#include <stdint.h>\n"
-        code << "\n"
+        code.nl
       end
 
       def generate_symbol_table_entries
@@ -78,15 +78,13 @@ module Rubex
         code.new_line
         code.write_func_declaration "void", name, "void"
         code.write_func_definition_header "void", name, "void"
-
-        @statements.each do |stat|
-          if stat.is_a? Rubex::AST::RubyMethodDef
-            code.define_instance_method_under @scope, stat.name, stat.c_name
+        code.block do 
+          @statements.each do |stat|
+            if stat.is_a? Rubex::AST::RubyMethodDef
+              code.define_instance_method_under @scope, stat.name, stat.c_name
+            end
           end
         end
-
-        code << "\n"
-        code << "}\n"
       end
     end
   end

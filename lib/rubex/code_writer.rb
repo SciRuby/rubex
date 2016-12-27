@@ -17,13 +17,10 @@ module Rubex
 
     def write_func_definition_header return_type, c_name, args=""
       write_func_prototype return_type, c_name, args
-      new_line
-      lbrace
-      new_line
     end
 
     def declare_variable var
-      @code << "#{var.type.to_s} #{var.c_name};"
+      @code << " "*@indent + "#{var.type.to_s} #{var.c_name};"
       new_line
     end
 
@@ -73,8 +70,9 @@ module Rubex
     end
 
     def define_instance_method_under scope, name, c_name
-      @code << "rb_define_method(" + scope.c_name + " ,\"" + name + "\", " +
-        c_name + ", -1);\n"
+      @code << " "*@indent + "rb_define_method(" + scope.c_name + " ,\"" + 
+        name + "\", " + c_name + ", -1);"
+      new_line
     end
 
     def to_s
@@ -82,11 +80,22 @@ module Rubex
     end
 
     def lbrace
-      @code << "{"
+      @code << (" "*@indent + "{")
     end
 
     def rbrace
-      @code << "}"
+      @code << (" "*@indent + "}")
+    end
+
+    def block &block
+      new_line
+      lbrace
+      indent
+      new_line
+      block.call
+      dedent
+      rbrace
+      new_line
     end
 
   private

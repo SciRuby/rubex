@@ -167,7 +167,13 @@ module Rubex
 
             @statements.each do |stat|
               stat.analyse_statement local_scope
-            end            
+            end
+
+            unless @if_tail.empty?
+              @if_tail.each do |tail|
+                tail.analyse_statement local_scope
+              end
+            end 
           end
 
           def generate_code_for_statement stat, code, local_scope
@@ -177,16 +183,12 @@ module Rubex
               code << "#{stat}"
             end
 
-            code.lbrace
-            code.nl
-            code.indent
-            @statements.each do |stat|
-              stat.generate_code code, local_scope
-              code.nl
+            code.block do
+              @statements.each do |stat|
+                stat.generate_code code, local_scope
+                code.nl
+              end
             end
-            code.dedent
-            code.rbrace
-            code.nl
 
             if stat != "else"
               unless @if_tail.empty?
@@ -195,7 +197,6 @@ module Rubex
                 end
               end
             end
-            
           end
         end
 

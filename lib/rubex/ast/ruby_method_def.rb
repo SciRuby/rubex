@@ -43,8 +43,9 @@ module Rubex
       def generate_code code
         code.write_func_declaration @return_type.to_s, @c_name
         code.write_func_definition_header @return_type.to_s, @c_name
-        generate_function_definition code
-        code << "}"
+        code.block do
+          generate_function_definition code
+        end
       end
 
     private
@@ -98,10 +99,10 @@ module Rubex
       end
 
       def generate_arg_checking code
-        code << 'if (argc != ' + @scope.arg_entries.size.to_s + ")\n"
-        code << "{\n"
-        code << %Q{rb_raise(rb_eArgError, "Need #{@scope.arg_entries.size} args, not %d", argc);\n}
-        code << "}\n"
+        code << 'if (argc != ' + @scope.arg_entries.size.to_s + ")"
+        code.block do
+          code << %Q{rb_raise(rb_eArgError, "Need #{@scope.arg_entries.size} args, not %d", argc);\n}
+        end
       end
     end
   end

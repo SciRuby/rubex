@@ -12,6 +12,10 @@ module Rubex
         @literal
       end
 
+      def c_name
+        @literal
+      end
+
       def literal?; true; end
 
       class Double
