@@ -17,8 +17,9 @@ module Rubex
 
     def write_func_definition_header return_type, c_name, args=""
       write_func_prototype return_type, c_name, args
-      @code << "\n"
-      @code << "{\n"
+      new_line
+      lbrace
+      new_line
     end
 
     def declare_variable var
@@ -27,6 +28,7 @@ module Rubex
     end
 
     def init_variable var, local_scope=nil
+      stat = " "*@indent
       if var.type.is_a? Rubex::DataType::RubyObject
         literal_type = nil
         Rubex::LITERAL_MAPPINGS.each do |regex, type|
@@ -39,18 +41,20 @@ module Rubex
           value = var.value
         end
 
-        @code << "#{var.c_name} = #{literal_type.to_ruby_function(value, true)};"
+        stat << "#{var.c_name} = #{literal_type.to_ruby_function(value, true)};"
       else
-        @code << "#{var.c_name} = "
+        stat << "#{var.c_name} = "
         if var.value.is_a? Rubex::AST::Expression
-          @code << "#{var.value.generate_code(local_scope)};"
+          stat << "#{var.value.generate_code(local_scope)};"
         end
       end
 
+      @code << stat
       new_line
     end
 
     def << s
+      @code << " "*@indent
       @code << s
     end
 
@@ -60,12 +64,12 @@ module Rubex
     alias :nl :new_line
 
     def indent
-      @indent += 1
+      @indent += 2
     end
 
     def dedent
       raise "Cannot dedent, already 0." if @indent == 0
-      @indent -= 1
+      @indent -= 2
     end
 
     def define_instance_method_under scope, name, c_name

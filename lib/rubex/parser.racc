@@ -77,10 +77,9 @@ rule
     }
   | kIF expr then compstmt if_tail kEND
     {
-      stmts = [*val[3], *val[4]]
-      result = Statement::IfBlock.new val[1], stmts
+      result = Statement::IfBlock.new val[1], [*val[3]], [*val[4]]
     }
-  | stmt kIF expr { result = Statement::IfBlock.new val[2], [*val[0]] }
+  | stmt kIF expr { result = Statement::IfBlock.new val[2], [*val[0]], [] }
 
   then:
     kTHEN {}
@@ -91,8 +90,7 @@ rule
   | opt_else {}
   | kELSIF expr then compstmt if_tail
     {
-      stmts = [*val[3], *val[4]]
-      result = Statement::IfBlock::Elsif.new val[1], stmts
+      result = Statement::IfBlock::Elsif.new val[1], [*val[3]], [*val[4]]
     }
 
   opt_else:

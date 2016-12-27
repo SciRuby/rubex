@@ -187,14 +187,23 @@ module Rubex
             code.dedent
             code.rbrace
             code.nl
+
+            if stat != "else"
+              unless @if_tail.empty?
+                @if_tail.each do |tail|
+                  tail.generate_code code, local_scope
+                end
+              end
+            end
+            
           end
         end
 
-        attr_reader :expr, :statements
+        attr_reader :expr, :statements, :if_tail
         include Rubex::AST::Statement::IfBlock::Helper
 
-        def initialize expr, statements
-          @expr, @statements = expr, statements
+        def initialize expr, statements, if_tail
+          @expr, @statements, @if_tail = expr, statements, if_tail
         end
 
         def generate_code code, local_scope
@@ -202,11 +211,11 @@ module Rubex
         end
 
         class Elsif
-          attr_reader :expr, :statements
+          attr_reader :expr, :statements, :if_tail
           include Rubex::AST::Statement::IfBlock::Helper
 
-          def initialize expr, statements
-            @expr, @statements = expr, statements
+          def initialize expr, statements, if_tail
+            @expr, @statements, @if_tail = expr, statements, if_tail
           end
 
           def generate_code code, local_scope

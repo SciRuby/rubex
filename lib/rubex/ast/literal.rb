@@ -8,6 +8,10 @@ module Rubex
         @literal = literal
       end
 
+      def c_code local_scope
+        @literal
+      end
+
       def literal?; true; end
 
       class Double

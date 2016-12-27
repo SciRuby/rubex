@@ -46,8 +46,14 @@ module Rubex
         def analyse_return_type local_scope, tree
           if tree.respond_to? :left
             analyse_return_type local_scope, tree.left
-            tree.type = Rubex::Helpers.result_type_for(
-                   tree.left.type, tree.right.type)
+
+            if ['==', '<', '>', '<=', '>='].include? tree.operator
+              tree.type = Rubex::DataType::Boolean.new
+            else
+              tree.type = Rubex::Helpers.result_type_for(
+                     tree.left.type, tree.right.type)
+            end
+
             analyse_return_type local_scope, tree.right
           end
         end

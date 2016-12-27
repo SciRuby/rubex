@@ -17,7 +17,7 @@ describe Rubex do
         t, c, e = Rubex.compile @path, true
 
         pp t
-        pp c
+        puts c
       end
     end
   end
