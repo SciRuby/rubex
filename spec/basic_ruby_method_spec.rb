@@ -1,25 +1,24 @@
 require 'spec_helper'
+include Rubex::AST
 
 describe Rubex do
   context "basic Rubex Ruby callable method" do
     before do
       @path = 'spec/fixtures/basic_ruby_method/basic_ruby_method.rubex'
-      include Rubex::AST
     end
 
     context ".ast" do
       it "returns a valid Abstract Syntax Tree" do
-        # arguments  = ArgumentList.new[
-        #   CBaseType.new('i32', 'b'),
-        #   CBaseType.new('i32', 'a')
-        # ]
-        # method     = RubyMethodDef.new('addition', arguments)
-        # expr       = Expression::Addition.new 'a', 'b'
-        # statements = Statement::Return.new expr
-        # node       = Node.new method
+        arguments  = ArgumentList.new([
+          CBaseType.new('i32', 'a'),
+          CBaseType.new('i32', 'b')
+        ])
+        expr       = Expression::Binary.new('a', '+' ,'b')
+        statement  = [Statement::Return.new(expr)]
+        method     = RubyMethodDef.new('addition', arguments, statement)
+        node       = Node.new([method])
 
-        # TODO: Define == method on all nodes of AST.
-        # expect(Rubex.ast(@path)).to eq(node)
+        expect(Rubex.ast(@path)).to eq(node)
       end
     end
 
@@ -35,7 +34,7 @@ describe Rubex do
         f = "require 'mkmf'\n"
         f << "create_makefile('basic_ruby_method/basic_ruby_method')\n"
 
-        # expect(Rubex.extconf("basic_ruby_method")).to eq(f)
+        expect(Rubex.extconf("basic_ruby_method")).to eq(f)
       end
     end
   end

@@ -20,6 +20,10 @@ module Rubex
         generate_init_method target_name, code
       end
 
+      def == other
+        self.class == other.class
+      end
+
      private
 
       def generate_preamble code

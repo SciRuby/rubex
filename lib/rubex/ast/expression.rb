@@ -27,6 +27,12 @@ module Rubex
 
         def expression?; true; end
 
+        def == other
+          self.class == other.class && @type  == other.type &&
+          @left == other.left  && @right == other.right &&
+          @operator == other.operator
+        end
+
       private
 
         def analyse_left_and_right_nodes local_scope, tree

@@ -47,7 +47,7 @@ rule
 
   stmts:
     {}
-  | stmt
+  | stmt { result = [*val[0]] }
   | stmts terms stmt { result = [*val[0], *val[2]] }
 
 

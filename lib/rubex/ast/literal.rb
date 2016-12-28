@@ -18,6 +18,10 @@ module Rubex
 
       def literal?; true; end
 
+      def == other
+        self.class == other.class && @literal == other.literal
+      end
+
       class Double
         include Rubex::AST::Literal
 

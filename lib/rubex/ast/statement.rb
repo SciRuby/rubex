@@ -5,6 +5,10 @@ module Rubex
 
       def statement?; true; end
 
+      def == other
+        self.class == other.class
+      end
+
       class VariableDeclaration
         include Rubex::AST::Statement
         attr_reader :type, :name, :c_name, :value
@@ -61,7 +65,7 @@ module Rubex
 
       class Return
         include Rubex::AST::Statement
-        attr_reader :expression, :return_type
+        attr_reader :expression, :type
 
         def initialize expression
           @expression = expression
@@ -76,13 +80,13 @@ module Rubex
             left_type = local_scope[left].type
             right_type = local_scope[right].type
 
-            @return_type = result_type_for left_type, right_type
+            @type = result_type_for left_type, right_type
           else # assume its an IDENTIFIER
             entry = local_scope[@expression]
-            @return_type = entry.type
+            @type = entry.type
           end
 
-          # TODO: Raise error if return_type as inferred from the
+          # TODO: Raise error if type as inferred from the
           # is not compatible with the return statement type.
         end
 
@@ -92,17 +96,17 @@ module Rubex
           when Rubex::AST::Expression::Binary
             left  = @expression.left
             right = @expression.right
-            code << @return_type.to_ruby_function(
+            code << @type.to_ruby_function(
               "#{local_scope[left].c_name} #{@expression.operator} #{local_scope[right].c_name}")
             code << ";"
             code.new_line
           else
             entry = local_scope[@expression]
-            if local_scope.return_type.object?
-              code << if @return_type.object?
+            if local_scope.type.object?
+              code << if @type.object?
                 "#{entry.c_name}"
               else
-                @return_type.to_ruby_function("#{entry.c_name}")
+                @type.to_ruby_function("#{entry.c_name}")
               end
             else
               raise "C functions not yet implemented. Can only return object."

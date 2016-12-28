@@ -4,7 +4,7 @@ module Rubex
       attr_accessor :entries
       attr_accessor :outer_scope
       attr_accessor :arg_entries
-      attr_accessor :return_type
+      attr_accessor :type
       attr_accessor :var_entries
       attr_accessor :ruby_obj_entries
 
@@ -13,7 +13,7 @@ module Rubex
         @entries = {}
         @arg_entries = []
         @var_entries = []
-        @return_type = nil
+        @type = nil
         @ruby_obj_entries = []
       end
 
@@ -54,7 +54,7 @@ module Rubex
           args.each do |arg|
             c_name = Rubex::ARG_PREFIX + arg.name
             type = Rubex::TYPE_MAPPINGS[arg.type].new
-            entry = Rubex::SymbolTable::Entry.new arg.name, c_name, type, arg.value 
+            entry = Rubex::SymbolTable::Entry.new arg.name, c_name, type, arg.value
 
             name = arg.name
             check_entry name
@@ -67,7 +67,7 @@ module Rubex
         def declare_vars vars
           vars.each do |var|
             c_name = Rubex::VAR_PREFIX + var.name
-            entry = Rubex::SymbolTable::Entry.new( 
+            entry = Rubex::SymbolTable::Entry.new(
               var.name, c_name, var.type, var.value)
 
             name = var.name
@@ -86,7 +86,7 @@ module Rubex
         end
 
         def [] entry
-          @entries[entry] or raise(Rubex::SymbolNotFoundError, 
+          @entries[entry] or raise(Rubex::SymbolNotFoundError,
             "Symbol #{entry} does not exist in this scope.")
         end
 
