@@ -84,7 +84,15 @@ module Rubex
             recursive_generate_code local_scope, code, tree.right
           end
         end
+      end # class Binary
+
+      class CArray
+        attr_reader :length, :array_list, :type
+
+        def initialize array_list
+
+        end
       end
-    end
-  end
-end
+    end # module Expression
+  end # module AST
+end # module Rubex

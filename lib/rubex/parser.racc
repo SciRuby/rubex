@@ -37,7 +37,7 @@ rule
   | {}
 
   ruby_method:
-    kDEF f_name f_arglist compstmt kEND opt_terms
+    kDEF f_name f_opt_arglist compstmt kEND opt_terms
       {
         result = RubyMethodDef.new(val[1], val[2], val[3])
       }
@@ -61,7 +61,7 @@ rule
           variables << var
         end
 
-          result = variables
+        result = variables
       }
   | kRETURN expr { result = Statement::Return.new val[1] }
   | kPRINT expr { result = Statement::Print.new val[1] }
@@ -101,13 +101,23 @@ rule
       }
 
   decl_or_init:
-    decl_or_init tCOMMA normal_init { result = [*val[0], val[2]] }
+    decl_or_init tCOMMA var_init { result = [*val[0], val[2]] }
   | decl_or_init tCOMMA normal_decl { result = [*val[0], val[2]] }
   | normal_decl { result = [val[0]] }
   | normal_init { result = [val[0]] }
 
   normal_decl:
     tIDENTIFIER { result = { name: val[0] } }
+  | tIDENTIFIER tLSQUARE tINTEGER tRSQUARE {}
+
+  var_init:
+    normal_init
+  | tIDENTIFIER tASSIGN tLSQUARE array_list tRSQUARE {}
+
+  array_list:
+    {}
+  | expr {}
+  | array_list tCOMMA expr {}
 
   normal_init:
     tIDENTIFIER tASSIGN expr { result = { name: val[0], value: val[2] } }
@@ -119,6 +129,10 @@ rule
 
   f_name:
     tIDENTIFIER {}
+
+  f_opt_arglist:
+    {}
+  | f_arglist
 
   f_arglist:
     tLPAREN f_args tRPAREN eol { result = ArgumentList.new val[1] }
