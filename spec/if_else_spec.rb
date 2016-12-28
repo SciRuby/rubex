@@ -8,12 +8,12 @@ describe Rubex do
 
     context ".ast" do
       it "generates the AST" do
-        # Rubex.ast @path
+        t = Rubex.ast @path
       end
     end
     context ".compile" do
       it "compiles to valid C file" do
-        # Rubex.compile @path, true
+        t,c,e = Rubex.compile @path, true
       end
     end
   end

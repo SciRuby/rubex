@@ -9,12 +9,7 @@ describe Rubex do
 
     context ".ast" do
       it "generates the AST" do
-
-      ##  method = RubyMethodDef.new
-      #  n = Node.new
-        # t = Rubex.ast @path
-
-        # pp t
+        t = Rubex.ast @path
       end
     end
     context ".compile" do

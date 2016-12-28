@@ -25,27 +25,7 @@ module Rubex
     end
 
     def init_variable var, local_scope=nil
-      stat = " "*@indent
-      if var.type.is_a? Rubex::DataType::RubyObject
-        literal_type = nil
-        Rubex::LITERAL_MAPPINGS.each do |regex, type|
-          literal_type = type.new if var.value.match(regex)
-        end
-
-        if literal_type.is_a? Rubex::DataType::Char
-          value = var.value[1]
-        else
-          value = var.value
-        end
-
-        stat << "#{var.c_name} = #{literal_type.to_ruby_function(value, true)};"
-      else
-        stat << "#{var.c_name} = "
-        if var.value.is_a? Rubex::AST::Expression
-          stat << "#{var.value.c_code(local_scope)};"
-        end
-      end
-
+      stat = " "*@indent + "#{var.c_name} = #{var.value.c_code(local_scope)};"
       @code << stat
       new_line
     end

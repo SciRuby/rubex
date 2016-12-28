@@ -154,12 +154,17 @@ module Rubex
         def generate_code code, local_scope
           str = "#{local_scope[@lhs].c_name} = "
           if @ruby_obj_init
-            str << "#{@rhs.type.to_ruby_function(@rhs.c_code(local_scope))}"
+            if @rhs.is_a?(Rubex::AST::Literal::Char)
+              str << "#{@rhs.type.to_ruby_function(@rhs.c_code(local_scope), true)}"
+            else
+              str << "#{@rhs.type.to_ruby_function(@rhs.c_code(local_scope))}"
+            end
           else
             str << "#{@rhs.c_code(local_scope)}"
           end
-          str << ";\n"
+          str << ";"
           code << str
+          code.nl
         end
       end # class Assign
 

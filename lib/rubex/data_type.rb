@@ -58,7 +58,7 @@ module Rubex
       def to_s; "char";  end
 
       def to_ruby_function(arg, literal=false)
-        return "rb_str_new2(\"#{arg}\")" if literal
+        return "rb_str_new2(\"#{arg[1]}\")" if literal
 
         "rb_str_new2(&#{arg})"
       end
