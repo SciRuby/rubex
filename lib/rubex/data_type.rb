@@ -7,7 +7,7 @@ module Rubex
       include ::Comparable
       [
         :float?, :float32?, :float64?,
-        :int?, :int8?, :int16?, :int32?, :int64?, 
+        :int?, :int8?, :int16?, :int32?, :int64?,
         :uint?, :uint8?, :uint16?, :uint32?, :uint64?,
         :lint?, :ulint?, :llint?, :ullint?,
         :char?, :object?, :bool?
@@ -59,7 +59,7 @@ module Rubex
 
       def to_ruby_function(arg, literal=false)
         return "rb_str_new2(\"#{arg}\")" if literal
-        
+
         "rb_str_new2(&#{arg})"
       end
 
@@ -286,6 +286,19 @@ module Rubex
       def from_ruby_function(arg); "(float)NUM2DBL(#{arg})"; end
 
       def float32?; true; end
+
+      def <=> other
+        if not other.char? || other.int8?   || other.int16? || other.int32? ||
+          other.int64?     || other.int?    || other.uint8? || other.uint16?||
+          other.uint32?    || other.uint64?
+          return 1
+        elsif other.float32?
+          return 0
+        else # other is float64
+          return -1
+        end
+      end
+
     end
 
     class F64

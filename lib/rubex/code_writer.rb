@@ -42,7 +42,7 @@ module Rubex
       else
         stat << "#{var.c_name} = "
         if var.value.is_a? Rubex::AST::Expression
-          stat << "#{var.value.generate_code(local_scope)};"
+          stat << "#{var.value.c_code(local_scope)};"
         end
       end
 
@@ -70,7 +70,7 @@ module Rubex
     end
 
     def define_instance_method_under scope, name, c_name
-      @code << " "*@indent + "rb_define_method(" + scope.c_name + " ,\"" + 
+      @code << " "*@indent + "rb_define_method(" + scope.c_name + " ,\"" +
         name + "\", " + c_name + ", -1);"
       new_line
     end

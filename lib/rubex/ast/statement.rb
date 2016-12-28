@@ -4,7 +4,7 @@ module Rubex
       include Rubex::Helpers::NodeTypeMethods
 
       def statement?; true; end
-      
+
       class VariableDeclaration
         include Rubex::AST::Statement
         attr_reader :type, :name, :c_name, :value
@@ -21,6 +21,9 @@ module Rubex
         def analyse_statement local_scope
           # TODO: Have type checks for knowing if correct literal assignment
           # is taking place. For example, a char should not be assigned a float.
+          if @value.is_a? Rubex::AST::Expression
+            @value.analyse_statement local_scope
+          end
         end
 
         def generate_code code, local_scope
@@ -147,7 +150,7 @@ module Rubex
         def generate_code code, local_scope
           str = "#{local_scope[@lhs].c_name} = "
           if @ruby_obj_init
-            str << "#{@rhs.return_type.to_ruby_function(@rhs.c_code(local_scope))}"
+            str << "#{@rhs.type.to_ruby_function(@rhs.c_code(local_scope))}"
           else
             str << "#{@rhs.c_code(local_scope)}"
           end
@@ -173,7 +176,7 @@ module Rubex
               @if_tail.each do |tail|
                 tail.analyse_statement local_scope
               end
-            end 
+            end
           end
 
           def generate_code_for_statement stat, code, local_scope

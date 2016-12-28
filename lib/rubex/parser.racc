@@ -1,13 +1,13 @@
 class Rubex::Parser
 token
-  kDEF kEND kRETURN kPRINT kIF kELSIF kELSE kTHEN
+  kDEF kEND kRETURN kPRINT kIF kELSIF kELSE kTHEN kSTATIC_ARRAY
 
   kDTYPE_UINT  kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32   kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64
   kDTYPE_INT   kDTYPE_F32  kDTYPE_F64   kDTYPE_LF64 kDTYPE_ROBJ kDTYPE_ULINT
   kDTYPE_ULLINT
 
-  tLPAREN tRPAREN tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON EOF
+  tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON EOF
 
   tPLUS tMINUS tMULTIPLY tDIVIDE tEXPO tMODULUS tASSIGN tEQ tLT tLTEQ tGT
   tGTEQ tCMP   tANDOP    tOROP
@@ -17,14 +17,9 @@ token
 prechigh
   right tEXPO
 
-
   left tMULTIPLY tDIVIDE tMODULUS
-  left tPLUS
-  left tMINUS
-  left tLT
-  left tLTEQ
-  left tGT
-  left tGTEQ
+  left tPLUS tMINUS
+  left tLT tLTEQ tGT tGTEQ
   nonassoc tEQ tCMP tNEQ
   left tANDOP
   left tOROP
@@ -139,10 +134,7 @@ rule
     dtype tIDENTIFIER { result = CBaseType.new val[0], val[1] }
 
   expr:
-    binary_op
-      {
-
-      }
+    binary_op {}
   | tLPAREN expr tRPAREN { result = val[1] }
   | literal {}
   | tIDENTIFIER {}

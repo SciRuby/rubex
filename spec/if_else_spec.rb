@@ -13,7 +13,7 @@ describe Rubex do
     end
     context ".compile" do
       it "compiles to valid C file" do
-        # Rubex.compile @path
+        # Rubex.compile @path, true
       end
     end
   end

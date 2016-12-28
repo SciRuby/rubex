@@ -9,10 +9,13 @@ macros
   ELSE            /else/
   ELSIF           /elsif/
   THEN            /then/
+  STATIC_ARRAY    /StaticArray/
 
   IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN          /\(/
   RPAREN          /\)/
+  LSQUARE         /\[/
+  RSQUARE         /\]/
   NL              /\n/
   COMMA           /,/
   SQUOTE          /'/
@@ -57,6 +60,7 @@ rules
   /#{ELSIF}/  { [:kELSIF , text] }
   /#{ELSE}/   { [:kELSE  , text] }
   /#{THEN}/   { [:kTHEN  , text] }
+  /#{STATIC_ARRAY}/ { [:kSTATIC_ARRAY, text] }
 
   # Data Types
 

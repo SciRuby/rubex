@@ -20,34 +20,7 @@ module Rubex
         generate_init_method target_name, code
       end
 
-      # Pretty print the AST
-      def pp
-        tree = {}
-        tree[self.class.to_s] = {}
-        tree[self.class.to_s]['statements'] = {}
-        stats = tree[self.class.to_s]['statements']
-
-        recursive_pp stats, self
-
-        tree
-      end
-
      private
-
-      def recursive_pp hash, object        
-        (object.instance_variables).each do |var|
-          if var == :@statements
-            object.instance_variable_get(var).each do |stat|
-              hash[stat.class.to_s] = {}
-              hash[stat.class.to_s]['statements'] = {}
-              temp = hash[stat.class.to_s]['statements']
-              recursive_pp temp, stat
-            end
-          else
-            hash[var.to_s] = object.instance_variable_get(var).inspect
-          end
-        end
-      end
 
       def generate_preamble code
         code << "#include <ruby.h>\n"
@@ -78,7 +51,7 @@ module Rubex
         code.new_line
         code.write_func_declaration "void", name, "void"
         code.write_func_definition_header "void", name, "void"
-        code.block do 
+        code.block do
           @statements.each do |stat|
             if stat.is_a? Rubex::AST::RubyMethodDef
               code.define_instance_method_under @scope, stat.name, stat.c_name

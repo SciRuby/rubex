@@ -32,13 +32,12 @@ module Rubex
         def analyse_left_and_right_nodes local_scope, tree
           if tree.respond_to?(:left)
             analyse_left_and_right_nodes local_scope, tree.left
-            if local_scope.has_entry? tree.left
-              tree.left = local_scope[tree.left]
-            end
-
-            if local_scope.has_entry? tree.right
-              tree.right = local_scope[tree.right]
-            end
+              if local_scope.has_entry? tree.left
+                tree.left = local_scope[tree.left]
+              end
+              if local_scope.has_entry? tree.right
+                tree.right = local_scope[tree.right]
+              end
             analyse_left_and_right_nodes local_scope, tree.right
           end
         end
@@ -46,6 +45,7 @@ module Rubex
         def analyse_return_type local_scope, tree
           if tree.respond_to? :left
             analyse_return_type local_scope, tree.left
+            analyse_return_type local_scope, tree.right
 
             if ['==', '<', '>', '<=', '>='].include? tree.operator
               tree.type = Rubex::DataType::Boolean.new
@@ -53,8 +53,6 @@ module Rubex
               tree.type = Rubex::Helpers.result_type_for(
                      tree.left.type, tree.right.type)
             end
-
-            analyse_return_type local_scope, tree.right
           end
         end
 
