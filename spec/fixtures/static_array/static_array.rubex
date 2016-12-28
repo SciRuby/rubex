@@ -1,0 +1,10 @@
+def static_array
+  i32 a[10]
+  i64 b[5] = [1,2,3,4,5]
+  g = StaticArray(float, 300)
+
+  a[4] = 443
+  print a[4]
+  
+  return b[4]
+end

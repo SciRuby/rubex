@@ -210,7 +210,7 @@ module Rubex
               end
             end
           end
-        end
+        end # module Helper
 
         attr_reader :expr, :statements, :if_tail
         include Rubex::AST::Statement::IfBlock::Helper
@@ -254,7 +254,7 @@ module Rubex
             generate_code_for_statement "else", code, local_scope
           end
         end # class Else
-      end
+      end # class IfBlock
     end
   end
 end
