@@ -255,6 +255,14 @@ module Rubex
           end
         end # class Else
       end # class IfBlock
+
+      class CArray
+        attr_reader :length, :array_list, :array_ref
+
+        def initialize type, array_ref, array_list
+          @type, @array_ref, @array_list = type, array_ref, array_list
+        end
+      end
     end
   end
 end

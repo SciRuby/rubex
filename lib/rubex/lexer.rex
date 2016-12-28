@@ -92,6 +92,8 @@ rules
   /#{IDENTIFIER}/         { [:tIDENTIFIER, text] }
   /#{LPAREN}/             { [:tLPAREN, text] }
   /#{RPAREN}/             { [:tRPAREN, text] }
+  /#{LSQUARE}/            { [:tLSQUARE, text] }
+  /#{RSQUARE}/            { [:tRSQUARE, text] }
   /#{COMMA}/              { [:tCOMMA, text] }
   /#{SCOLON}/             { [:tSCOLON, text] }
   /#{NL}/                 { [:tNL, text] }

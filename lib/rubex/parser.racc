@@ -57,7 +57,11 @@ rule
         variables = []
         dtype = val[0][:dtype]
         val[0][:decl_or_init].each do |di|
-          var = Statement::VariableDeclaration.new(dtype, di[:name], di[:value])
+          if di[:name].is_a? Expression::ArrayRef
+            var = Statement::CArray.new(dtype, di[:name], di[:value])
+          else
+            var = Statement::VariableDeclaration.new(dtype, di[:name], di[:value])
+          end
           variables << var
         end
 
@@ -104,23 +108,27 @@ rule
     decl_or_init tCOMMA var_init { result = [*val[0], val[2]] }
   | decl_or_init tCOMMA normal_decl { result = [*val[0], val[2]] }
   | normal_decl { result = [val[0]] }
-  | normal_init { result = [val[0]] }
+  | var_init { result = [val[0]] }
 
   normal_decl:
-    tIDENTIFIER { result = { name: val[0] } }
-  | tIDENTIFIER tLSQUARE tINTEGER tRSQUARE {}
+    tIDENTIFIER  { result = { name: val[0] } }
+  | array_ref  { result = { name: val[0] } }
 
   var_init:
     normal_init
-  | tIDENTIFIER tASSIGN tLSQUARE array_list tRSQUARE {}
+  | array_ref tASSIGN tLSQUARE array_list tRSQUARE
+    {
+      result = { name: val[0], value: val[3] }
+    }
 
   array_list:
     {}
-  | expr {}
-  | array_list tCOMMA expr {}
+  | expr { result = [*val[0]] }
+  | array_list tCOMMA expr { result = [*val[0], val[2]] }
 
   normal_init:
     tIDENTIFIER tASSIGN expr { result = { name: val[0], value: val[2] } }
+  | array_ref tASSIGN expr   { result = { name: val[0], value: val[2] } }
 
   literal:
     tINTEGER     { result = Literal::Int.new val[0]    }
@@ -150,8 +158,15 @@ rule
   expr:
     binary_op {}
   | tLPAREN expr tRPAREN { result = val[1] }
+  | array_ref {}
   | literal {}
   | tIDENTIFIER {}
+
+  array_ref:
+    tIDENTIFIER tLSQUARE tINTEGER tRSQUARE
+      {
+        result = Expression::ArrayRef.new val[0], val[2]
+      }
 
   dtype:
     kDTYPE_UINT  | kDTYPE_LINT | kDTYPE_LLINT | kDTYPE_CHAR | kDTYPE_I8   |

@@ -86,11 +86,11 @@ module Rubex
         end
       end # class Binary
 
-      class CArray
-        attr_reader :length, :array_list, :type
+      class ArrayRef
+        attr_reader :name, :pos
 
-        def initialize array_list
-
+        def initialize name, pos
+          @name, @pos = name, pos.to_i
         end
       end
     end # module Expression

@@ -1,10 +1,13 @@
 def static_array
-  i32 a[10]
-  i64 b[5] = [1,2,3,4,5]
-  g = StaticArray(float, 300)
+  i32 a[10], c[32]
+  i64 b[5] = [1,2,3,4,5], t[4] = [4,6,2,12]
 
-  a[4] = 443
-  print a[4]
-  
+  a[2] = 443
+  print a[2]
+
+  if a[2] == 443
+    b[4] = 123
+  end
+
   return b[4]
 end

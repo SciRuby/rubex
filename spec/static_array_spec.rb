@@ -6,7 +6,7 @@ describe Rubex do
       @path = 'spec/fixtures/static_array/static_array.rubex'
     end
 
-    context ".ast" do
+    context ".ast", focus: true do
       it "generates the AST" do
         t = Rubex.ast @path
       end

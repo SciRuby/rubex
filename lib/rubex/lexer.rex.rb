@@ -166,6 +166,10 @@ class Rubex::Lexer
             action { [:tLPAREN, text] }
           when text = ss.scan(/#{RPAREN}/) then
             action { [:tRPAREN, text] }
+          when text = ss.scan(/#{LSQUARE}/) then
+            action { [:tLSQUARE, text] }
+          when text = ss.scan(/#{RSQUARE}/) then
+            action { [:tRSQUARE, text] }
           when text = ss.scan(/#{COMMA}/) then
             action { [:tCOMMA, text] }
           when text = ss.scan(/#{SCOLON}/) then
