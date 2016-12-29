@@ -63,18 +63,16 @@ module Rubex
           end
         end
 
-        # vars - [Rubex::AST::Statement::ArgumentDeclaration]
-        def declare_vars vars
-          vars.each do |var|
-            c_name = Rubex::VAR_PREFIX + var.name
-            entry = Rubex::SymbolTable::Entry.new(
-              var.name, c_name, var.type, var.value)
+        # vars - Rubex::AST::Statement::VarDecl
+        def declare_var var
+          c_name = Rubex::VAR_PREFIX + var.name
+          entry = Rubex::SymbolTable::Entry.new(
+            var.name, c_name, var.type, var.value)
 
-            name = var.name
-            check_entry name
-            @entries[name] = entry
-            @var_entries << entry
-          end
+          name = var.name
+          check_entry name
+          @entries[name] = entry
+          @var_entries << entry
         end
 
         def add_ruby_obj name, value

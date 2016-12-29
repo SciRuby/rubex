@@ -70,9 +70,7 @@ module Rubex
       def char?; true; end
 
       def <=> other
-        if not other.char?
-          return -1
-        elsif other.char?
+        if other.char?
           return 0
         else
           return 1
@@ -94,7 +92,7 @@ module Rubex
       def int8?; true; end
 
       def <=> other
-        if not other.char? || other.int8?
+        if other.char?
           return 1
         elsif other.int8?
           return 0
@@ -113,7 +111,7 @@ module Rubex
       def int16?; true; end
 
       def <=> other
-        if not other.char? || other.int8? || other.int16?
+        if other.char? || other.int8?
           return 1
         elsif other.int16?
           return 0
@@ -132,7 +130,7 @@ module Rubex
       def int32?; true; end
 
       def <=> other
-        if not other.char? || other.int8? || other.int16? || other.int32? || other.int?
+        if other.char? || other.int8? || other.int16?
           return 1
         elsif other.int32? || other.int?
           return 0
@@ -155,8 +153,8 @@ module Rubex
       def int64?; true; end
 
       def <=> other
-        if not other.char? || other.int8? || other.int16? || other.int32? ||
-          other.int64? || other.int?
+        if other.char? || other.int8? || other.int16? || other.int32? ||
+          other.int?
           return 1
         elsif other.int64?
           return 0
@@ -213,12 +211,11 @@ module Rubex
       def int?; true; end
 
       def <=> other
-        if not other.char? || other.int8? || other.int16? || other.int32? ||
-          other.int?
+        if other.char? || other.int8? || other.int16?
           return 1
-        elsif other.int64?
+        elsif other.int? || other.int32?
           return 0
-        else
+        else # other is int64 or greater
           return -1
         end
       end
@@ -288,7 +285,7 @@ module Rubex
       def float32?; true; end
 
       def <=> other
-        if not other.char? || other.int8?   || other.int16? || other.int32? ||
+        if other.char?     || other.int8?   || other.int16? || other.int32? ||
           other.int64?     || other.int?    || other.uint8? || other.uint16?||
           other.uint32?    || other.uint64?
           return 1
@@ -312,7 +309,7 @@ module Rubex
       def float64?; true; end
 
       def <=> other
-        if not other.char? || other.int8?   || other.int16? || other.int32? ||
+        if other.char? || other.int8?   || other.int16? || other.int32? ||
           other.int64?     || other.int?    || other.uint8? || other.uint16?||
           other.uint32?    || other.uint64? || other.float32?
           return 1

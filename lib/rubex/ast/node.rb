@@ -13,7 +13,6 @@ module Rubex
 
       def process_statements target_name, code
         @scope = Rubex::SymbolTable::Scope::Klass.new 'Object'
-        generate_symbol_table_entries
         analyse_statements
         generate_preamble code
         generate_code code
@@ -30,12 +29,6 @@ module Rubex
         code << "#include <ruby.h>\n"
         code << "#include <stdint.h>\n"
         code.nl
-      end
-
-      def generate_symbol_table_entries
-        @statements.each do |stat|
-          stat.generate_symbol_table_entries @scope
-        end
       end
 
       def analyse_statements

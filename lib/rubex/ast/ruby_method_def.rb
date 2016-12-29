@@ -22,19 +22,12 @@ module Rubex
         @type = Rubex::DataType::RubyObject.new
       end
 
-      def generate_symbol_table_entries outer_scope
+      def analyse_statements outer_scope
         @scope = Rubex::SymbolTable::Scope::Local.new
         @scope.outer_scope = outer_scope
         @scope.type = @type.dup
         @scope.declare_args @args
 
-        variables = @statements.select do |s|
-          s.is_a?(Rubex::AST::Statement::VariableDeclaration)
-        end
-        @scope.declare_vars variables
-      end
-
-      def analyse_statements outer_scope
         @statements.each do |stat|
           stat.analyse_statement @scope
         end

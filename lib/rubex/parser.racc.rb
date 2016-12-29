@@ -570,9 +570,9 @@ module_eval(<<'.,.,', 'parser.racc', 56)
         dtype = val[0][:dtype]
         val[0][:decl_or_init].each do |di|
           if di[:name].is_a? Expression::ArrayRef
-            var = Statement::CArray.new(dtype, di[:name], di[:value])
+            var = Statement::CArrayDecl.new(dtype, di[:name], di[:value])
           else
-            var = Statement::VariableDeclaration.new(dtype, di[:name], di[:value])
+            var = Statement::VarDecl.new(dtype, di[:name], di[:value])
           end
           variables << var
         end
@@ -792,7 +792,7 @@ module_eval(<<'.,.,', 'parser.racc', 138)
 
 module_eval(<<'.,.,', 'parser.racc', 141)
   def _reduce_39(val, _values, result)
-    
+     result = [] 
     result
   end
 .,.,

@@ -9,7 +9,7 @@ module Rubex
         self.class == other.class
       end
 
-      class VariableDeclaration
+      class VarDecl
         include Rubex::AST::Statement
         attr_reader :type, :name, :c_name, :value
 
@@ -25,6 +25,7 @@ module Rubex
         def analyse_statement local_scope
           # TODO: Have type checks for knowing if correct literal assignment
           # is taking place. For example, a char should not be assigned a float.
+          local_scope.declare_var self
           if @value.is_a? Rubex::AST::Expression
             @value.analyse_statement local_scope
           end
@@ -256,13 +257,49 @@ module Rubex
         end # class Else
       end # class IfBlock
 
-      class CArray
-        attr_reader :length, :array_list, :array_ref
+      class CArrayDecl
+        attr_reader :type, :array_list, :array_ref, :length
 
         def initialize type, array_ref, array_list
           @type, @array_ref, @array_list = type, array_ref, array_list
+          @length = @array_ref.pos
         end
-      end
-    end
-  end
-end
+
+        def analyse_statement local_scope
+          @type = Rubex::TYPE_MAPPINGS[@type].new
+          return if @array_list.nil?
+          analyse_array_list local_scope
+          verify_array_list_types local_scope
+        end
+
+        def generate_code code, local_scope
+
+        end
+
+      private
+
+        def analyse_array_list local_scope
+          @array_list.each do |expr|
+            if expr.is_a? Rubex::AST::Expression
+              expr.analyse_statement(local_scope)
+            elsif local_scope.has_entry?(expr)
+              expr = local_scope[expr]
+            elsif expr.is_a? Rubex::AST::Literal
+
+            else
+              raise Rubex::SymbolNotFoundError, "Symbol #{expr} not found anywhere."
+            end
+          end
+        end
+
+        def verify_array_list_types local_scope
+          @array_list.all? do |expr|
+            puts "#{@type.inspect} exprtype #{expr.type.inspect}"
+            return true if @type > expr.type
+            raise "Specified type #{@type} but list contains #{expr.type}."
+          end
+        end
+      end # class CArrayDecl
+    end # module Statement
+  end # module AST
+end # module Rubex
