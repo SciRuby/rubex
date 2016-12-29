@@ -1,5 +1,5 @@
 module Rubex
-  class SymbolNotFoundError < StandardError
+  class SymbolNotFoundError < StandardError;  end
 
-  end
+  class ArrayLengthMismatchError < StandardError; end
 end

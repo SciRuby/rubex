@@ -10,7 +10,7 @@ module Rubex
         :int?, :int8?, :int16?, :int32?, :int64?,
         :uint?, :uint8?, :uint16?, :uint32?, :uint64?,
         :lint?, :ulint?, :llint?, :ullint?,
-        :char?, :object?, :bool?
+        :char?, :object?, :bool?, :carray?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -319,6 +319,20 @@ module Rubex
           return -1
         end
       end
+    end
+
+    class CArray
+      include Helpers
+      # Dimension of the array
+      attr_reader :dimension
+      # Type of elements stored in array
+      attr_reader :type
+
+      def initialize dimension, type
+        @dimension, @type = dimension, type
+      end
+
+      def carray?; true; end
     end
 
     # TODO: How to store this in a Ruby class? Use BigDecimal?

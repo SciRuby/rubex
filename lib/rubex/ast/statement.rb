@@ -258,16 +258,22 @@ module Rubex
       end # class IfBlock
 
       class CArrayDecl
-        attr_reader :type, :array_list, :array_ref, :length
+        attr_reader :type, :array_list, :array_ref, :dimension
 
         def initialize type, array_ref, array_list
-          @type, @array_ref, @array_list = type, array_ref, array_list
-          @length = @array_ref.pos
+          @array_ref, @array_list = array_ref, array_list
+          @dimension = @array_ref.pos
+          @type = Rubex::TYPE_MAPPINGS[type].new
         end
 
         def analyse_statement local_scope
-          @type = Rubex::TYPE_MAPPINGS[@type].new
+          create_symbol_table_entry local_scope
           return if @array_list.nil?
+          if @dimension != @array_list.size
+            raise Rubex::ArrayLengthMismatchError, "Array #{@array_ref.name}"\
+            " should have #{@dimension} elements but has #{@array_list.size}."
+          end
+
           analyse_array_list local_scope
           verify_array_list_types local_scope
         end
@@ -294,10 +300,13 @@ module Rubex
 
         def verify_array_list_types local_scope
           @array_list.all? do |expr|
-            puts "#{@type.inspect} exprtype #{expr.type.inspect}"
             return true if @type > expr.type
             raise "Specified type #{@type} but list contains #{expr.type}."
           end
+        end
+
+        def create_symbol_table_entry local_scope
+          local_scope.add_carray @array_ref, @array_list, @type
         end
       end # class CArrayDecl
     end # module Statement

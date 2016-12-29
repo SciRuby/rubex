@@ -6,16 +6,17 @@ describe Rubex do
       @path = 'spec/fixtures/static_array/static_array.rubex'
     end
 
-    context ".ast", focus: true do
+    context ".ast" do
       it "generates the AST" do
-        t = Rubex.ast @path
-        pp t
+        # t = Rubex.ast @path
       end
     end
 
     context ".compile", focus: true do
       it "compiles to valid C file" do
-        # t,c,e = Rubex.compile @path, true
+        t,c,e = Rubex.compile @path, true
+        pp t
+        puts c
       end
     end
   end

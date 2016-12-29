@@ -5,6 +5,8 @@ module Rubex
   VAR_PREFIX  = RUBEX_PREFIX + "v_"
   CLASS_PREFIX = RUBEX_PREFIX + "c_"
   ARG_PREFIX = RUBEX_PREFIX + "arg_"
+  ARRAY_PREFIX = RUBEX_PREFIX + "arr_"
+  POINTER_PREFIX = RUBEX_PREFIX + "ptr_"
 
   TYPE_MAPPINGS = {
     'char'                   => Rubex::DataType::Char,

@@ -7,6 +7,7 @@ module Rubex
       attr_accessor :type
       attr_accessor :var_entries
       attr_accessor :ruby_obj_entries
+      attr_accessor :carray_entries
 
       def initialize outer_scope=nil
         @outer_scope = outer_scope
@@ -15,6 +16,7 @@ module Rubex
         @var_entries = []
         @type = nil
         @ruby_obj_entries = []
+        @carray_entries = []
       end
 
       def check_entry name
@@ -81,6 +83,16 @@ module Rubex
             name, c_name, Rubex::DataType::RubyObject.new, value)
           @entries[name] = entry
           @ruby_obj_entries << entry
+        end
+
+        def add_carray carray_ref, carray_list, type
+          name = carray_ref.name
+          c_name = Rubex::ARRAY_PREFIX + name
+          value = carray_list
+          type = Rubex::DataType::CArray.new carray_ref.pos, type
+          entry = Rubex::SymbolTable::Entry.new name, c_name, value, type
+          @entries[name] = entry
+          @carray_entries << entry
         end
 
         def [] entry

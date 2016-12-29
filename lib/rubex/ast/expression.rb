@@ -92,7 +92,11 @@ module Rubex
         def initialize name, pos
           @name, @pos = name, pos.to_i
         end
-      end
+
+        def analyse_statement local_scope
+
+        end
+      end # class ArrayRef
     end # module Expression
   end # module AST
 end # module Rubex
