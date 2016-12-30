@@ -51,10 +51,13 @@ module Rubex
 
       def printf(arg); "printf(\"%ld\", #{arg});"; end
 
+      def to_ruby_function(arg); "#{arg}";  end
+
       def object?; true; end
     end
 
     class Char
+      include Helpers
       def to_s; "char";  end
 
       def to_ruby_function(arg, literal=false)

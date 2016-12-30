@@ -8,7 +8,7 @@ describe Rubex do
 
     context ".ast" do
       it "generates the AST" do
-        # t = Rubex.ast @path
+        t = Rubex.ast @path
       end
     end
 
@@ -16,7 +16,7 @@ describe Rubex do
       it "compiles to valid C file" do
         t,c,e = Rubex.compile @path, true
         # pp t
-        puts c
+        # puts c
       end
     end
   end

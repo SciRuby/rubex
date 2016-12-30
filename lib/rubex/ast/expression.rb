@@ -71,9 +71,9 @@ module Rubex
         def recursive_generate_code local_scope, code, tree
           if tree.respond_to? :left
             recursive_generate_code local_scope, code, tree.left
-            code << "( #{tree.left.c_code(local_scope)}"
+            code << "( #{tree.left.c_code(local_scope)}" unless tree.left.respond_to?(:left)
             code << " #{tree.operator} "
-            code << "#{tree.right.c_code(local_scope)} )"
+            code << "#{tree.right.c_code(local_scope)} )" unless tree.right.respond_to?(:right)
             recursive_generate_code local_scope, code, tree.right
           end
         end

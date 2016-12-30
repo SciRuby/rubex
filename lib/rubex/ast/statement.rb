@@ -56,8 +56,6 @@ module Rubex
         end
 
         def generate_code code, local_scope
-          # type = @expression.type
-          puts "#{@type.inspect}"
           code << @type.printf(@expression.c_code(local_scope))
           code.nl
         end
@@ -78,17 +76,9 @@ module Rubex
           else
             @expression.analyse_statement local_scope
             case @expression
-            when Rubex::AST::Expression::Binary
-              left  = @expression.left
-              right = @expression.right
-
-              left_type = local_scope[left].type
-              right_type = local_scope[right].type
-
-              @type = Rubex::Helpers.result_type_for left_type, right_type
             when Rubex::AST::Expression::ArrayRef
               @type = @expression.type.type
-            when Rubex::AST::Expression::Literal
+            when Rubex::AST::Expression::Binary, Rubex::AST::Expression::Literal
               @type = @expression.type
             else
               raise "Cannot recognize type of #{@expression}."
@@ -124,6 +114,7 @@ module Rubex
           else
             # If LHS is not found in the symtab assume that its a Ruby object being assigned.
             local_scope.add_ruby_obj @lhs, @rhs
+            @lhs = local_scope[@lhs]
             @ruby_obj_init = true
           end
         end
@@ -197,7 +188,7 @@ module Rubex
         end
 
         def generate_code code, local_scope
-          
+
           generate_code_for_statement "if", code, local_scope
         end
 

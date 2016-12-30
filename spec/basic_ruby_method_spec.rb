@@ -4,7 +4,7 @@ include Rubex::AST
 describe Rubex do
   context "basic Rubex Ruby callable method" do
     before do
-      @path = 'spec/fixtures/basic_ruby_method/basic_ruby_method.rubex'
+      @path = 'spec/fixtures/basic_ruby_method/'
     end
 
     context ".ast" do
@@ -18,13 +18,14 @@ describe Rubex do
         method     = RubyMethodDef.new('addition', arguments, statement)
         node       = Node.new([method])
 
-        expect(Rubex.ast(@path)).to eq(node)
+        expect(Rubex.ast(@path + "basic_ruby_method.rubex")).to eq(node)
       end
     end
 
     context ".compile" do
       it "generates valid C code" do
-        t, c, e = Rubex.compile @path, true
+        t, c, e = Rubex.compile @path + "basic_ruby_method.rubex", true
+        expect(c.to_s).to eq(File.read(@path + "basic_ruby_method.c"))
       end
     end
 
