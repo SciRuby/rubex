@@ -38,29 +38,28 @@ module Rubex
 
       class Print
         include Rubex::AST::Statement
-        attr_reader :expression, :print_type
+        attr_reader :expression, :type
 
         def initialize expression
           @expression = expression
         end
 
         def analyse_statement local_scope
-          if @expression.is_a? String
-            entry = local_scope[@expression]
-            raise "Invalid expression #{@expression} to print." unless entry
-            @print_type = entry.type
-          elsif @expression.class.to_s =~ "Rubex::AST::Expression"
-            # TODO: Determine print type of expression.
+          if @expression.is_a? Rubex::AST::Expression
+            @expression.analyse_statement(local_scope)
+            @type = @expression.type
+          elsif local_scope.has_entry? @expression
+            @expression = local_scope[@expression]
+            @type = @expression.type
           end
+          @type = @type.type if @type.carray?
         end
 
         def generate_code code, local_scope
-          entry = local_scope[@expression]
-          type = entry.type
-
-          code.new_line
-          code << type.printf(entry.c_name)
-          code.new_line
+          # type = @expression.type
+          puts "#{@type.inspect}"
+          code << @type.printf(@expression.c_code(local_scope))
+          code.nl
         end
       end
 
@@ -73,18 +72,27 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          case @expression
-          when Rubex::AST::Expression::Binary
-            left  = @expression.left
-            right = @expression.right
+          if local_scope.has_entry? @expression # simple IDENTIFIER
+            @expression = local_scope[@expression]
+            @type = @expression.type
+          else
+            @expression.analyse_statement local_scope
+            case @expression
+            when Rubex::AST::Expression::Binary
+              left  = @expression.left
+              right = @expression.right
 
-            left_type = local_scope[left].type
-            right_type = local_scope[right].type
+              left_type = local_scope[left].type
+              right_type = local_scope[right].type
 
-            @type = result_type_for left_type, right_type
-          else # assume its an IDENTIFIER
-            entry = local_scope[@expression]
-            @type = entry.type
+              @type = Rubex::Helpers.result_type_for left_type, right_type
+            when Rubex::AST::Expression::ArrayRef
+              @type = @expression.type.type
+            when Rubex::AST::Expression::Literal
+              @type = @expression.type
+            else
+              raise "Cannot recognize type of #{@expression}."
+            end
           end
 
           # TODO: Raise error if type as inferred from the
@@ -93,41 +101,10 @@ module Rubex
 
         def generate_code code, local_scope
           code << "return "
-          case @expression
-          when Rubex::AST::Expression::Binary
-            left  = @expression.left
-            right = @expression.right
-            code << @type.to_ruby_function(
-              "#{local_scope[left].c_name} #{@expression.operator} #{local_scope[right].c_name}")
-            code << ";"
-            code.new_line
-          else
-            entry = local_scope[@expression]
-            if local_scope.type.object?
-              code << if @type.object?
-                "#{entry.c_name}"
-              else
-                @type.to_ruby_function("#{entry.c_name}")
-              end
-            else
-              raise "C functions not yet implemented. Can only return object."
-            end
-
-            code << ";"
-            code.nl
-          end
+          code << @type.to_ruby_function("#{@expression.c_code(local_scope)}") + ";"
+          code.nl
         end
-
-       private
-
-        def result_type_for left_type, right_type
-          type = Rubex::DataType
-
-          if left_type.class == right_type.class
-            return left_type.class.new
-          end
-        end
-      end
+      end # class Return
 
       class Assign
         attr_reader :lhs, :rhs
@@ -138,24 +115,23 @@ module Rubex
 
         def analyse_statement local_scope
           # LHS symbol has been declared.
-          @lhs.analyse_statement(local_scope) if @lhs.is_a? Rubex::AST::Expression
           @rhs.analyse_statement(local_scope) if @rhs.is_a? Rubex::AST::Expression
 
-          if local_scope.has_entry? @lhs
-            lhs = local_scope[@lhs]
-            # TODO: Type checking between lhs and rhs. Also see if LHS is a legit
-            # lvalue.
+          if @lhs.is_a? Rubex::AST::Expression
+            @lhs.analyse_statement(local_scope)
+          elsif local_scope.has_entry? @lhs
+            @lhs = local_scope[@lhs]
           else
-            # If LHS is an IDENTIFIER assume that its a Ruby object being assigned.
+            # If LHS is not found in the symtab assume that its a Ruby object being assigned.
             local_scope.add_ruby_obj @lhs, @rhs
             @ruby_obj_init = true
           end
         end
 
         def generate_code code, local_scope
-          str = "#{local_scope[@lhs].c_name} = "
+          str = "#{@lhs.c_code(local_scope)} = "
           if @ruby_obj_init
-            if @rhs.is_a?(Rubex::AST::Literal::Char)
+            if @rhs.is_a?(Rubex::AST::Expression::Literal::Char)
               str << "#{@rhs.type.to_ruby_function(@rhs.c_code(local_scope), true)}"
             else
               str << "#{@rhs.type.to_ruby_function(@rhs.c_code(local_scope))}"
@@ -221,6 +197,7 @@ module Rubex
         end
 
         def generate_code code, local_scope
+          
           generate_code_for_statement "if", code, local_scope
         end
 
@@ -269,9 +246,9 @@ module Rubex
         def analyse_statement local_scope
           create_symbol_table_entry local_scope
           return if @array_list.nil?
-          if @dimension != @array_list.size
+          if @dimension < @array_list.size
             raise Rubex::ArrayLengthMismatchError, "Array #{@array_ref.name}"\
-            " should have #{@dimension} elements but has #{@array_list.size}."
+            " should have max #{@dimension} elements but has #{@array_list.size}."
           end
 
           analyse_array_list local_scope

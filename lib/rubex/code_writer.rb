@@ -24,6 +24,18 @@ module Rubex
       new_line
     end
 
+    def declare_carray arr, local_scope
+      stmt = "#{arr.type.type.to_s} #{arr.c_name}["
+      stmt << arr.type.dimension.to_s
+      stmt << "]"
+      unless arr.value.nil?
+        stmt << " = {" + arr.value.map { |a| a.c_code(local_scope) }.join(',') + "}"
+      end
+      stmt << ";"
+      self << stmt
+      nl
+    end
+
     def init_variable var, local_scope=nil
       stat = " "*@indent + "#{var.c_name} = #{var.value.c_code(local_scope)};"
       @code << stat

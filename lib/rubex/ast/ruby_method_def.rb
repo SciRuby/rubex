@@ -53,6 +53,7 @@ module Rubex
       def generate_function_definition code
         declare_args code
         declare_vars code
+        declare_carrays code
         declare_ruby_objects code
         generate_arg_checking code
         init_args code
@@ -81,6 +82,12 @@ module Rubex
       def declare_vars code
         @scope.var_entries.each do |var|
           code.declare_variable var
+        end
+      end
+
+      def declare_carrays code
+        @scope.carray_entries.each do |arr|
+          code.declare_carray arr, @scope
         end
       end
 

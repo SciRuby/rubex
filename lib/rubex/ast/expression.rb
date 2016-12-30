@@ -1,6 +1,12 @@
 module Rubex
   module AST
     module Expression
+
+      # Stub for making certain subclasses of Expression not needed statement analysis.
+      def analyse_statement local_scope
+        nil
+      end
+
       class Binary
         include Rubex::AST::Expression
         include Rubex::Helpers::NodeTypeMethods
@@ -38,10 +44,10 @@ module Rubex
         def analyse_left_and_right_nodes local_scope, tree
           if tree.respond_to?(:left)
             analyse_left_and_right_nodes local_scope, tree.left
-              if local_scope.has_entry? tree.left
+              if local_scope.has_entry?(tree.left)
                 tree.left = local_scope[tree.left]
               end
-              if local_scope.has_entry? tree.right
+              if local_scope.has_entry?(tree.right)
                 tree.right = local_scope[tree.right]
               end
             analyse_left_and_right_nodes local_scope, tree.right
@@ -65,38 +71,79 @@ module Rubex
         def recursive_generate_code local_scope, code, tree
           if tree.respond_to? :left
             recursive_generate_code local_scope, code, tree.left
-
-            if !tree.left.is_a?(Rubex::AST::Expression)
-              if !tree.right.is_a?(Rubex::AST::Expression)
-                code << "("
-              end
-              code << "#{tree.left.c_name}"
-            end
-
+            code << "( #{tree.left.c_code(local_scope)}"
             code << " #{tree.operator} "
-
-            if !tree.right.is_a?(Rubex::AST::Expression)
-              code << "#{tree.right.c_name}"
-              if !tree.left.is_a?(Rubex::AST::Expression)
-                code << ")"
-              end
-            end
+            code << "#{tree.right.c_code(local_scope)} )"
             recursive_generate_code local_scope, code, tree.right
           end
         end
       end # class Binary
 
       class ArrayRef
-        attr_reader :name, :pos
+        include Rubex::AST::Expression
+        attr_reader :name, :pos, :type
 
         def initialize name, pos
           @name, @pos = name, pos.to_i
         end
 
         def analyse_statement local_scope
+          @type = local_scope[@name].type
+        end
 
+        def c_code local_scope
+          "#{local_scope[name].c_name}[#{pos}]"
         end
       end # class ArrayRef
+
+      module Literal
+        include Rubex::AST::Expression
+        attr_reader :literal
+
+        def initialize literal
+          @literal = literal
+        end
+
+        def c_code local_scope
+          @literal
+        end
+
+        def c_name
+          @literal
+        end
+
+        def literal?; true; end
+
+        def == other
+          self.class == other.class && @literal == other.literal
+        end
+
+        class Double
+          include Rubex::AST::Expression::Literal
+
+          def type
+            Rubex::DataType::F64.new
+          end
+        end
+
+        class Int
+          include Rubex::AST::Expression::Literal
+
+          def type
+            Rubex::DataType::Int.new
+          end
+        end
+
+        # class Str; include Rubex::AST::Expression::Literal;  end
+
+        class Char
+          include Rubex::AST::Expression::Literal
+
+          def type
+            Rubex::DataType::Char.new
+          end
+        end # class Char
+      end # module Literal
     end # module Expression
   end # module AST
 end # module Rubex

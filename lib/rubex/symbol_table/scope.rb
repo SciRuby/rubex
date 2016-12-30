@@ -90,7 +90,7 @@ module Rubex
           c_name = Rubex::ARRAY_PREFIX + name
           value = carray_list
           type = Rubex::DataType::CArray.new carray_ref.pos, type
-          entry = Rubex::SymbolTable::Entry.new name, c_name, value, type
+          entry = Rubex::SymbolTable::Entry.new name, c_name, type, value
           @entries[name] = entry
           @carray_entries << entry
         end

@@ -131,9 +131,9 @@ rule
   | array_ref tASSIGN expr   { result = { name: val[0], value: val[2] } }
 
   literal:
-    tINTEGER     { result = Literal::Int.new val[0]    }
-  | tFLOAT       { result = Literal::Double.new val[0] }
-  | tSINGLE_CHAR { result = Literal::Char.new val[0]   }
+    tINTEGER     { result = Expression::Literal::Int.new val[0]    }
+  | tFLOAT       { result = Expression::Literal::Double.new val[0] }
+  | tSINGLE_CHAR { result = Expression::Literal::Char.new val[0]   }
 
   f_name:
     tIDENTIFIER {}

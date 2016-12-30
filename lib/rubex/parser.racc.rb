@@ -501,7 +501,7 @@ Racc_token_to_s_table = [
   "binary_op",
   "term" ]
 
-Racc_debug_parser = true
+Racc_debug_parser = false
 
 ##### State transition tables end #####
 
@@ -764,21 +764,21 @@ module_eval(<<'.,.,', 'parser.racc', 130)
 
 module_eval(<<'.,.,', 'parser.racc', 133)
   def _reduce_35(val, _values, result)
-     result = Literal::Int.new val[0]    
+     result = Expression::Literal::Int.new val[0]    
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 134)
   def _reduce_36(val, _values, result)
-     result = Literal::Double.new val[0] 
+     result = Expression::Literal::Double.new val[0] 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 135)
   def _reduce_37(val, _values, result)
-     result = Literal::Char.new val[0]   
+     result = Expression::Literal::Char.new val[0]   
     result
   end
 .,.,
