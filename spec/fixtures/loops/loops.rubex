@@ -1,0 +1,13 @@
+def looper(i32 size)
+  i32 a[size], i = 0, j = size, m
+
+  for i <= m < j do
+    a[m] = 5*m
+  end
+
+  m = 0
+
+  for i <= m < j do
+    print a[m]
+  end
+end

@@ -1,6 +1,8 @@
 def static_array
   i32 a[10], c[32]
   i64 b[5] = [1,2,3,4,5], t[4] = [4,6,2,12]
+  i8 size = 54
+  i32 e[size]
 
   a[2] = 443
   print a[2]
@@ -9,5 +11,9 @@ def static_array
     b[4] = 123
   end
 
+  e[53] = 4311
+
+  print e[53]
+  
   return b[4]
 end
