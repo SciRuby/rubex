@@ -10,4 +10,6 @@ def looper(i32 size)
   for i <= m < j do
     print a[m]
   end
+
+  return a
 end

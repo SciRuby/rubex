@@ -160,10 +160,10 @@ rule
   | tLPAREN expr tRPAREN { result = val[1] }
   | array_ref {}
   | literal {}
-  | tIDENTIFIER {}
+  | tIDENTIFIER { result = Expression::Name.new val[0] }
 
   array_ref:
-    tIDENTIFIER tLSQUARE tINTEGER tRSQUARE
+    tIDENTIFIER tLSQUARE expr tRSQUARE
       {
         result = Expression::ArrayRef.new val[0], val[2]
       }

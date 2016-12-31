@@ -139,12 +139,7 @@ module Rubex
       class IfBlock
         module Helper
           def analyse_statement local_scope
-            if @expr.is_a? Rubex::AST::Expression
-              @expr.analyse_statement(local_scope)
-            else
-              @expr = local_scope[@expr]
-            end
-
+            @expr.analyse_statement(local_scope)
             @statements.each do |stat|
               stat.analyse_statement local_scope
             end
@@ -237,11 +232,6 @@ module Rubex
         def analyse_statement local_scope
           create_symbol_table_entry local_scope
           return if @array_list.nil?
-          if @dimension < @array_list.size
-            raise Rubex::ArrayLengthMismatchError, "Array #{@array_ref.name}"\
-            " should have max #{@dimension} elements but has #{@array_list.size}."
-          end
-
           analyse_array_list local_scope
           verify_array_list_types local_scope
         end
@@ -256,10 +246,6 @@ module Rubex
           @array_list.each do |expr|
             if expr.is_a? Rubex::AST::Expression
               expr.analyse_statement(local_scope)
-            elsif local_scope.has_entry?(expr)
-              expr = local_scope[expr]
-            elsif expr.is_a? Rubex::AST::Literal
-
             else
               raise Rubex::SymbolNotFoundError, "Symbol #{expr} not found anywhere."
             end

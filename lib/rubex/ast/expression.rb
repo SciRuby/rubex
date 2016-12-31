@@ -84,7 +84,7 @@ module Rubex
         attr_reader :name, :pos, :type
 
         def initialize name, pos
-          @name, @pos = name, pos.to_i
+          @name, @pos = name, pos
         end
 
         def analyse_statement local_scope
@@ -144,6 +144,25 @@ module Rubex
           end
         end # class Char
       end # module Literal
+
+      # Singular name node with no sub expressions.
+      class Name
+        include Rubex::AST::Expression
+        attr_reader :value, :entry, :type
+
+        def initialize value
+          @value = value
+        end
+
+        def analyse_statement local_scope
+          @entry = local_scope[@value]
+          @type = @entry.type
+        end
+
+        def c_code local_scope
+          @entry.c_name
+        end
+      end
     end # module Expression
   end # module AST
 end # module Rubex

@@ -26,7 +26,7 @@ module Rubex
 
     def declare_carray arr, local_scope
       stmt = "#{arr.type.type.to_s} #{arr.c_name}["
-      stmt << arr.type.dimension.to_s
+      stmt << arr.type.dimension.c_code(local_scope)
       stmt << "]"
       unless arr.value.nil?
         stmt << " = {" + arr.value.map { |a| a.c_code(local_scope) }.join(',') + "}"
