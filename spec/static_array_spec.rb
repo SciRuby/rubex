@@ -12,11 +12,9 @@ describe Rubex do
       end
     end
 
-    context ".compile", focus: true do
+    context ".compile" do
       it "compiles to valid C file" do
         t,c,e = Rubex.compile @path, true
-        # pp t
-        # puts c
       end
     end
   end

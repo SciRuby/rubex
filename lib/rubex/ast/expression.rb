@@ -44,12 +44,8 @@ module Rubex
         def analyse_left_and_right_nodes local_scope, tree
           if tree.respond_to?(:left)
             analyse_left_and_right_nodes local_scope, tree.left
-              if local_scope.has_entry?(tree.left)
-                tree.left = local_scope[tree.left]
-              end
-              if local_scope.has_entry?(tree.right)
-                tree.right = local_scope[tree.right]
-              end
+            tree.left.analyse_statement(local_scope)
+            tree.right.analyse_statement(local_scope)
             analyse_left_and_right_nodes local_scope, tree.right
           end
         end
@@ -88,34 +84,36 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          @type = local_scope[@name].type
+          @pos.analyse_statement local_scope
+          @name = local_scope[@name]
+          @type = @name.type # Assign type CArray
         end
 
         def c_code local_scope
-          "#{local_scope[name].c_name}[#{pos}]"
+          "#{@name.c_code(local_scope)}[#{@pos.c_code(local_scope)}]"
         end
       end # class ArrayRef
 
       module Literal
         include Rubex::AST::Expression
-        attr_reader :literal
+        attr_reader :value
 
-        def initialize literal
-          @literal = literal
+        def initialize value
+          @value = value
         end
 
         def c_code local_scope
-          @literal
+          @value
         end
 
         def c_name
-          @literal
+          @value
         end
 
         def literal?; true; end
 
         def == other
-          self.class == other.class && @literal == other.literal
+          self.class == other.class && @value == other.value
         end
 
         class Double

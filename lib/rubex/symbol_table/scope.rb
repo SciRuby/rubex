@@ -85,11 +85,10 @@ module Rubex
           @ruby_obj_entries << entry
         end
 
-        def add_carray carray_ref, carray_list, type
-          name = carray_ref.name
+        def add_carray name, dimension, carray_list, type
           c_name = Rubex::ARRAY_PREFIX + name
           value = carray_list
-          type = Rubex::DataType::CArray.new carray_ref.pos, type
+          type = Rubex::DataType::CArray.new dimension, type
           entry = Rubex::SymbolTable::Entry.new name, c_name, type, value
           @entries[name] = entry
           @carray_entries << entry

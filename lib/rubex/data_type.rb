@@ -151,7 +151,7 @@ module Rubex
 
       def from_ruby_function(arg); "(int64_t)NUM2LONG(#{arg})"; end
 
-      def printf(arg); "printf(\"%l\", #{arg});" end
+      def printf(arg); "printf(\"%ld\", #{arg});" end
 
       def int64?; true; end
 

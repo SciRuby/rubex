@@ -58,6 +58,7 @@ module Rubex
         generate_arg_checking code
         init_args code
         init_vars code
+        declare_carrays_using_init_var_value code
         generate_statements code
       end
 
@@ -86,7 +87,9 @@ module Rubex
       end
 
       def declare_carrays code
-        @scope.carray_entries.each do |arr|
+        @scope.carray_entries.select { |s|
+          s.type.dimension.is_a? Rubex::AST::Expression::Literal
+        }. each do |arr|
           code.declare_carray arr, @scope
         end
       end
@@ -102,6 +105,14 @@ module Rubex
       def init_vars code
         @scope.var_entries.select { |v| v.value }.each do |var|
           code.init_variable var, @scope
+        end
+      end
+
+      def declare_carrays_using_init_var_value code
+        @scope.carray_entries.select { |s|
+          !s.type.dimension.is_a?(Rubex::AST::Expression::Literal)
+        }. each do |arr|
+          code.declare_carray arr, @scope
         end
       end
 

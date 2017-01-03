@@ -14,6 +14,7 @@ def static_array
   e[53] = 4311
 
   print e[53]
-  
+  print b[4]
+
   return b[4]
 end

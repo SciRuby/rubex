@@ -70,21 +70,15 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          if local_scope.has_entry? @expression # simple IDENTIFIER
-            @expression = local_scope[@expression]
+          @expression.analyse_statement local_scope
+          case @expression
+          when Rubex::AST::Expression::ArrayRef
+            @type = @expression.type.type
+          when Rubex::AST::Expression
             @type = @expression.type
           else
-            @expression.analyse_statement local_scope
-            case @expression
-            when Rubex::AST::Expression::ArrayRef
-              @type = @expression.type.type
-            when Rubex::AST::Expression::Binary, Rubex::AST::Expression::Literal
-              @type = @expression.type
-            else
-              raise "Cannot recognize type of #{@expression}."
-            end
+            raise "Cannot recognize type of #{@expression}."
           end
-
           # TODO: Raise error if type as inferred from the
           # is not compatible with the return statement type.
         end
@@ -221,15 +215,16 @@ module Rubex
       end # class IfBlock
 
       class CArrayDecl
-        attr_reader :type, :array_list, :array_ref, :dimension
+        attr_reader :type, :array_list, :name, :dimension
 
         def initialize type, array_ref, array_list
-          @array_ref, @array_list = array_ref, array_list
-          @dimension = @array_ref.pos
+          @name, @array_list = array_ref.name, array_list
+          @dimension = array_ref.pos
           @type = Rubex::TYPE_MAPPINGS[type].new
         end
 
         def analyse_statement local_scope
+          @dimension.analyse_statement local_scope
           create_symbol_table_entry local_scope
           return if @array_list.nil?
           analyse_array_list local_scope
@@ -260,7 +255,7 @@ module Rubex
         end
 
         def create_symbol_table_entry local_scope
-          local_scope.add_carray @array_ref, @array_list, @type
+          local_scope.add_carray @name, @dimension, @array_list, @type
         end
       end # class CArrayDecl
     end # module Statement
