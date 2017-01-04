@@ -80,11 +80,14 @@ rule
       result = Statement::IfBlock.new val[1], [*val[3]], [*val[4]]
     }
   | stmt kIF expr { result = Statement::IfBlock.new val[2], [*val[0]], [] }
-  | kFOR for_expr kDO compstmt kEND {}
+  | kFOR for_expr kDO compstmt kEND
+    {
+      result = Statement::For.new *val[1], val[3]
+    }
 
   for_expr:
-    expr_value lt_or_lteq tIDENTIFIER lt_or_lteq expr_value {}
-  | expr_value gt_or_gteq tIDENTIFIER gt_or_gteq expr_value {}
+    expr_value lt_or_lteq tIDENTIFIER lt_or_lteq expr_value { result = val }
+  | expr_value gt_or_gteq tIDENTIFIER gt_or_gteq expr_value { result = val }
 
   lt_or_lteq:
     tLT | tLTEQ

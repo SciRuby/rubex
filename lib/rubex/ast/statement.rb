@@ -258,6 +258,16 @@ module Rubex
           local_scope.add_carray @name, @dimension, @array_list, @type
         end
       end # class CArrayDecl
+
+      class For
+        attr_reader :left_expr, :left_op, :middle, :right_op, :right_expr,
+                    :statements
+
+        def initialize left_expr, left_op, middle, right_op, right_expr, statements
+          @left_expr, @left_op, @middle, @right_op, @right_expr =
+            left_expr, left_op, middle, right_op, right_expr
+        end
+      end # class For
     end # module Statement
   end # module AST
 end # module Rubex
