@@ -6,7 +6,7 @@ describe Rubex do
       @path = 'spec/fixtures/loops/loops.rubex'
     end
 
-    context ".ast" do
+    context ".ast", focus: true do
       it "generates the AST" do
         t = Rubex.ast @path
       end

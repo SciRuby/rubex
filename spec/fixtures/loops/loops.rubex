@@ -7,7 +7,7 @@ def looper(i32 size)
 
   m = 0
 
-  for i <= m < j do
+  for j > m >= i do
     print a[m]
   end
 

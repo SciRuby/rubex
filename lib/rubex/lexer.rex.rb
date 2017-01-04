@@ -16,6 +16,10 @@ class Rubex::Lexer
   ELSIF        = /elsif/
   THEN         = /then/
   STATIC_ARRAY = /StaticArray/
+  FOR          = /for/
+  WHILE        = /while/
+  DO           = /do/
+  EACH         = /each/
   IDENTIFIER   = /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN       = /\(/
   RPAREN       = /\)/
@@ -27,6 +31,7 @@ class Rubex::Lexer
   SCOLON       = /;/
   INTEGER      = /-?\d+/
   FLOAT        = /-?\d+\.\d+/
+  DOT          = /\./
   EXPO         = /\*\*/
   MULTIPLY     = /\*/
   DIVIDE       = /\//
@@ -120,6 +125,14 @@ class Rubex::Lexer
             action { [:kTHEN  , text] }
           when text = ss.scan(/#{STATIC_ARRAY}/) then
             action { [:kSTATIC_ARRAY, text] }
+          when text = ss.scan(/#{FOR}/) then
+            action { [:kFOR, text]    }
+          when text = ss.scan(/#{WHILE}/) then
+            action { [:kWHILE, text]  }
+          when text = ss.scan(/#{DO}/) then
+            action { [:kDO, text] }
+          when text = ss.scan(/#{DOT}#{EACH}/) then
+            action { [:kDOT_EACH, text] }
           when text = ss.scan(/unsigned long long int/) then
             action { [:kDTYPE_ULLINT, text] }
           when text = ss.scan(/unsigned long int/) then

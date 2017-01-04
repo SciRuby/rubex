@@ -10,6 +10,10 @@ macros
   ELSIF           /elsif/
   THEN            /then/
   STATIC_ARRAY    /StaticArray/
+  FOR             /for/
+  WHILE           /while/
+  DO              /do/
+  EACH            /each/
 
   IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN          /\(/
@@ -22,6 +26,7 @@ macros
   SCOLON          /;/
   INTEGER         /-?\d+/
   FLOAT           /-?\d+\.\d+/
+  DOT             /\./
 
   # operators
 
@@ -61,6 +66,13 @@ rules
   /#{ELSE}/   { [:kELSE  , text] }
   /#{THEN}/   { [:kTHEN  , text] }
   /#{STATIC_ARRAY}/ { [:kSTATIC_ARRAY, text] }
+  /#{FOR}/    { [:kFOR, text]    }
+  /#{WHILE}/  { [:kWHILE, text]  }
+  /#{DO}/     { [:kDO, text] }
+
+  # Method hacks
+
+  /#{DOT}#{EACH}/ { [:kDOT_EACH, text] }
 
   # Data Types
 

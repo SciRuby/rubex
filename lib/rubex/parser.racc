@@ -1,6 +1,7 @@
 class Rubex::Parser
 token
-  kDEF kEND kRETURN kPRINT kIF kELSIF kELSE kTHEN kSTATIC_ARRAY
+  kDEF kEND kRETURN kPRINT kIF kELSIF kELSE kTHEN kSTATIC_ARRAY kFOR kWHILE
+  kDOT_EACH kDO
 
   kDTYPE_UINT  kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32   kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64
@@ -79,10 +80,20 @@ rule
       result = Statement::IfBlock.new val[1], [*val[3]], [*val[4]]
     }
   | stmt kIF expr { result = Statement::IfBlock.new val[2], [*val[0]], [] }
+  | kFOR for_expr kDO compstmt kEND {}
+
+  for_expr:
+    expr_value lt_or_lteq tIDENTIFIER lt_or_lteq expr_value {}
+  | expr_value gt_or_gteq tIDENTIFIER gt_or_gteq expr_value {}
+
+  lt_or_lteq:
+    tLT | tLTEQ
+
+  gt_or_gteq:
+    tGT | tGTEQ
 
   then:
-    kTHEN {}
-  | eol {}
+    kTHEN | eol
 
   if_tail:
     {}
@@ -156,9 +167,31 @@ rule
     dtype tIDENTIFIER { result = CBaseType.new val[0], val[1] }
 
   expr:
-    binary_op {}
-  | tLPAREN expr tRPAREN { result = val[1] }
-  | array_ref {}
+    expr_value {}
+  | expr_cmp {}
+
+  expr_value:
+    expr_value tPLUS     expr_value { result = binary_op val }
+  | expr_value tMINUS    expr_value { result = binary_op val }
+  | expr_value tMULTIPLY expr_value { result = binary_op val }
+  | expr_value tDIVIDE   expr_value { result = binary_op val }
+  | expr_value tEXPO     expr_value { result = binary_op val }
+  | expr_value tMODULUS  expr_value { result = binary_op val }
+  | tLPAREN expr_value   tRPAREN    { result = val[1] }
+  | atomic_value {}
+
+  expr_cmp:
+    expr_value tEQ       expr_value { result = binary_op val }
+  | expr_value tLT       expr_value { result = binary_op val }
+  | expr_value tLTEQ     expr_value { result = binary_op val }
+  | expr_value tGT       expr_value { result = binary_op val }
+  | expr_value tGTEQ     expr_value { result = binary_op val }
+  | expr_value tCMP      expr_value { result = binary_op val }
+  | expr_value tANDOP    expr_value { result = binary_op val }
+  | expr_value tOROP     expr_value { result = binary_op val }
+
+  atomic_value:
+    array_ref {}
   | literal {}
   | tIDENTIFIER { result = Expression::Name.new val[0] }
 
@@ -176,22 +209,6 @@ rule
       {
         result = val[0]
       }
-
-  binary_op:
-    expr tPLUS     expr { result = binary_op val }|
-    expr tMINUS    expr { result = binary_op val }|
-    expr tMULTIPLY expr { result = binary_op val }|
-    expr tDIVIDE   expr { result = binary_op val }|
-    expr tEXPO     expr { result = binary_op val }|
-    expr tMODULUS  expr { result = binary_op val }|
-    expr tEQ       expr { result = binary_op val }|
-    expr tLT       expr { result = binary_op val }|
-    expr tLTEQ     expr { result = binary_op val }|
-    expr tGT       expr { result = binary_op val }|
-    expr tGTEQ     expr { result = binary_op val }|
-    expr tCMP      expr { result = binary_op val }|
-    expr tANDOP    expr { result = binary_op val }|
-    expr tOROP     expr { result = binary_op val }
 
   opt_terms:
     {}
