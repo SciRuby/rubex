@@ -12,7 +12,7 @@ def looper(i32 size)
   end
 
   i32 f = 0
-  while a[f] != 45 do
+  while !(a[f] != 45) do
     print a[f]
     f = f + 1
   end

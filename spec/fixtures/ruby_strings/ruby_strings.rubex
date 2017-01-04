@@ -1,0 +1,14 @@
+def blank? string
+  i32 i = 0
+  i32 length = string.size
+
+  while i < length do
+    if string[i] == " "
+      return false
+    end
+
+    i += 1
+  end
+
+  return true
+end
