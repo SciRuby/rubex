@@ -11,5 +11,5 @@ def looper(i32 size)
     print a[m]
   end
 
-  return a
+  return a[2]
 end

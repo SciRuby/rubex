@@ -261,11 +261,57 @@ module Rubex
 
       class For
         attr_reader :left_expr, :left_op, :middle, :right_op, :right_expr,
-                    :statements
+                    :statements, :order
 
-        def initialize left_expr, left_op, middle, right_op, right_expr, statements
+        def initialize left_expr, left_op, middle, right_op, right_expr,
+          statements
           @left_expr, @left_op, @middle, @right_op, @right_expr =
             left_expr, left_op, middle, right_op, right_expr
+          @statements, @order = statements, order
+        end
+
+        def analyse_statement local_scope
+          @left_expr.analyse_statement local_scope
+          @right_expr.analyse_statement local_scope
+          @middle = local_scope[@middle] # middle will not be an expr.
+          @statements.each do |stat|
+            stat.analyse_statement local_scope
+          end
+        end
+
+        def generate_code code, local_scope
+          code << for_loop_header(local_scope)
+          code.block do
+            @statements.each do |stat|
+              stat.generate_code code, local_scope
+            end
+          end
+        end
+
+        private
+
+        def for_loop_header local_scope
+          for_stmt = ""
+          for_stmt << "for (#{@middle.c_name} = #{@left_expr.c_code(local_scope)}"
+
+          if @left_op == '<'
+            for_stmt << " + 1"
+          elsif @left_op == '>'
+            for_stmt << " - 1"
+          end
+
+          for_stmt << "; #{@middle.c_name} #{@right_op} #{@right_expr.c_code(local_scope)}; "
+          for_stmt << "#{@middle.c_name}"
+
+          if ['>', '>='].include? @right_op
+            for_stmt << "--"
+          elsif ['<', '<='].include? @right_op
+            for_stmt << "++"
+          end
+
+          for_stmt << ")"
+
+          for_stmt
         end
       end # class For
     end # module Statement
