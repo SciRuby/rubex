@@ -91,6 +91,7 @@ module Rubex
       end # class Return
 
       class Assign
+        include Rubex::AST::Statement
         attr_reader :lhs, :rhs
 
         def initialize lhs, rhs
@@ -170,6 +171,7 @@ module Rubex
         end # module Helper
 
         attr_reader :expr, :statements, :if_tail
+        include Rubex::AST::Statement
         include Rubex::AST::Statement::IfBlock::Helper
 
         def initialize expr, statements, if_tail
@@ -183,6 +185,7 @@ module Rubex
 
         class Elsif
           attr_reader :expr, :statements, :if_tail
+          include Rubex::AST::Statement
           include Rubex::AST::Statement::IfBlock::Helper
 
           def initialize expr, statements, if_tail
@@ -196,6 +199,7 @@ module Rubex
 
         class Else
           attr_reader :statements
+          include Rubex::AST::Statement
           include Rubex::AST::Statement::IfBlock::Helper
 
           def initialize statements
@@ -215,6 +219,7 @@ module Rubex
       end # class IfBlock
 
       class CArrayDecl
+        include Rubex::AST::Statement
         attr_reader :type, :array_list, :name, :dimension
 
         def initialize type, array_ref, array_list
@@ -260,6 +265,7 @@ module Rubex
       end # class CArrayDecl
 
       class For
+        include Rubex::AST::Statement
         attr_reader :left_expr, :left_op, :middle, :right_op, :right_expr,
                     :statements, :order
 
@@ -314,6 +320,32 @@ module Rubex
           for_stmt
         end
       end # class For
+
+      class While
+        include Rubex::AST::Statement
+        attr_reader :expr, :statements
+
+        def initialize expr, statements
+          @expr, @statements = expr, statements
+        end
+
+        def analyse_statement local_scope
+          @expr.analyse_statement local_scope
+          @statements.each do |stat|
+            stat.analyse_statement local_scope
+          end
+        end
+
+        def generate_code code, local_scope
+          stmt = "while (#{@expr.c_code(local_scope)})"
+          code << stmt
+          code.block do
+            @statements.each do |stat|
+              stat.generate_code code, local_scope
+            end
+          end
+        end
+      end # class While
     end # module Statement
   end # module AST
 end # module Rubex

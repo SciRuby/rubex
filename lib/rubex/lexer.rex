@@ -14,6 +14,9 @@ macros
   WHILE           /while/
   DO              /do/
   EACH            /each/
+  TRUE            /true/
+  FALSE           /false/
+  NIL             /nil/
 
   IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN          /\(/
@@ -43,7 +46,6 @@ macros
   LTEQ            /<=/
   GT              />/
   GTEQ            />=/
-  CMP             /<=>/
   ANDOP           /&&/
   OROP            /\|\|/
 
@@ -69,6 +71,9 @@ rules
   /#{FOR}/    { [:kFOR, text]    }
   /#{WHILE}/  { [:kWHILE, text]  }
   /#{DO}/     { [:kDO, text] }
+  /#{TRUE}/   { [:kTRUE, text] }
+  /#{FALSE}/  { [:kFALSE, text] }
+  /#{NIL}/    { [:kNIL, text]  }
 
   # Method hacks
 
@@ -122,7 +127,6 @@ rules
   /#{EQ}/         { [:tEQ, text]  }
   /#{NEQ}/        { [:tNEQ, text]  }
   /#{ASSIGN}/     { [:tASSIGN, text] }
-  /#{CMP}/        { [:tCMP, text] }
 
   /#{LTEQ}/       { [:tLTEQ, text] }
   /#{LT}/         { [:tLT, text] }

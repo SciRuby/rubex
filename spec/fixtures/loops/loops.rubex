@@ -11,5 +11,11 @@ def looper(i32 size)
     print a[m]
   end
 
+  i32 f = 0
+  while a[f] != 45 do
+    print a[f]
+    f = f + 1
+  end
+
   return a[2]
 end

@@ -336,6 +336,14 @@ module Rubex
       end
 
       def carray?; true; end
+
+      def <=> other
+        if self.class == other.class
+          @type <=> other.type
+        else
+          @type <=> other
+        end
+      end
     end
 
     # TODO: How to store this in a Ruby class? Use BigDecimal?

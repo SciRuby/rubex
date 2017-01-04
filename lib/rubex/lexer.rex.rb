@@ -20,6 +20,9 @@ class Rubex::Lexer
   WHILE        = /while/
   DO           = /do/
   EACH         = /each/
+  TRUE         = /true/
+  FALSE        = /false/
+  NIL          = /nil/
   IDENTIFIER   = /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN       = /\(/
   RPAREN       = /\)/
@@ -45,7 +48,6 @@ class Rubex::Lexer
   LTEQ         = /<=/
   GT           = />/
   GTEQ         = />=/
-  CMP          = /<=>/
   ANDOP        = /&&/
   OROP         = /\|\|/
 
@@ -131,6 +133,12 @@ class Rubex::Lexer
             action { [:kWHILE, text]  }
           when text = ss.scan(/#{DO}/) then
             action { [:kDO, text] }
+          when text = ss.scan(/#{TRUE}/) then
+            action { [:kTRUE, text] }
+          when text = ss.scan(/#{FALSE}/) then
+            action { [:kFALSE, text] }
+          when text = ss.scan(/#{NIL}/) then
+            action { [:kNIL, text]  }
           when text = ss.scan(/#{DOT}#{EACH}/) then
             action { [:kDOT_EACH, text] }
           when text = ss.scan(/unsigned long long int/) then
@@ -209,8 +217,6 @@ class Rubex::Lexer
             action { [:tNEQ, text]  }
           when text = ss.scan(/#{ASSIGN}/) then
             action { [:tASSIGN, text] }
-          when text = ss.scan(/#{CMP}/) then
-            action { [:tCMP, text] }
           when text = ss.scan(/#{LTEQ}/) then
             action { [:tLTEQ, text] }
           when text = ss.scan(/#{LT}/) then

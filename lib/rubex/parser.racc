@@ -1,7 +1,7 @@
 class Rubex::Parser
 token
-  kDEF kEND kRETURN kPRINT kIF kELSIF kELSE kTHEN kSTATIC_ARRAY kFOR kWHILE
-  kDOT_EACH kDO
+  kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE kTHEN kSTATIC_ARRAY kFOR kWHILE
+  kDOT_EACH kDO     kTRUE  kFALSE kNIL
 
   kDTYPE_UINT  kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32   kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64
@@ -11,7 +11,7 @@ token
   tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON EOF
 
   tPLUS tMINUS tMULTIPLY tDIVIDE tEXPO tMODULUS tASSIGN tEQ tLT tLTEQ tGT
-  tGTEQ tCMP   tANDOP    tOROP
+  tGTEQ tANDOP tOROP
 
   tINTEGER tFLOAT tSINGLE_CHAR
 
@@ -21,7 +21,7 @@ prechigh
   left tMULTIPLY tDIVIDE tMODULUS
   left tPLUS tMINUS
   left tLT tLTEQ tGT tGTEQ
-  nonassoc tEQ tCMP tNEQ
+  nonassoc tEQ tNEQ
   left tANDOP
   left tOROP
 
@@ -84,6 +84,7 @@ rule
     {
       result = Statement::For.new *val[1], val[3]
     }
+  | kWHILE expr kDO compstmt kEND { result = Statement::While.new val[1], val[3] }
 
   for_expr:
     expr_value lt_or_lteq tIDENTIFIER lt_or_lteq expr_value { result = val }
@@ -185,11 +186,11 @@ rule
 
   expr_cmp:
     expr_value tEQ       expr_value { result = binary_op val }
+  | expr_value tNEQ      expr_value { result = binary_op val }
   | expr_value tLT       expr_value { result = binary_op val }
   | expr_value tLTEQ     expr_value { result = binary_op val }
   | expr_value tGT       expr_value { result = binary_op val }
   | expr_value tGTEQ     expr_value { result = binary_op val }
-  | expr_value tCMP      expr_value { result = binary_op val }
   | expr_value tANDOP    expr_value { result = binary_op val }
   | expr_value tOROP     expr_value { result = binary_op val }
 

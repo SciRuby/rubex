@@ -2,8 +2,8 @@ module Rubex
   module Helpers
     class << self
       def result_type_for left, right
-        return left.class.new if left == right
-        return (left < right ? right.class.new : left.class.new)
+        return left.dup if left == right
+        return (left < right ? right.dup : left.dup)
       end
     end
 
