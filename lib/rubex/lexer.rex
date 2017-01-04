@@ -30,6 +30,7 @@ macros
   INTEGER         /-?\d+/
   FLOAT           /-?\d+\.\d+/
   DOT             /\./
+  QMARK           /\?/
 
   # operators
 
@@ -48,6 +49,7 @@ macros
   GTEQ            />=/
   ANDOP           /&&/
   OROP            /\|\|/
+  BANG            /!/
 
 rules
 
@@ -114,6 +116,7 @@ rules
   /#{COMMA}/              { [:tCOMMA, text] }
   /#{SCOLON}/             { [:tSCOLON, text] }
   /#{NL}/                 { [:tNL, text] }
+  /#{QMARK}/              { [:tQMARK, text]}
 
   # operators
 
@@ -127,6 +130,7 @@ rules
   /#{EQ}/         { [:tEQ, text]  }
   /#{NEQ}/        { [:tNEQ, text]  }
   /#{ASSIGN}/     { [:tASSIGN, text] }
+  /#{BANG}/       { [:tBANG, text] }
 
   /#{LTEQ}/       { [:tLTEQ, text] }
   /#{LT}/         { [:tLT, text] }

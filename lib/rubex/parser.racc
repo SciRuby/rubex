@@ -8,16 +8,19 @@ token
   kDTYPE_INT   kDTYPE_F32  kDTYPE_F64   kDTYPE_LF64 kDTYPE_ROBJ kDTYPE_ULINT
   kDTYPE_ULLINT
 
-  tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON EOF
+  tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON
+  EOF     tDOT    tQMARK
 
   tPLUS tMINUS tMULTIPLY tDIVIDE tEXPO tMODULUS tASSIGN tEQ tLT tLTEQ tGT
-  tGTEQ tANDOP tOROP
+  tGTEQ tANDOP tOROP     tBANG
 
   tINTEGER tFLOAT tSINGLE_CHAR
 
 prechigh
+  right tBANG
   right tEXPO
 
+  right UMINUS
   left tMULTIPLY tDIVIDE tMODULUS
   left tPLUS tMINUS
   left tLT tLTEQ tGT tGTEQ
@@ -181,6 +184,7 @@ rule
   | expr_value tDIVIDE   expr_value { result = binary_op val }
   | expr_value tEXPO     expr_value { result = binary_op val }
   | expr_value tMODULUS  expr_value { result = binary_op val }
+  | tMINUS expr_value    =UMINUS    { result = unary_op val  }
   | tLPAREN expr_value   tRPAREN    { result = val[1] }
   | atomic_value {}
 
@@ -193,6 +197,9 @@ rule
   | expr_value tGTEQ     expr_value { result = binary_op val }
   | expr_value tANDOP    expr_value { result = binary_op val }
   | expr_value tOROP     expr_value { result = binary_op val }
+  | tLPAREN    expr_cmp  tRPAREN    { result = val[1] }
+  | tBANG expr_value                { result = unary_op val }
+  | tBANG expr_cmp                  { result = unary_op val }
 
   atomic_value:
     array_ref {}
@@ -250,4 +257,8 @@ end
 
 def binary_op val
   Expression::Binary.new val[0], val[1], val[2]
+end
+
+def unary_op val
+  Expression::Unary.new val[0], val[1]
 end

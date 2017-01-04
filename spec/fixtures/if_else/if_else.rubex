@@ -15,8 +15,8 @@ def adder(int a, i64 b, f64 c)
     d = 666
   end
 
-  if d > 32
-    d = 69
+  if !(d > 32)
+    d = -69
   end
 
   d = 5643 if d + 4 == 69

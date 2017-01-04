@@ -7,6 +7,8 @@ module Rubex
         nil
       end
 
+      def expression?; true; end
+
       class Binary
         include Rubex::AST::Expression
         include Rubex::Helpers::NodeTypeMethods
@@ -30,8 +32,6 @@ module Rubex
           recursive_generate_code(local_scope, code, self)
           code
         end
-
-        def expression?; true; end
 
         def == other
           self.class == other.class && @type  == other.type &&
@@ -67,13 +67,37 @@ module Rubex
         def recursive_generate_code local_scope, code, tree
           if tree.respond_to? :left
             recursive_generate_code local_scope, code, tree.left
-            code << "( #{tree.left.c_code(local_scope)}" unless tree.left.respond_to?(:left)
+            unless tree.left.respond_to?(:left)
+              code << "( " if !tree.left.is_a?(Rubex::AST::Expression::Unary)
+              code << "#{tree.left.c_code(local_scope)}"
+            end
             code << " #{tree.operator} "
-            code << "#{tree.right.c_code(local_scope)} )" unless tree.right.respond_to?(:right)
+            unless tree.right.respond_to?(:right)
+              code << "#{tree.right.c_code(local_scope)}"
+              code << " )" if !tree.right.is_a?(Rubex::AST::Expression::Unary)
+            end
             recursive_generate_code local_scope, code, tree.right
           end
         end
       end # class Binary
+
+      class Unary
+        include Rubex::AST::Expression
+        attr_reader :operator, :expr, :type
+
+        def initialize operator, expr
+          @operator, @expr = operator, expr
+        end
+
+        def analyse_statement local_scope
+          @expr.analyse_statement local_scope
+          @type = @expr.type
+        end
+
+        def c_code local_scope
+          "#{@operator} #{@expr.c_code(local_scope)}"
+        end
+      end # class Unary
 
       class ArrayRef
         include Rubex::AST::Expression

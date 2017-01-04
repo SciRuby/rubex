@@ -1,10 +1,10 @@
 def adder(int left, float right)
   float mid = left - right
-  float t = (mid / 3) * (left + right) - left / mid
+  float t = -(mid / 3) * (left + right) - left / mid
   float z
 
   z = t - 3
-  rr = 3 - 545
-  
+  rr = -3 - 545
+
   return rr
 end

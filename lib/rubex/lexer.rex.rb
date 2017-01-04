@@ -35,6 +35,7 @@ class Rubex::Lexer
   INTEGER      = /-?\d+/
   FLOAT        = /-?\d+\.\d+/
   DOT          = /\./
+  QMARK        = /\?/
   EXPO         = /\*\*/
   MULTIPLY     = /\*/
   DIVIDE       = /\//
@@ -50,6 +51,7 @@ class Rubex::Lexer
   GTEQ         = />=/
   ANDOP        = /&&/
   OROP         = /\|\|/
+  BANG         = /!/
 
   class LexerError < StandardError ; end
   class ScanError < LexerError ; end
@@ -197,6 +199,8 @@ class Rubex::Lexer
             action { [:tSCOLON, text] }
           when text = ss.scan(/#{NL}/) then
             action { [:tNL, text] }
+          when text = ss.scan(/#{QMARK}/) then
+            action { [:tQMARK, text]}
           when text = ss.scan(/#{PLUS}/) then
             action { [:tPLUS, text]}
           when text = ss.scan(/#{MINUS}/) then
@@ -217,6 +221,8 @@ class Rubex::Lexer
             action { [:tNEQ, text]  }
           when text = ss.scan(/#{ASSIGN}/) then
             action { [:tASSIGN, text] }
+          when text = ss.scan(/#{BANG}/) then
+            action { [:tBANG, text] }
           when text = ss.scan(/#{LTEQ}/) then
             action { [:tLTEQ, text] }
           when text = ss.scan(/#{LT}/) then
