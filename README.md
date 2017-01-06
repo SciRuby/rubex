@@ -166,7 +166,7 @@ end
 
 When a parameter of a Ruby method is declared to have a C type, it passed a Ruby object, which is then converted to a C value if possible. If the data type is not speicified, the function will take a Ruby object as an argument.
 
-ONLY THESE METHODS WILL BE CALLABLE FROM INTERPRETED RUBY CODE. 
+ONLY THESE METHODS WILL BE CALLABLE FROM INTERPRETED RUBY CODE.
 
 **Pure C Methods**
 
@@ -248,6 +248,23 @@ end
 # }
 ```
 
+#### Strings and pointers
+
+String literals can be specified the same way they are in C with double quotes (`"..."`). Note that strings cannot be specified with single quotes since that is reserved for specifying C characters. So therefore, `'a'` will be interpreted as a C character and `"a"` will be interpreted as a string.
+
+Pointers can be declared using the C-style `*` operator before the declaration. The `&` operator works the way it does in C and will reference the address of the variable it is called on.
+
+If a string literal is assigned to a `char*` variable it will be interpreted as a C string. If it is assigned to a variable with type `object` it will be assigned as a Ruby string (`a = "hello"` or `object a = "hello"`).
+
+Likewise, if a Ruby string is directly assigned to a `char*`, the null terminated C string will be assigned to the variable. For example:
+```
+a = "hello world!"
+char* s
+
+s = a
+```
+In the above case `s` will hold the reference to the C array within the Ruby object `a` that contains the actual string.
+
 #### Wrapping C functions
 
 This is the most important functionality of rubex. A lot of it will be borrowed from Crystal since Crystal's API for creating C bindings is very well thought out and simple.
@@ -261,7 +278,7 @@ lib LibPCRE
 end
 ```
 
-The syntax above the `lib` declaration is a special 'magic comments' syntax. The presence of `@[...]` after the `#` of the comments will allow the Rubex compiler to know that the comment is not a regular comment but is actually a directive for an operation that is to be performed by the compiler. 
+The syntax above the `lib` declaration is a special 'magic comments' syntax. The presence of `@[...]` after the `#` of the comments will allow the Rubex compiler to know that the comment is not a regular comment but is actually a directive for an operation that is to be performed by the compiler.
 
 The `Link` keyword inside the `@[...]` syntax of the magic comment will ensure that appropriate flags are passed to the compiler to find the external libraries. So for example, it the above case, the `Link("pcre")` directive will `-lpcre` to the linker.
 
@@ -334,10 +351,14 @@ lib LibSDL
 end
 
 lib LLVMIntrinsics
-  fun ceil_f32 = f32 "llvm.ceil.f32"(f32 value) 
+  fun ceil_f32 = f32 "llvm.ceil.f32"(f32 value)
 end
 ```
 
 #### Embedding C code
 
 If you must write C, you can do that with a `%{ ... %}` block or a `BEGIN_C do ... end` block.
+
+#### Method calls
+
+Methods can be called using the usual Ruby dot syntax (`object.method_name`). However, certain methods on certain standard library objects have been optimized to directly return a value from the C API instead of making a Ruby method call. For example, calling `size` on a Ruby string object will call `RSTRING_LEN` instead going through Ruby-land and causing a performance bottleneck.

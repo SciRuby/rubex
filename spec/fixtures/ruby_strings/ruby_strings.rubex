@@ -1,9 +1,10 @@
 def blank? string
   i32 i = 0
   i32 length = string.size
+  char *s = string
 
   while i < length do
-    if string[i] == " "
+    if s[i] == ' '
       return false
     end
 
