@@ -37,7 +37,7 @@ class Rubex::Lexer
   DOT          = /\./
   QMARK        = /\?/
   EXPO         = /\*\*/
-  MULTIPLY     = /\*/
+  STAR         = /\*/
   DIVIDE       = /\//
   PLUS         = /\+/
   MINUS        = /\-/
@@ -205,8 +205,8 @@ class Rubex::Lexer
             action { [:tPLUS, text]}
           when text = ss.scan(/#{MINUS}/) then
             action { [:tMINUS, text]}
-          when text = ss.scan(/#{MULTIPLY}/) then
-            action { [:tMULTIPLY, text]}
+          when text = ss.scan(/#{STAR}/) then
+            action { [:tSTAR, text]}
           when text = ss.scan(/#{DIVIDE}/) then
             action { [:tDIVIDE, text]}
           when text = ss.scan(/#{EXPO}/) then

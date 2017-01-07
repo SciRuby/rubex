@@ -35,7 +35,7 @@ macros
   # operators
 
   EXPO            /\*\*/
-  MULTIPLY        /\*/
+  STAR            /\*/
   DIVIDE          /\//
   PLUS            /\+/
   MINUS           /\-/
@@ -122,7 +122,7 @@ rules
 
   /#{PLUS}/       { [:tPLUS, text]}
   /#{MINUS}/      { [:tMINUS, text]}
-  /#{MULTIPLY}/   { [:tMULTIPLY, text]}
+  /#{STAR}/       { [:tSTAR, text]}
   /#{DIVIDE}/     { [:tDIVIDE, text]}
   /#{EXPO}/       { [:tEXPO, text]}
   /#{MODULUS}/    { [:tMODULUS, text]}

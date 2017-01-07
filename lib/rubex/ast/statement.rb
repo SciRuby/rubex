@@ -13,7 +13,7 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :type, :name, :c_name, :value
 
-        def initialize type, name, value=nil
+        def initialize type, name, value
           unless Rubex::TYPE_MAPPINGS.has_key?(type)
             raise "type #{type} is not supported."
           end
@@ -33,6 +33,15 @@ module Rubex
 
         def generate_code code, local_scope
 
+        end
+      end
+
+      class CPtrDecl
+        include Rubex::AST::Statement
+        attr_reader :type
+
+        def initialize type
+          @type = type
         end
       end
 

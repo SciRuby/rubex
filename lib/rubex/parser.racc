@@ -11,7 +11,7 @@ token
   tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON
   EOF     tDOT    tQMARK
 
-  tPLUS tMINUS tMULTIPLY tDIVIDE tEXPO tMODULUS tASSIGN tEQ tLT tLTEQ tGT
+  tPLUS tMINUS tSTAR tDIVIDE tEXPO tMODULUS tASSIGN tEQ tLT tLTEQ tGT
   tGTEQ tANDOP tOROP     tBANG
 
   tINTEGER tFLOAT tSINGLE_CHAR
@@ -21,7 +21,7 @@ prechigh
   right tEXPO
 
   right UMINUS
-  left tMULTIPLY tDIVIDE tMODULUS
+  left tSTAR tDIVIDE tMODULUS
   left tPLUS tMINUS
   left tLT tLTEQ tGT tGTEQ
   nonassoc tEQ tNEQ
@@ -114,13 +114,18 @@ rule
     kELSE compstmt { result = Statement::IfBlock::Else.new val[1] }
 
   var_decl_or_init:
-    dtype decl_or_init
+    dtype opt_star decl_or_init
       {
         result = {
           dtype: val[0],
-          decl_or_init: val[1]
+          decl_or_init: val[2]
         }
       }
+
+  opt_star:
+    { result = nil }
+  | tSTAR {  }
+  | opt_star tSTAR {}
 
   decl_or_init:
     decl_or_init tCOMMA var_init { result = [*val[0], val[2]] }
@@ -154,7 +159,9 @@ rule
   | tSINGLE_CHAR { result = Expression::Literal::Char.new val[0]   }
 
   f_name:
-    tIDENTIFIER {}
+    tIDENTIFIER tQMARK { result = "#{val[0]}#{val[1]}" }
+  | tIDENTIFIER tBANG  { result = "#{val[0]}#{val[1]}" }
+  | tIDENTIFIER        { result = val[0] }
 
   f_opt_arglist:
     { result = [] }
@@ -172,6 +179,7 @@ rule
 
   f_normal_arg:
     dtype tIDENTIFIER { result = CBaseType.new val[0], val[1] }
+  | tIDENTIFIER { result = CBaseType.new 'object', val[0] }
 
   expr:
     expr_value {}
@@ -180,7 +188,7 @@ rule
   expr_value:
     expr_value tPLUS     expr_value { result = binary_op val }
   | expr_value tMINUS    expr_value { result = binary_op val }
-  | expr_value tMULTIPLY expr_value { result = binary_op val }
+  | expr_value tSTAR     expr_value { result = binary_op val }
   | expr_value tDIVIDE   expr_value { result = binary_op val }
   | expr_value tEXPO     expr_value { result = binary_op val }
   | expr_value tMODULUS  expr_value { result = binary_op val }

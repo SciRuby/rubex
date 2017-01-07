@@ -1,4 +1,4 @@
-def blank? string
+def blank?(string)
   i32 i = 0
   i32 length = string.size
   char *s = string
