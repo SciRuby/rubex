@@ -1,7 +1,7 @@
 def blank?(string)
   i32 i = 0
-  i32 length = string.size
   char *s = string
+  i32 length = string.size
 
   while i < length do
     if s[i] == ' '

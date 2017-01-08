@@ -63,6 +63,8 @@ rule
         val[0][:decl_or_init].each do |di|
           if di[:name].is_a? Expression::ArrayRef
             var = Statement::CArrayDecl.new(dtype, di[:name], di[:value])
+          elsif di[:pointer] == '*'
+            var = Statement::CPtrDecl.new(dtype, di[:name], di[:value])
           else
             var = Statement::VarDecl.new(dtype, di[:name], di[:value])
           end
@@ -116,6 +118,7 @@ rule
   var_decl_or_init:
     dtype opt_star decl_or_init
       {
+        val[2][:pointer] = val[1]
         result = {
           dtype: val[0],
           decl_or_init: val[2]
@@ -124,8 +127,8 @@ rule
 
   opt_star:
     { result = nil }
-  | tSTAR {  }
-  | opt_star tSTAR {}
+  | tSTAR { }
+  | opt_star tSTAR { result = val.join }
 
   decl_or_init:
     decl_or_init tCOMMA var_init { result = [*val[0], val[2]] }
@@ -195,6 +198,7 @@ rule
   | tMINUS expr_value    =UMINUS    { result = unary_op val  }
   | tLPAREN expr_value   tRPAREN    { result = val[1] }
   | atomic_value {}
+  | method_call {}
 
   expr_cmp:
     expr_value tEQ       expr_value { result = binary_op val }
@@ -213,6 +217,9 @@ rule
     array_ref {}
   | literal {}
   | tIDENTIFIER { result = Expression::Name.new val[0] }
+
+  method_call:
+    tIDENTIFIER tDOT f_name opt_args {}
 
   array_ref:
     tIDENTIFIER tLSQUARE expr tRSQUARE

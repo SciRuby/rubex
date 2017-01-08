@@ -10,7 +10,8 @@ module Rubex
         :int?, :int8?, :int16?, :int32?, :int64?,
         :uint?, :uint8?, :uint16?, :uint32?, :uint64?,
         :lint?, :ulint?, :llint?, :ullint?,
-        :char?, :object?, :bool?, :carray?
+        :char?, :object?, :bool?, :carray?,
+        :cptr?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -346,6 +347,15 @@ module Rubex
       end
     end
 
+    class CPtr
+      attr_reader :type
+
+      def initialize type
+        @type = type
+      end
+
+      def cptr?; true; end
+    end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64
     #   def to_s; "long double"; end

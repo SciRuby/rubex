@@ -38,10 +38,15 @@ module Rubex
 
       class CPtrDecl
         include Rubex::AST::Statement
-        attr_reader :type
+        attr_reader :type, :name, :value, :c_name
 
-        def initialize type
-          @type = type
+        def initialize type, name, value
+          @type, @name, @value = type, name, value
+          @c_name = Rubex::POINTER_PREFIX + name
+        end
+
+        def analyse_statement local_scope
+          
         end
       end
 
