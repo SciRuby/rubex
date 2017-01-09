@@ -114,7 +114,7 @@ module Rubex
         def analyse_statement local_scope
           @pos.analyse_statement local_scope
           @name = local_scope[@name]
-          @type = @name.type # Assign type CArray
+          @type = @name.type.type # Assign type CArray
         end
 
         def c_code local_scope
