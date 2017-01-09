@@ -35,11 +35,17 @@ macros
   # operators
 
   EXPO            /\*\*/
+  EXPOASSIGN      /\*\*=/
   STAR            /\*/
+  STARASSIGN      /\*=/
   DIVIDE          /\//
+  DIVIDEASSIGN    /\/=/
   PLUS            /\+/
+  PLUSASSIGN      /\+=/
   MINUS           /\-/
+  MINUSASSIGN     /\-=/
   MODULUS         /%/
+  MODULUSASSIGN   /%=/
   ASSIGN          /=/
   NEQ             /!=/
   EQ              /==/
@@ -121,17 +127,23 @@ rules
 
   # operators
 
-  /#{PLUS}/       { [:tPLUS, text]}
-  /#{MINUS}/      { [:tMINUS, text]}
-  /#{STAR}/       { [:tSTAR, text]}
-  /#{DIVIDE}/     { [:tDIVIDE, text]}
-  /#{EXPO}/       { [:tEXPO, text]}
-  /#{MODULUS}/    { [:tMODULUS, text]}
-  /#{EXPO}/       { [:tEXPO, text]}
-  /#{EQ}/         { [:tEQ, text]  }
-  /#{NEQ}/        { [:tNEQ, text]  }
-  /#{ASSIGN}/     { [:tASSIGN, text] }
-  /#{BANG}/       { [:tBANG, text] }
+  /#{PLUSASSIGN}/       { [:tOP_ASSIGN, text]}
+  /#{MINUSASSIGN}/      { [:tOP_ASSIGN, text]}
+  /#{STARASSIGN}/       { [:tOP_ASSIGN, text]}
+  /#{DIVIDEASSIGN}/     { [:tOP_ASSIGN, text]}
+  /#{EXPOASSIGN}/       { [:tOP_ASSIGN, text]}
+  /#{MODULUSASSIGN}/    { [:tOP_ASSIGN, text]}
+  /#{PLUS}/             { [:tPLUS, text]}
+  /#{MINUS}/            { [:tMINUS, text]}
+  /#{STAR}/             { [:tSTAR, text]}
+  /#{DIVIDE}/           { [:tDIVIDE, text]}
+  /#{EXPO}/             { [:tEXPO, text]}
+  /#{MODULUS}/          { [:tMODULUS, text]}
+  /#{EXPO}/             { [:tEXPO, text]}
+  /#{EQ}/               { [:tEQ, text]  }
+  /#{NEQ}/              { [:tNEQ, text]  }
+  /#{ASSIGN}/           { [:tASSIGN, text] }
+  /#{BANG}/             { [:tBANG, text] }
 
   /#{LTEQ}/       { [:tLTEQ, text] }
   /#{LT}/         { [:tLT, text] }

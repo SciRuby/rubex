@@ -8,50 +8,56 @@
 class Rubex::Lexer
   require 'strscan'
 
-  DEF          = /def/
-  RETURN       = /return/
-  PRINT        = /print/
-  IF           = /if/
-  ELSE         = /else/
-  ELSIF        = /elsif/
-  THEN         = /then/
-  STATIC_ARRAY = /StaticArray/
-  FOR          = /for/
-  WHILE        = /while/
-  DO           = /do/
-  EACH         = /each/
-  TRUE         = /true/
-  FALSE        = /false/
-  NIL          = /nil/
-  IDENTIFIER   = /[a-zA-Z_][a-zA-Z_0-9]*/
-  LPAREN       = /\(/
-  RPAREN       = /\)/
-  LSQUARE      = /\[/
-  RSQUARE      = /\]/
-  NL           = /\n/
-  COMMA        = /,/
-  SQUOTE       = /'/
-  SCOLON       = /;/
-  INTEGER      = /-?\d+/
-  FLOAT        = /-?\d+\.\d+/
-  DOT          = /\./
-  QMARK        = /\?/
-  EXPO         = /\*\*/
-  STAR         = /\*/
-  DIVIDE       = /\//
-  PLUS         = /\+/
-  MINUS        = /\-/
-  MODULUS      = /%/
-  ASSIGN       = /=/
-  NEQ          = /!=/
-  EQ           = /==/
-  LT           = /</
-  LTEQ         = /<=/
-  GT           = />/
-  GTEQ         = />=/
-  ANDOP        = /&&/
-  OROP         = /\|\|/
-  BANG         = /!/
+  DEF           = /def/
+  RETURN        = /return/
+  PRINT         = /print/
+  IF            = /if/
+  ELSE          = /else/
+  ELSIF         = /elsif/
+  THEN          = /then/
+  STATIC_ARRAY  = /StaticArray/
+  FOR           = /for/
+  WHILE         = /while/
+  DO            = /do/
+  EACH          = /each/
+  TRUE          = /true/
+  FALSE         = /false/
+  NIL           = /nil/
+  IDENTIFIER    = /[a-zA-Z_][a-zA-Z_0-9]*/
+  LPAREN        = /\(/
+  RPAREN        = /\)/
+  LSQUARE       = /\[/
+  RSQUARE       = /\]/
+  NL            = /\n/
+  COMMA         = /,/
+  SQUOTE        = /'/
+  SCOLON        = /;/
+  INTEGER       = /-?\d+/
+  FLOAT         = /-?\d+\.\d+/
+  DOT           = /\./
+  QMARK         = /\?/
+  EXPO          = /\*\*/
+  EXPOASSIGN    = /\*\*=/
+  STAR          = /\*/
+  STARASSIGN    = /\*=/
+  DIVIDE        = /\//
+  DIVIDEASSIGN  = /\/=/
+  PLUS          = /\+/
+  PLUSASSIGN    = /\+=/
+  MINUS         = /\-/
+  MINUSASSIGN   = /\-=/
+  MODULUS       = /%/
+  MODULUSASSIGN = /%=/
+  ASSIGN        = /=/
+  NEQ           = /!=/
+  EQ            = /==/
+  LT            = /</
+  LTEQ          = /<=/
+  GT            = />/
+  GTEQ          = />=/
+  ANDOP         = /&&/
+  OROP          = /\|\|/
+  BANG          = /!/
 
   class LexerError < StandardError ; end
   class ScanError < LexerError ; end
@@ -203,6 +209,18 @@ class Rubex::Lexer
             action { [:tQMARK, text]}
           when text = ss.scan(/#{DOT}/) then
             action { [:tDOT, text]    }
+          when text = ss.scan(/#{PLUSASSIGN}/) then
+            action { [:tOP_ASSIGN, text]}
+          when text = ss.scan(/#{MINUSASSIGN}/) then
+            action { [:tOP_ASSIGN, text]}
+          when text = ss.scan(/#{STARASSIGN}/) then
+            action { [:tOP_ASSIGN, text]}
+          when text = ss.scan(/#{DIVIDEASSIGN}/) then
+            action { [:tOP_ASSIGN, text]}
+          when text = ss.scan(/#{EXPOASSIGN}/) then
+            action { [:tOP_ASSIGN, text]}
+          when text = ss.scan(/#{MODULUSASSIGN}/) then
+            action { [:tOP_ASSIGN, text]}
           when text = ss.scan(/#{PLUS}/) then
             action { [:tPLUS, text]}
           when text = ss.scan(/#{MINUS}/) then

@@ -56,6 +56,6 @@ module Rubex
           end
         end
       end
-    end
-  end
-end
+    end # class Node
+  end # module AST
+end # module Rubex

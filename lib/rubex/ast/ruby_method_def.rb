@@ -16,7 +16,7 @@ module Rubex
 
       def initialize name, args, statements
         @name, @args = name, args
-        @c_name = Rubex::FUNC_PREFIX + name
+        @c_name = Rubex::FUNC_PREFIX + name.gsub("?", "_qmark").gsub("!", "_bang")
         @statements = []
         statements.each { |s| @statements << s }
         @type = Rubex::DataType::RubyObject.new

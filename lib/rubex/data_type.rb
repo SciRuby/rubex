@@ -11,7 +11,7 @@ module Rubex
         :uint?, :uint8?, :uint16?, :uint32?, :uint64?,
         :lint?, :ulint?, :llint?, :ullint?,
         :char?, :object?, :bool?, :carray?,
-        :cptr?
+        :cptr?, :nil_type?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -355,6 +355,16 @@ module Rubex
       end
 
       def cptr?; true; end
+    end
+
+    class TrueType < Boolean;  end
+
+    class FalseType < Boolean;  end
+
+    class NilType
+      include Helpers
+
+      def nil_type?; true; end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64

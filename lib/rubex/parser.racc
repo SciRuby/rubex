@@ -12,7 +12,7 @@ token
   EOF     tDOT    tQMARK
 
   tPLUS tMINUS tSTAR tDIVIDE tEXPO tMODULUS tASSIGN tEQ tLT tLTEQ tGT
-  tGTEQ tANDOP tOROP     tBANG
+  tGTEQ tANDOP tOROP tBANG   tOP_ASSIGN
 
   tINTEGER tFLOAT tSINGLE_CHAR
 
@@ -28,7 +28,7 @@ prechigh
   left tANDOP
   left tOROP
 
-  right tASSIGN
+  right tASSIGN tOP_ASSIGN
 preclow
 
 rule
@@ -92,6 +92,11 @@ rule
       result = Statement::For.new *val[1], val[3]
     }
   | kWHILE expr kDO compstmt kEND { result = Statement::While.new val[1], val[3] }
+  | op_assign {}
+
+  op_assign:
+    tIDENTIFIER tOP_ASSIGN expr   { result = op_assign val }
+  | array_ref   tOP_ASSIGN expr   { result = op_assign val }
 
   for_expr:
     expr_value lt_or_lteq tIDENTIFIER lt_or_lteq expr_value { result = val }
@@ -163,8 +168,8 @@ rule
   | tFLOAT       { result = Expression::Literal::Double.new val[0] }
   | tSINGLE_CHAR { result = Expression::Literal::Char.new val[0]   }
   | kTRUE        { result = Expression::Literal::True.new val[0] }
-  | kFALSE        { result = Expression::Literal::False.new val[0] }
-  | kNIL        { result = Expression::Literal::Nil.new val[0] }
+  | kFALSE       { result = Expression::Literal::False.new val[0] }
+  | kNIL         { result = Expression::Literal::Nil.new val[0] }
 
   f_name:
     tIDENTIFIER tQMARK { result = "#{val[0]}#{val[1]}" }
@@ -224,16 +229,19 @@ rule
   | tIDENTIFIER { result = Expression::Name.new val[0] }
 
   command_call:
-    expr tDOT f_name comm_opt_args {}
+    expr tDOT f_name comm_opt_args
+      {
+        result = Expression::CommandCall.new val[0], val[2], val[3]
+      }
 
   comm_opt_args:
     {}
-  | tLPAREN comm_arg_list tRPAREN {}
+  | tLPAREN comm_arg_list tRPAREN { result = ArgumentList.new val[1] }
 
   comm_arg_list:
     {}
-  | expr {}
-  | comm_arg_list tCOMMA expr {}
+  | expr { result = val }
+  | comm_arg_list tCOMMA expr { result = [*val[0], val[2]] }
 
   array_ref:
     tIDENTIFIER tLSQUARE expr tRSQUARE
@@ -290,4 +298,8 @@ end
 
 def unary_op val
   Expression::Unary.new val[0], val[1]
+end
+
+def op_assign val # expr, op_assign, expr => expr = expr op expr
+  Statement::Assign.new(val[0], binary_op([val[0], val[1][0], val[2]]))
 end

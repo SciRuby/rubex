@@ -58,6 +58,10 @@ module Rubex
             if ['==', '<', '>', '<=', '>='].include? tree.operator
               tree.type = Rubex::DataType::Boolean.new
             else
+              if tree.left.type.bool? || tree.right.type.bool?
+                raise Rubex::TypeMismatchError, "Operation #{tree.operator} cannot"\
+                  "be performed between #{tree.left} and #{tree.right}"
+              end
               tree.type = Rubex::Helpers.result_type_for(
                      tree.left.type, tree.right.type)
             end
@@ -196,7 +200,24 @@ module Rubex
         def c_code local_scope
           @entry.c_name
         end
-      end
+      end # class Name
+
+      class CommandCall
+        include Rubex::AST::Expression
+        attr_reader :expr, :command, :arg_list
+
+        def initialize expr, command, arg_list
+          @expr, @command, @arg_list = expr, command, arg_list
+        end
+
+        def analyse_statement local_scope
+          
+        end
+
+        def c_code local_scope
+
+        end
+      end # class CommandCall
     end # module Expression
   end # module AST
 end # module Rubex
