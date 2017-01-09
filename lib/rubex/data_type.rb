@@ -19,6 +19,10 @@ module Rubex
       def == other
         self.class == other.class
       end
+
+      def to_ruby_function(arg); arg;  end
+
+      def from_ruby_function(arg); arg; end
     end
 
     module IntHelpers
@@ -51,8 +55,6 @@ module Rubex
       def to_s; "VALUE"; end
 
       def printf(arg); "printf(\"%ld\", #{arg});"; end
-
-      def to_ruby_function(arg); "#{arg}";  end
 
       def object?; true; end
     end

@@ -65,11 +65,10 @@ module Rubex
           end
         end
 
-        # vars - Rubex::AST::Statement::VarDecl
+        # vars - Rubex::AST::Statement::VarDecl/CPtrDecl
         def declare_var var
-          c_name = Rubex::VAR_PREFIX + var.name
           entry = Rubex::SymbolTable::Entry.new(
-            var.name, c_name, var.type, var.value)
+            var.name, var.c_name, var.type, var.value)
 
           name = var.name
           check_entry name

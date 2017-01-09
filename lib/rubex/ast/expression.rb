@@ -172,14 +172,26 @@ module Rubex
 
         class True
           include Rubex::AST::Expression::Literal
+
+          def type
+            Rubex::DataType::TrueType.new
+          end
         end # class True
 
         class False
           include Rubex::AST::Expression::Literal
+
+          def type
+            Rubex::DataType::FalseType.new
+          end
         end # class False
 
         class Nil
           include Rubex::AST::Expression::Literal
+
+          def type
+            Rubex::DataType::NilType.new
+          end
         end # class Nil
       end # module Literal
 
@@ -204,18 +216,25 @@ module Rubex
 
       class CommandCall
         include Rubex::AST::Expression
-        attr_reader :expr, :command, :arg_list
+        attr_reader :expr, :command, :arg_list, :type
 
         def initialize expr, command, arg_list
           @expr, @command, @arg_list = expr, command, arg_list
         end
 
         def analyse_statement local_scope
-          
+          @arg_list.each do |arg|
+            arg.analyse_statement local_scopes
+          end
+          @expr.analyse_statement local_scope
+
+          if @expr.type.object?
+            @type = Rubex::DataType::RubyObject.new
+          end
         end
 
         def c_code local_scope
-
+          
         end
       end # class CommandCall
     end # module Expression

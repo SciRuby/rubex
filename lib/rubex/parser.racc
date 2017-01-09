@@ -95,8 +95,11 @@ rule
   | op_assign {}
 
   op_assign:
-    tIDENTIFIER tOP_ASSIGN expr   { result = op_assign val }
-  | array_ref   tOP_ASSIGN expr   { result = op_assign val }
+    atomic_value tOP_ASSIGN expr
+      {
+        #  TODO: error if lvalue is a literal
+        result = op_assign val
+      }
 
   for_expr:
     expr_value lt_or_lteq tIDENTIFIER lt_or_lteq expr_value { result = val }
@@ -231,15 +234,16 @@ rule
   command_call:
     expr tDOT f_name comm_opt_args
       {
-        result = Expression::CommandCall.new val[0], val[2], val[3]
+        args = ArgumentList.new val[3]
+        result = Expression::CommandCall.new val[0], val[2], args
       }
 
   comm_opt_args:
-    {}
-  | tLPAREN comm_arg_list tRPAREN { result = ArgumentList.new val[1] }
+    { result = [] }
+  | tLPAREN comm_arg_list tRPAREN { result = val[1] }
 
   comm_arg_list:
-    {}
+    { result = [] }
   | expr { result = val }
   | comm_arg_list tCOMMA expr { result = [*val[0], val[2]] }
 

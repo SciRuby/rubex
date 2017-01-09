@@ -40,13 +40,19 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :type, :name, :value, :c_name
 
-        def initialize type, name, value
-          @type, @name, @value = type, name, value
+        def initialize dtype, name, value
+          @name, @value = name, value
           @c_name = Rubex::POINTER_PREFIX + name
+          @type = Rubex::DataType::CPtr.new Rubex::TYPE_MAPPINGS[dtype].new
         end
 
         def analyse_statement local_scope
-          
+          @value.analyse_statement local_scope
+          local_scope.declare_var self
+        end
+
+        def generate_code code, local_scope
+
         end
       end
 
