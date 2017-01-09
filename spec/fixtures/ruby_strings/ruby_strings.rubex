@@ -4,7 +4,7 @@ def blank?(string)
   i32 length = string.size
 
   while i < length do
-    if s[i] == ' '
+    if s[i] != ' '
       return false
     end
 

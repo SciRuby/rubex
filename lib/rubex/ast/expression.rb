@@ -224,7 +224,7 @@ module Rubex
 
         def analyse_statement local_scope
           @arg_list.each do |arg|
-            arg.analyse_statement local_scopes
+            arg.analyse_statement local_scope
           end
           @expr.analyse_statement local_scope
 
@@ -234,7 +234,29 @@ module Rubex
         end
 
         def c_code local_scope
-          
+          exp = "rb_funcall("
+          exp << "#{@expr.c_code(local_scope)}, rb_intern(\"#{@command}\"), "
+          exp << "#{@arg_list.size}"
+          @arg_list.each do |arg|
+            exp << " ,#{arg.c_code(local_scope)}"
+          end
+          exp << ", NULL" if @arg_list.empty?
+          exp << ")"
+          optimize_command_call(exp, local_scope) if @type.object?
+        end
+
+      private
+
+        def optimize_command_call exp, local_scope
+          optimized = ""
+          # Guess that the Ruby object is a string. Check if yes, and optimize
+          #   the call to size with RSTRING_LEN.
+          if ['size', 'length'].include? @command
+            optimized << "RB_TYPE_P(#{@expr.c_code(local_scope)}, T_STRING) ? "
+            optimized << "RSTRING_LEN(#{@expr.c_code(local_scope)}) : "
+            optimized << exp
+          end
+          optimized
         end
       end # class CommandCall
     end # module Expression

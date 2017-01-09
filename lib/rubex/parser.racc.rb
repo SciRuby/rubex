@@ -1020,21 +1020,21 @@ module_eval(<<'.,.,', 'parser.racc', 171)
 
 module_eval(<<'.,.,', 'parser.racc', 172)
   def _reduce_51(val, _values, result)
-     result = Expression::Literal::True.new val[0] 
+     result = Expression::Literal::True.new 'Qtrue' 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 173)
   def _reduce_52(val, _values, result)
-     result = Expression::Literal::False.new val[0] 
+     result = Expression::Literal::False.new 'Qfalse' 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 174)
   def _reduce_53(val, _values, result)
-     result = Expression::Literal::Nil.new val[0] 
+     result = Expression::Literal::Nil.new 'Qnil' 
     result
   end
 .,.,

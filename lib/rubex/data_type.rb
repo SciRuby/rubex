@@ -350,6 +350,7 @@ module Rubex
     end
 
     class CPtr
+      include Helpers
       attr_reader :type
 
       def initialize type
@@ -357,6 +358,17 @@ module Rubex
       end
 
       def cptr?; true; end
+
+      def to_s
+        t = @type
+        str = "*"
+        if t.cptr?
+          str << "*"
+          t = t.type
+        end
+        str.prepend t.to_s
+        str
+      end
     end
 
     class TrueType < Boolean;  end

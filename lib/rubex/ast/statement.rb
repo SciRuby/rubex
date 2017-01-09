@@ -25,10 +25,8 @@ module Rubex
         def analyse_statement local_scope
           # TODO: Have type checks for knowing if correct literal assignment
           # is taking place. For example, a char should not be assigned a float.
+          @value.analyse_statement local_scope
           local_scope.declare_var self
-          if @value.is_a? Rubex::AST::Expression
-            @value.analyse_statement local_scope
-          end
         end
 
         def generate_code code, local_scope

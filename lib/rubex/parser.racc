@@ -170,9 +170,9 @@ rule
     tINTEGER     { result = Expression::Literal::Int.new val[0]    }
   | tFLOAT       { result = Expression::Literal::Double.new val[0] }
   | tSINGLE_CHAR { result = Expression::Literal::Char.new val[0]   }
-  | kTRUE        { result = Expression::Literal::True.new val[0] }
-  | kFALSE       { result = Expression::Literal::False.new val[0] }
-  | kNIL         { result = Expression::Literal::Nil.new val[0] }
+  | kTRUE        { result = Expression::Literal::True.new 'Qtrue' }
+  | kFALSE       { result = Expression::Literal::False.new 'Qfalse' }
+  | kNIL         { result = Expression::Literal::Nil.new 'Qnil' }
 
   f_name:
     tIDENTIFIER tQMARK { result = "#{val[0]}#{val[1]}" }

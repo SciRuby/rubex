@@ -37,7 +37,16 @@ module Rubex
     end
 
     def init_variable var, local_scope=nil
-      stat = " "*@indent + "#{var.c_name} = #{var.value.c_code(local_scope)};"
+      rhs = ""
+      if var.type.cptr?
+        if var.type.type.char? && var.value.type.object?
+          rhs << "StringValueCStr(#{var.value.c_code(local_scope)})"
+        end
+      else
+        rhs << "#{var.value.c_code(local_scope)}"
+      end
+      rhs = "(#{var.type.to_s})(#{rhs})"
+      stat = " "*@indent + "#{var.c_name} = #{rhs};"
       @code << stat
       new_line
     end

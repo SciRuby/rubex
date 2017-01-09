@@ -19,6 +19,14 @@ module Rubex
       def == other
         self.class == other.class && @args == other.args
       end
+
+      def size
+        @args.size
+      end
+
+      def empty?
+        @args.empty?
+      end
     end
   end
 end
