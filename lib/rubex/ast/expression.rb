@@ -165,6 +165,18 @@ module Rubex
             Rubex::DataType::Char.new
           end
         end # class Char
+
+        class True
+          include Rubex::AST::Expression::Literal
+        end # class True
+
+        class False
+          include Rubex::AST::Expression::Literal
+        end # class False
+
+        class Nil
+          include Rubex::AST::Expression::Literal
+        end # class Nil
       end # module Literal
 
       # Singular name node with no sub expressions.

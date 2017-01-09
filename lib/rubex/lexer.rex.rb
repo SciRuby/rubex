@@ -134,13 +134,13 @@ class Rubex::Lexer
           when text = ss.scan(/#{WHILE}/) then
             action { [:kWHILE, text]  }
           when text = ss.scan(/#{DO}/) then
-            action { [:kDO, text] }
+            action { [:kDO, text]     }
           when text = ss.scan(/#{TRUE}/) then
-            action { [:kTRUE, text] }
+            action { [:kTRUE, text]   }
           when text = ss.scan(/#{FALSE}/) then
-            action { [:kFALSE, text] }
+            action { [:kFALSE, text]  }
           when text = ss.scan(/#{NIL}/) then
-            action { [:kNIL, text]  }
+            action { [:kNIL, text]    }
           when text = ss.scan(/#{DOT}#{EACH}/) then
             action { [:kDOT_EACH, text] }
           when text = ss.scan(/unsigned long long int/) then
@@ -201,6 +201,8 @@ class Rubex::Lexer
             action { [:tNL, text] }
           when text = ss.scan(/#{QMARK}/) then
             action { [:tQMARK, text]}
+          when text = ss.scan(/#{DOT}/) then
+            action { [:tDOT, text]    }
           when text = ss.scan(/#{PLUS}/) then
             action { [:tPLUS, text]}
           when text = ss.scan(/#{MINUS}/) then

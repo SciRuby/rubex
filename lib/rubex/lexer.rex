@@ -72,10 +72,10 @@ rules
   /#{STATIC_ARRAY}/ { [:kSTATIC_ARRAY, text] }
   /#{FOR}/    { [:kFOR, text]    }
   /#{WHILE}/  { [:kWHILE, text]  }
-  /#{DO}/     { [:kDO, text] }
-  /#{TRUE}/   { [:kTRUE, text] }
-  /#{FALSE}/  { [:kFALSE, text] }
-  /#{NIL}/    { [:kNIL, text]  }
+  /#{DO}/     { [:kDO, text]     }
+  /#{TRUE}/   { [:kTRUE, text]   }
+  /#{FALSE}/  { [:kFALSE, text]  }
+  /#{NIL}/    { [:kNIL, text]    }
 
   # Method hacks
 
@@ -117,6 +117,7 @@ rules
   /#{SCOLON}/             { [:tSCOLON, text] }
   /#{NL}/                 { [:tNL, text] }
   /#{QMARK}/              { [:tQMARK, text]}
+  /#{DOT}/                { [:tDOT, text]    }
 
   # operators
 
