@@ -17,6 +17,9 @@ macros
   TRUE            /true/
   FALSE           /false/
   NIL             /nil/
+  STRUCT          /struct/
+  UNION           /union/
+  ALIAS           /alias/
 
   IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN          /\(/
@@ -82,6 +85,9 @@ rules
   /#{TRUE}/   { [:kTRUE, text]   }
   /#{FALSE}/  { [:kFALSE, text]  }
   /#{NIL}/    { [:kNIL, text]    }
+  /#{STRUCT}/ { [:kSTRUCT, text] }
+  /#{UNION}/  { [:kUNION, text]  }
+  /#{ALIAS}/  { [:kALIAS, text]  }
 
   # Method hacks
 

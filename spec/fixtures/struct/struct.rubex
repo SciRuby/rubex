@@ -1,0 +1,34 @@
+def structure(a, i32 b, i32 c)
+  struct node do
+    i32 a, b
+    struct other_node other
+    f32 c[10]
+  end
+
+  struct other_node do
+    i64 a, b
+    char *str
+  end
+
+  alias node = struct node
+  node n
+
+  n.a = b
+  n.b = c
+
+  alias other = struct other_node
+  other shell
+
+  shell.str = a
+  shell.a = 666
+  shell.b = 555
+
+  i32 i
+  for 0 >= i > 10 do
+    n.c[i] = i*43
+  end
+
+  print n.c[7]
+
+  return shell.a
+end
