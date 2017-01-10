@@ -1,7 +1,7 @@
 class Rubex::Parser
 token
-  kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE kTHEN kSTATIC_ARRAY kFOR kWHILE
-  kDOT_EACH kDO     kTRUE  kFALSE kNIL
+  kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE   kTHEN  kSTATIC_ARRAY kFOR kWHILE
+  kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS
 
   kDTYPE_UINT  kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32   kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64
@@ -93,6 +93,18 @@ rule
     }
   | kWHILE expr kDO compstmt kEND { result = Statement::While.new val[1], val[3] }
   | op_assign {}
+  | kSTRUCT tIDENTIFIER kDO var_decl_stmts kEND {}
+
+  var_decl_stmts:
+    var_decls {}
+  | var_decl_stmts var_decls {}
+
+  var_decls:
+    dtype opt_star var_decl {}
+
+  var_decl:
+    normal_decl {}
+  | var_decl tCOMMA normal_decl {}
 
   op_assign:
     atomic_value tOP_ASSIGN expr

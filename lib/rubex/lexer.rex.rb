@@ -23,6 +23,9 @@ class Rubex::Lexer
   TRUE          = /true/
   FALSE         = /false/
   NIL           = /nil/
+  STRUCT        = /struct/
+  UNION         = /union/
+  ALIAS         = /alias/
   IDENTIFIER    = /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN        = /\(/
   RPAREN        = /\)/
@@ -147,6 +150,12 @@ class Rubex::Lexer
             action { [:kFALSE, text]  }
           when text = ss.scan(/#{NIL}/) then
             action { [:kNIL, text]    }
+          when text = ss.scan(/#{STRUCT}/) then
+            action { [:kSTRUCT, text] }
+          when text = ss.scan(/#{UNION}/) then
+            action { [:kUNION, text]  }
+          when text = ss.scan(/#{ALIAS}/) then
+            action { [:kALIAS, text]  }
           when text = ss.scan(/#{DOT}#{EACH}/) then
             action { [:kDOT_EACH, text] }
           when text = ss.scan(/unsigned long long int/) then
