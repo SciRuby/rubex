@@ -14,10 +14,6 @@ module Rubex
         attr_reader :type, :name, :c_name, :value
 
         def initialize type, name, value
-          unless Rubex::TYPE_MAPPINGS.has_key?(type)
-            raise "type #{type} is not supported."
-          end
-
           @type, @name, @value = Rubex::TYPE_MAPPINGS[type].new, name, value
           @c_name = Rubex::VAR_PREFIX + name
         end
@@ -56,11 +52,11 @@ module Rubex
         end
       end
 
-      class CUserType
-        attr_reader :name, :statements
+      class CStructOrUnionDefn
+        attr_reader :name, :declarations
 
-        def initialize name, statements
-          @name, @statements = name, statements
+        def initialize name, declarations
+          @name, @declarations = name, declarations
         end
       end
 

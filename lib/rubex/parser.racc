@@ -61,16 +61,7 @@ rule
         variables = []
         dtype = val[0][:dtype]
         val[0][:decl_or_init].each do |di|
-          if di[:name].is_a? Expression::ArrayRef
-            var = Statement::CArrayDecl.new(dtype, di[:name], di[:value])
-          elsif di[:pointer]
-            if di[:pointer] == '*'
-              var = Statement::CPtrDecl.new(dtype, di[:name], di[:value])
-            end
-          else
-            var = Statement::VarDecl.new(dtype, di[:name], di[:value])
-          end
-          variables << var
+          variables << node_variable(dtype, di)
         end
 
         result = variables
@@ -78,41 +69,58 @@ rule
   | kRETURN expr { result = Statement::Return.new val[1] }
   | kPRINT expr { result = Statement::Print.new val[1] }
   | normal_init
-    {
-      match = val[0]
-      result = Statement::Assign.new match[:name], match[:value]
-    }
+      {
+        match = val[0]
+        result = Statement::Assign.new match[:name], match[:value]
+      }
   | kIF expr then compstmt if_tail kEND
-    {
-      result = Statement::IfBlock.new val[1], [*val[3]], [*val[4]]
-    }
+      {
+        result = Statement::IfBlock.new val[1], [*val[3]], [*val[4]]
+      }
   | stmt kIF expr { result = Statement::IfBlock.new val[2], [*val[0]], [] }
   | kFOR for_expr kDO compstmt kEND
-    {
-      result = Statement::For.new *val[1], val[3]
-    }
+      {
+        result = Statement::For.new *val[1], val[3]
+      }
   | kWHILE expr kDO compstmt kEND { result = Statement::While.new val[1], val[3] }
   | op_assign {}
   | kSTRUCT tIDENTIFIER kDO opt_terms var_decl_stmts kEND
-    {
-      result = Statement::CUserType.new val[1], val[4]
-    }
-  | kALIAS tIDENTIFIER tASSIGN kSTRUCT tIDENTIFIER {}
+      {
+        result = Statement::CUserTypeDefn.new val[1], val[4]
+      }
 
   var_decl_stmts:
-    var_decls opt_terms {}
+    var_decls opt_terms
+      {
+        declarations = []
+        val[0].each do |data|
+          dtype = data[:dtype]
+          data[:decl].each do |d|
+            declarations << node_variable(dtype, d)
+          end
+        end
+
+        result = declarations
+      }
 
   var_decls:
     {}
-  | var_decl {}
-  | var_decls terms var_decl {}
+  | var_decl { result = [val[0]] }
+  | var_decls terms var_decl { result = [*val[0], val[2]]}
 
   var_decl:
-    dtype opt_star var_names {}
+    dtype opt_star var_names
+    { 
+      val[2].each { |d| d[:pointer] = val[1] }
+      result = { 
+        dtype: val[0],
+        decl:  val[2]
+      }
+    }
 
   var_names:
-    normal_decl {}
-  | var_names tCOMMA normal_decl {}
+    normal_decl { result = [val[0]] }
+  | var_names tCOMMA normal_decl { result = [*val[0], val[2]] }
 
   op_assign:
     atomic_value tOP_ASSIGN expr
@@ -284,13 +292,16 @@ rule
       }
 
   dtype:
-    kDTYPE_UINT  | kDTYPE_LINT | kDTYPE_LLINT | kDTYPE_CHAR | kDTYPE_I8   |
-    kDTYPE_I16   | kDTYPE_I32  | kDTYPE_I64   | kDTYPE_UI8  | kDTYPE_UI16 |
-    kDTYPE_UI32  | kDTYPE_UI64 | kDTYPE_INT   | kDTYPE_F32  | kDTYPE_F64  |
-    kDTYPE_LF64  | kDTYPE_ROBJ | kDTYPE_ULINT | kDTYPE_ULLINT
+    kDTYPE_UINT  | kDTYPE_LINT | kDTYPE_LLINT | kDTYPE_CHAR   | kDTYPE_I8   |
+    kDTYPE_I16   | kDTYPE_I32  | kDTYPE_I64   | kDTYPE_UI8    | kDTYPE_UI16 |
+    kDTYPE_UI32  | kDTYPE_UI64 | kDTYPE_INT   | kDTYPE_F32    | kDTYPE_F64  |
+    kDTYPE_LF64  | kDTYPE_ROBJ | kDTYPE_ULINT | kDTYPE_ULLINT | user_dtype
       {
         result = val[0]
       }
+
+  user_dtype:
+    kSTRUCT tIDENTIFIER { result = val.join }
 
   opt_terms:
     {}
@@ -336,4 +347,18 @@ end
 
 def op_assign val # expr, op_assign, expr => expr = expr op expr
   Statement::Assign.new(val[0], binary_op([val[0], val[1][0], val[2]]))
+end
+
+def node_variable dtype, di
+  if di[:name].is_a? Expression::ArrayRef
+    var = Statement::CArrayDecl.new(dtype, di[:name], di[:value])
+  elsif di[:pointer]
+    if di[:pointer] == '*'
+      var = Statement::CPtrDecl.new(dtype, di[:name], di[:value])
+    end
+  else
+    var = Statement::VarDecl.new(dtype, di[:name], di[:value])
+  end
+
+  var
 end

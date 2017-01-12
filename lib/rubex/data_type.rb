@@ -380,6 +380,14 @@ module Rubex
 
       def nil_type?; true; end
     end
+
+    class CStructOrUnion
+      attr_reader :kind, :name, :c_name, :scope
+
+      def initialize kind, name, scope
+        @kind, @name, @scope = kind, name, scope
+      end
+    end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64
     #   def to_s; "long double"; end

@@ -10,14 +10,12 @@ def structure(a, i32 b, i32 c)
     char *str
   end
 
-  alias node = struct node
-  node n
+  struct node n
 
   n.a = b
   n.b = c
 
-  alias other = struct other_node
-  other shell
+  struct other_node shell
 
   shell.str = a
   shell.a = 666
