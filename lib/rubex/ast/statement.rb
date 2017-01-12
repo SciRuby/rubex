@@ -14,15 +14,15 @@ module Rubex
         attr_reader :type, :name, :c_name, :value
 
         def initialize type, name, value
+          @c_name = Rubex::VAR_PREFIX + name
           @type =
           if Rubex::TYPE_MAPPINGS.has_key? type
             Rubex::TYPE_MAPPINGS[type].new
           elsif /struct/.match type
-            Rubex::DataType::CStructOrUnion.new :struct, name
+            Rubex::DataType::CStructOrUnion.new :struct, name, c_name
           else
             raise "Cannot decipher type #{type}"
           end
-          @c_name = Rubex::VAR_PREFIX + name
           @name, @value = name, value
         end
 
@@ -60,7 +60,7 @@ module Rubex
         end
       end
 
-      class CStructOrUnionDefn
+      class CStructOrUnionDef
         attr_reader :name, :declarations
 
         def initialize name, declarations

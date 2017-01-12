@@ -9,7 +9,7 @@ describe Rubex do
 
     context ".ast", focus: true do
       it "generates a valid AST" do
-        a = Rubex.ast @path
+        t = Rubex.ast @path
 
         pp t
       end

@@ -86,7 +86,7 @@ rule
   | op_assign {}
   | kSTRUCT tIDENTIFIER kDO opt_terms var_decl_stmts kEND
       {
-        result = Statement::CStructOrUnionDefn.new val[1], val[4]
+        result = Statement::CStructOrUnionDef.new val[1], val[4]
       }
 
   var_decl_stmts:
@@ -275,6 +275,7 @@ rule
 
   method_or_attr:
     expr tDOT f_name { result = [val[0], val[2]] }
+  | expr tDOT array_ref { result = [val[0], val[2]] }
 
   command_opt_args:
     { result = [] }
