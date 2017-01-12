@@ -14,8 +14,16 @@ module Rubex
         attr_reader :type, :name, :c_name, :value
 
         def initialize type, name, value
-          @type, @name, @value = Rubex::TYPE_MAPPINGS[type].new, name, value
+          @type =
+          if Rubex::TYPE_MAPPINGS.has_key? type
+            Rubex::TYPE_MAPPINGS[type].new
+          elsif /struct/.match type
+            Rubex::DataType::CStructOrUnion.new :struct, name
+          else
+            raise "Cannot decipher type #{type}"
+          end
           @c_name = Rubex::VAR_PREFIX + name
+          @name, @value = name, value
         end
 
         def analyse_statement local_scope

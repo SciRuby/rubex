@@ -86,7 +86,7 @@ rule
   | op_assign {}
   | kSTRUCT tIDENTIFIER kDO opt_terms var_decl_stmts kEND
       {
-        result = Statement::CUserTypeDefn.new val[1], val[4]
+        result = Statement::CStructOrUnionDefn.new val[1], val[4]
       }
 
   var_decl_stmts:

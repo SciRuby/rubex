@@ -382,10 +382,11 @@ module Rubex
     end
 
     class CStructOrUnion
-      attr_reader :kind, :name, :c_name, :scope
+      attr_reader :kind, :name, :c_name
+      attr_accessor :scope
 
-      def initialize kind, name, scope
-        @kind, @name, @scope = kind, name, scope
+      def initialize kind, name, c_name
+        @kind, @name, @c_name = kind, name, c_name
       end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?

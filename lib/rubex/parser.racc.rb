@@ -944,7 +944,7 @@ module_eval(<<'.,.,', 'parser.racc', 85)
 
 module_eval(<<'.,.,', 'parser.racc', 88)
   def _reduce_18(val, _values, result)
-            result = Statement::CUserTypeDefn.new val[1], val[4]
+            result = Statement::CStructOrUnionDefn.new val[1], val[4]
       
     result
   end
