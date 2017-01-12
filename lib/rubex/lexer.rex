@@ -85,6 +85,20 @@ rules
   /#{TRUE}/   { [:kTRUE, text]   }
   /#{FALSE}/  { [:kFALSE, text]  }
   /#{NIL}/    { [:kNIL, text]    }
+
+  # Keywords
+
+  /#{IDENTIFIER}/         { [:tIDENTIFIER, text] }
+  /#{LPAREN}/             { [:tLPAREN, text] }
+  /#{RPAREN}/             { [:tRPAREN, text] }
+  /#{LSQUARE}/            { [:tLSQUARE, text] }
+  /#{RSQUARE}/            { [:tRSQUARE, text] }
+  /#{COMMA}/              { [:tCOMMA, text] }
+  /#{SCOLON}/             { [:tSCOLON, text] }
+  /#{NL}/                 { [:tNL, text] }
+  /#{QMARK}/              { [:tQMARK, text]}
+  /#{DOT}/                { [:tDOT, text]    }
+
   /#{STRUCT}/ { [:kSTRUCT, text] }
   /#{UNION}/  { [:kUNION, text]  }
   /#{ALIAS}/  { [:kALIAS, text]  }
@@ -117,19 +131,6 @@ rules
   /object/                 { [:kDTYPE_ROBJ, text] }
   # /long double/            { [:kDTYPE_LF64, text] }
   # /long f64/               { [:kDTYPE_LF64, text] }
-
-  # Keywords
-
-  /#{IDENTIFIER}/         { [:tIDENTIFIER, text] }
-  /#{LPAREN}/             { [:tLPAREN, text] }
-  /#{RPAREN}/             { [:tRPAREN, text] }
-  /#{LSQUARE}/            { [:tLSQUARE, text] }
-  /#{RSQUARE}/            { [:tRSQUARE, text] }
-  /#{COMMA}/              { [:tCOMMA, text] }
-  /#{SCOLON}/             { [:tSCOLON, text] }
-  /#{NL}/                 { [:tNL, text] }
-  /#{QMARK}/              { [:tQMARK, text]}
-  /#{DOT}/                { [:tDOT, text]    }
 
   # operators
 

@@ -7,8 +7,8 @@ describe Rubex do
       @path = 'spec/fixtures/struct/struct.rubex'
     end
 
-    context ".ast" do
-      it "generates a valid AST", focus: true do
+    context ".ast", focus: true do
+      it "generates a valid AST" do
         a = Rubex.ast @path
 
         pp t
