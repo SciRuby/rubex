@@ -56,6 +56,14 @@ module Rubex
         end
       end
 
+      class CUserType
+        attr_reader :name, :statements
+
+        def initialize name, statements
+          @name, @statements = name, statements
+        end
+      end
+
       class Print
         include Rubex::AST::Statement
         attr_reader :expression, :type

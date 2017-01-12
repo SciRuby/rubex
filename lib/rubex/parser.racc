@@ -93,19 +93,26 @@ rule
     }
   | kWHILE expr kDO compstmt kEND { result = Statement::While.new val[1], val[3] }
   | op_assign {}
-  | kSTRUCT tIDENTIFIER kDO var_decl_stmts kEND {}
+  | kSTRUCT tIDENTIFIER kDO opt_terms var_decl_stmts kEND
+    {
+      result = Statement::CUserType.new val[1], val[4]
+    }
   | kALIAS tIDENTIFIER tASSIGN kSTRUCT tIDENTIFIER {}
 
   var_decl_stmts:
-    var_decls {}
-  | var_decl_stmts var_decls {}
+    var_decls opt_terms {}
 
   var_decls:
-    dtype opt_star var_decl {}
+    {}
+  | var_decl {}
+  | var_decls terms var_decl {}
 
   var_decl:
+    dtype opt_star var_names {}
+
+  var_names:
     normal_decl {}
-  | var_decl tCOMMA normal_decl {}
+  | var_names tCOMMA normal_decl {}
 
   op_assign:
     atomic_value tOP_ASSIGN expr

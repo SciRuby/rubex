@@ -120,7 +120,7 @@ class Rubex::Lexer
             action { [:tFLOAT, text] }
           when text = ss.scan(/#{INTEGER}/) then
             action { [:tINTEGER, text] }
-          when text = ss.scan(/#{DEF}/) then
+          when text = ss.scan(/#{DEF}\ /) then
             action { [:kDEF   , text] }
           when text = ss.scan(/end/) then
             action { [:kEND   , text] }
@@ -150,32 +150,6 @@ class Rubex::Lexer
             action { [:kFALSE, text]  }
           when text = ss.scan(/#{NIL}/) then
             action { [:kNIL, text]    }
-          when text = ss.scan(/#{IDENTIFIER}/) then
-            action { [:tIDENTIFIER, text] }
-          when text = ss.scan(/#{LPAREN}/) then
-            action { [:tLPAREN, text] }
-          when text = ss.scan(/#{RPAREN}/) then
-            action { [:tRPAREN, text] }
-          when text = ss.scan(/#{LSQUARE}/) then
-            action { [:tLSQUARE, text] }
-          when text = ss.scan(/#{RSQUARE}/) then
-            action { [:tRSQUARE, text] }
-          when text = ss.scan(/#{COMMA}/) then
-            action { [:tCOMMA, text] }
-          when text = ss.scan(/#{SCOLON}/) then
-            action { [:tSCOLON, text] }
-          when text = ss.scan(/#{NL}/) then
-            action { [:tNL, text] }
-          when text = ss.scan(/#{QMARK}/) then
-            action { [:tQMARK, text]}
-          when text = ss.scan(/#{DOT}/) then
-            action { [:tDOT, text]    }
-          when text = ss.scan(/#{STRUCT}/) then
-            action { [:kSTRUCT, text] }
-          when text = ss.scan(/#{UNION}/) then
-            action { [:kUNION, text]  }
-          when text = ss.scan(/#{ALIAS}/) then
-            action { [:kALIAS, text]  }
           when text = ss.scan(/#{DOT}#{EACH}/) then
             action { [:kDOT_EACH, text] }
           when text = ss.scan(/unsigned long long int/) then
@@ -218,6 +192,32 @@ class Rubex::Lexer
             action { [:kDTYPE_F64, text] }
           when text = ss.scan(/object/) then
             action { [:kDTYPE_ROBJ, text] }
+          when text = ss.scan(/#{STRUCT}\ /) then
+            action { [:kSTRUCT, text] }
+          when text = ss.scan(/#{UNION}\ /) then
+            action { [:kUNION, text]  }
+          when text = ss.scan(/#{ALIAS}\ /) then
+            action { [:kALIAS, text]  }
+          when text = ss.scan(/#{IDENTIFIER}/) then
+            action { [:tIDENTIFIER, text] }
+          when text = ss.scan(/#{LPAREN}/) then
+            action { [:tLPAREN, text] }
+          when text = ss.scan(/#{RPAREN}/) then
+            action { [:tRPAREN, text] }
+          when text = ss.scan(/#{LSQUARE}/) then
+            action { [:tLSQUARE, text] }
+          when text = ss.scan(/#{RSQUARE}/) then
+            action { [:tRSQUARE, text] }
+          when text = ss.scan(/#{COMMA}/) then
+            action { [:tCOMMA, text] }
+          when text = ss.scan(/#{SCOLON}/) then
+            action { [:tSCOLON, text] }
+          when text = ss.scan(/#{NL}/) then
+            action { [:tNL, text] }
+          when text = ss.scan(/#{QMARK}/) then
+            action { [:tQMARK, text]}
+          when text = ss.scan(/#{DOT}/) then
+            action { [:tDOT, text]    }
           when text = ss.scan(/#{PLUSASSIGN}/) then
             action { [:tOP_ASSIGN, text]}
           when text = ss.scan(/#{MINUSASSIGN}/) then
