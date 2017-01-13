@@ -6,7 +6,7 @@ token
   kDTYPE_UINT  kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32   kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64
   kDTYPE_INT   kDTYPE_F32  kDTYPE_F64   kDTYPE_LF64 kDTYPE_ROBJ kDTYPE_ULINT
-  kDTYPE_ULLINT
+  kDTYPE_ULLINT tCUSTOM_DTYPE
 
   tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON
   EOF     tDOT    tQMARK   tSTART_LINE
@@ -86,12 +86,18 @@ rule
   | op_assign {}
   | kSTRUCT tIDENTIFIER kDO opt_terms var_decl_stmts kEND
       {
-        result = Statement::CStructOrUnionDef.new val[1], val[4]
+        add_dtype_to_lexer val[1]
+        result = Statement::CStructOrUnionDef.new val[0], val[1], val[4]
       }
-  | forward_declaration { result = Statement::ForwardDecl.new val[0], val[1] } 
+  | forward_declaration {} 
 
   forward_declaration:
-    kSTRUCT tIDENTIFIER { result = val }
+    kSTRUCT tIDENTIFIER 
+    { 
+      val.flatten!
+      add_dtype_to_lexer val[1]
+      result = Statement::ForwardDecl.new val[0], val[1]
+    }
 
   var_decl_stmts:
     var_decls opt_terms
@@ -300,13 +306,10 @@ rule
     kDTYPE_UINT  | kDTYPE_LINT | kDTYPE_LLINT | kDTYPE_CHAR   | kDTYPE_I8   |
     kDTYPE_I16   | kDTYPE_I32  | kDTYPE_I64   | kDTYPE_UI8    | kDTYPE_UI16 |
     kDTYPE_UI32  | kDTYPE_UI64 | kDTYPE_INT   | kDTYPE_F32    | kDTYPE_F64  |
-    kDTYPE_LF64  | kDTYPE_ROBJ | kDTYPE_ULINT | kDTYPE_ULLINT | user_dtype
+    kDTYPE_LF64  | kDTYPE_ROBJ | kDTYPE_ULINT | kDTYPE_ULLINT | tCUSTOM_DTYPE
       {
         result = val[0]
       }
-
-  user_dtype:
-    kSTRUCT tIDENTIFIER { result = val.join }
 
   opt_terms:
     {}
@@ -334,12 +337,23 @@ include Rubex::AST
 
 def parse file_name
   @lexer = Rubex::Lexer.new
-  @lexer.parse_file file_name
   @yydebug = true
+  @custom_dtypes = {}
+  @prev_token = nil
+  @lexer.parse_file file_name
 end
 
 def next_token
-  @lexer.next_token
+  t = @lexer.next_token
+
+  if !t.nil? && @custom_dtypes.has_key?(t[1])
+    if t[0] == :tIDENTIFIER && !(@prev_token[0] == :kSTRUCT)
+      return [:tCUSTOM_DTYPE, t[1]]
+    end
+  end
+
+  @prev_token = t
+  t
 end
 
 def binary_op val
@@ -366,4 +380,8 @@ def node_variable dtype, di
   end
 
   var
+end
+
+def add_dtype_to_lexer dtype
+  @custom_dtypes[dtype] = true
 end

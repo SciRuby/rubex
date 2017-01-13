@@ -3,7 +3,7 @@ def structure(a, i32 b, i32 c)
 
   struct node do
     i32 a, b
-    struct other_node other
+    other_node other
     f32 c[10]
   end
 
@@ -12,12 +12,12 @@ def structure(a, i32 b, i32 c)
     char *str
   end
 
-  struct node n
+  node n
 
   n.a = b
   n.b = c
 
-  struct other_node shell
+  other_node shell
 
   shell.str = a
   shell.a = 666

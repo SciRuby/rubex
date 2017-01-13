@@ -8,6 +8,7 @@ module Rubex
       attr_accessor :var_entries
       attr_accessor :ruby_obj_entries
       attr_accessor :carray_entries
+      attr_accessor :sue_entries
 
       def initialize outer_scope=nil
         @outer_scope = outer_scope
@@ -17,6 +18,7 @@ module Rubex
         @type = nil
         @ruby_obj_entries = []
         @carray_entries = []
+        @sue_entries = []
       end
 
       def check_entry name
@@ -34,6 +36,13 @@ module Rubex
         check_entry name
         @entries[name] = entry
         @var_entries << entry
+      end
+
+      def declare_sue var
+        entry = Rubex::SymbolTable::Entry.new(
+          var.name, var.c_name, var.type, nil)
+        @entries[var.name] = entry
+        @sue_entries << entry
       end
 
       def add_ruby_obj name, value

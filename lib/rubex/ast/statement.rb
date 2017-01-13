@@ -26,8 +26,8 @@ module Rubex
           @type =
           if Rubex::TYPE_MAPPINGS.has_key? @type
             Rubex::TYPE_MAPPINGS[@type].new
-          elsif /struct/.match @type
-            CStructOrUnion.new :struct, name, c_name, local_scope[name].type.scope
+          elsif Rubex::CUSTOM_TYPES.has_key? @type
+            Rubex::CUSTOM_TYPES[@type]
           else
             raise "Cannot decipher type #{type}"
           end
@@ -53,7 +53,7 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          @value.analyse_statement local_scope
+          @value.analyse_statement(local_scope) unless @value.nil?
           local_scope.declare_var self
         end
 
@@ -66,14 +66,14 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :name, :declarations, :type, :kind
 
-        def initialize name, declarations
+        def initialize kind, name, declarations
           @declarations = declarations
-          if /struct/.match name
+          if /struct/.match kind
             @kind = :struct
-          elsif /union/.match name
+          elsif /union/.match kind
             @kind = :union
           end
-          @name = name.split(' ')[1]
+          @name = name
         end
 
         def analyse_statement outer_scope
@@ -83,6 +83,7 @@ module Rubex
           @declarations.each do |decl|
             decl.analyse_statement local_scope
           end
+          Rubex::CUSTOM_TYPES[@name] = @type
         end
 
         def generate_code code, local_scope
@@ -91,12 +92,27 @@ module Rubex
       end
 
       class ForwardDecl
-        attr_reader :kind, :name
+        include Rubex::AST::Statement
+        attr_reader :kind, :name, :type
 
         def initialize kind, name
-            
+          @name = name
+          if /struct/.match kind
+            @kind = :struct
+          elsif /union/.match kind
+            @kind = :union
+          end
+          Rubex::CUSTOM_TYPES[@name] = nil
         end
-      end
+
+        def analyse_statement local_scope
+          
+        end
+
+        def generate_code code, local_scope
+          
+        end
+      end # class ForwardDecl
 
       class Print
         include Rubex::AST::Statement
@@ -114,6 +130,7 @@ module Rubex
             @expression = local_scope[@expression]
             @type = @expression.type
           end
+
           @type = @type.type if @type.carray?
         end
 
@@ -121,7 +138,7 @@ module Rubex
           code << @type.printf(@expression.c_code(local_scope))
           code.nl
         end
-      end
+      end # class Print
 
       class Return
         include Rubex::AST::Statement

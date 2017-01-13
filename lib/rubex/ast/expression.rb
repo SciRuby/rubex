@@ -227,10 +227,7 @@ module Rubex
             arg.analyse_statement local_scope
           end
           @expr.analyse_statement local_scope
-
-          if @expr.type.object?
-            @type = Rubex::DataType::RubyObject.new
-          end
+          @type = @expr.type
         end
 
         def c_code local_scope

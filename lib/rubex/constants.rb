@@ -31,6 +31,8 @@ module Rubex
     'object'                 => Rubex::DataType::RubyObject
   }
 
+  CUSTOM_TYPES = {}
+
   CLASS_MAPPINGS = {
     'Object' => 'rb_cObject'
   }
