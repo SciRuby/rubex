@@ -88,6 +88,10 @@ rule
       {
         result = Statement::CStructOrUnionDef.new val[1], val[4]
       }
+  | forward_declaration { result = Statement::ForwardDecl.new val[0], val[1] } 
+
+  forward_declaration:
+    kSTRUCT tIDENTIFIER { result = val }
 
   var_decl_stmts:
     var_decls opt_terms

@@ -11,7 +11,7 @@ module Rubex
         :uint?, :uint8?, :uint16?, :uint32?, :uint64?,
         :lint?, :ulint?, :llint?, :ullint?,
         :char?, :object?, :bool?, :carray?,
-        :cptr?, :nil_type?
+        :cptr?, :nil_type?, :struct_or_union?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -382,12 +382,14 @@ module Rubex
     end
 
     class CStructOrUnion
-      attr_reader :kind, :name, :c_name
-      attr_accessor :scope
+      include Helpers
+      attr_reader :kind, :name, :c_name, :scope
 
-      def initialize kind, name, c_name
-        @kind, @name, @c_name = kind, name, c_name
+      def initialize kind, name, c_name, scope
+        @kind, @name, @c_name, @scope = kind, name, c_name, scope
       end
+
+      def struct_or_union?; true; end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64

@@ -24,9 +24,46 @@ module Rubex
           raise "Symbol name #{name} already exists in this scope."
         end
       end
-    end
-  end
-end
+
+      # vars - Rubex::AST::Statement::VarDecl/CPtrDecl
+      def declare_var var
+        entry = Rubex::SymbolTable::Entry.new(
+          var.name, var.c_name, var.type, var.value)
+
+        name = var.name
+        check_entry name
+        @entries[name] = entry
+        @var_entries << entry
+      end
+
+      def add_ruby_obj name, value
+        c_name = Rubex::VAR_PREFIX + name
+        entry = Rubex::SymbolTable::Entry.new(
+          name, c_name, Rubex::DataType::RubyObject.new, value)
+        @entries[name] = entry
+        @ruby_obj_entries << entry
+      end
+
+      def add_carray name, dimension, carray_list, type
+        c_name = Rubex::ARRAY_PREFIX + name
+        value = carray_list
+        type = Rubex::DataType::CArray.new dimension, type
+        entry = Rubex::SymbolTable::Entry.new name, c_name, type, value
+        @entries[name] = entry
+        @carray_entries << entry
+      end
+
+      def [] entry
+        @entries[entry] or raise(Rubex::SymbolNotFoundError,
+          "Symbol #{entry} does not exist in this scope.")
+      end
+
+      def has_entry? entry
+        !!@entries[entry]
+      end
+    end # module Scope
+  end # module SymbolTable
+end # module Rubex
 
 module Rubex
   module SymbolTable
@@ -64,44 +101,11 @@ module Rubex
             @arg_entries << entry
           end
         end
-
-        # vars - Rubex::AST::Statement::VarDecl/CPtrDecl
-        def declare_var var
-          entry = Rubex::SymbolTable::Entry.new(
-            var.name, var.c_name, var.type, var.value)
-
-          name = var.name
-          check_entry name
-          @entries[name] = entry
-          @var_entries << entry
-        end
-
-        def add_ruby_obj name, value
-          c_name = Rubex::VAR_PREFIX + name
-          entry = Rubex::SymbolTable::Entry.new(
-            name, c_name, Rubex::DataType::RubyObject.new, value)
-          @entries[name] = entry
-          @ruby_obj_entries << entry
-        end
-
-        def add_carray name, dimension, carray_list, type
-          c_name = Rubex::ARRAY_PREFIX + name
-          value = carray_list
-          type = Rubex::DataType::CArray.new dimension, type
-          entry = Rubex::SymbolTable::Entry.new name, c_name, type, value
-          @entries[name] = entry
-          @carray_entries << entry
-        end
-
-        def [] entry
-          @entries[entry] or raise(Rubex::SymbolNotFoundError,
-            "Symbol #{entry} does not exist in this scope.")
-        end
-
-        def has_entry? entry
-          !!@entries[entry]
-        end
       end # class Local
+
+      class StructOrUnion
+        include Rubex::SymbolTable::Scope
+      end # class StructOrUnion
     end
   end
 end

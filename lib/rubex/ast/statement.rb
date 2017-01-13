@@ -2,6 +2,7 @@ module Rubex
   module AST
     module Statement
       include Rubex::Helpers::NodeTypeMethods
+      include Rubex::DataType
 
       def statement?; true; end
 
@@ -15,20 +16,21 @@ module Rubex
 
         def initialize type, name, value
           @c_name = Rubex::VAR_PREFIX + name
-          @type =
-          if Rubex::TYPE_MAPPINGS.has_key? type
-            Rubex::TYPE_MAPPINGS[type].new
-          elsif /struct/.match type
-            Rubex::DataType::CStructOrUnion.new :struct, name, c_name
-          else
-            raise "Cannot decipher type #{type}"
-          end
           @name, @value = name, value
+          @type = type
         end
 
         def analyse_statement local_scope
           # TODO: Have type checks for knowing if correct literal assignment
           # is taking place. For example, a char should not be assigned a float.
+          @type =
+          if Rubex::TYPE_MAPPINGS.has_key? @type
+            Rubex::TYPE_MAPPINGS[@type].new
+          elsif /struct/.match @type
+            CStructOrUnion.new :struct, name, c_name, local_scope[name].type.scope
+          else
+            raise "Cannot decipher type #{type}"
+          end
           local_scope.declare_var self
           if @value.is_a? Rubex::AST::Expression
             @value.analyse_statement local_scope
@@ -47,7 +49,7 @@ module Rubex
         def initialize dtype, name, value
           @name, @value = name, value
           @c_name = Rubex::POINTER_PREFIX + name
-          @type = Rubex::DataType::CPtr.new Rubex::TYPE_MAPPINGS[dtype].new
+          @type = CPtr.new Rubex::TYPE_MAPPINGS[dtype].new
         end
 
         def analyse_statement local_scope
@@ -61,10 +63,38 @@ module Rubex
       end
 
       class CStructOrUnionDef
-        attr_reader :name, :declarations
+        include Rubex::AST::Statement
+        attr_reader :name, :declarations, :type, :kind
 
         def initialize name, declarations
-          @name, @declarations = name, declarations
+          @declarations = declarations
+          if /struct/.match name
+            @kind = :struct
+          elsif /union/.match name
+            @kind = :union
+          end
+          @name = name.split(' ')[1]
+        end
+
+        def analyse_statement outer_scope
+          local_scope = Rubex::SymbolTable::Scope::StructOrUnion.new outer_scope
+          @type = CStructOrUnion.new @kind, @name, @c_name, local_scope
+
+          @declarations.each do |decl|
+            decl.analyse_statement local_scope
+          end
+        end
+
+        def generate_code code, local_scope
+          
+        end
+      end
+
+      class ForwardDecl
+        attr_reader :kind, :name
+
+        def initialize kind, name
+            
         end
       end
 
@@ -204,7 +234,6 @@ module Rubex
         end
 
         def generate_code code, local_scope
-
           generate_code_for_statement "if", code, local_scope
         end
 

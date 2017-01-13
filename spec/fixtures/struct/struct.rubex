@@ -1,4 +1,6 @@
 def structure(a, i32 b, i32 c)
+  struct other_node
+
   struct node do
     i32 a, b
     struct other_node other

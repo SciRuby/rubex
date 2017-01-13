@@ -7,7 +7,7 @@ describe Rubex do
       @path = 'spec/fixtures/struct/struct.rubex'
     end
 
-    context ".ast", focus: true do
+    context ".ast" do
       it "generates a valid AST" do
         t = Rubex.ast @path
 
@@ -15,9 +15,12 @@ describe Rubex do
       end
     end
 
-    context ".compile" do
+    context ".compile", focus: true do
       it "compiles to valid C code" do
         t,c,e = Rubex.compile @path, true
+
+        pp t
+        puts c
       end
     end
   end
