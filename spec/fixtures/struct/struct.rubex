@@ -1,5 +1,6 @@
 def structure(a, i32 b, i32 c)
   struct other_node
+  i32 f[10]
 
   struct node do
     i32 a, b
@@ -26,6 +27,7 @@ def structure(a, i32 b, i32 c)
   i32 i
   for 0 >= i > 10 do
     n.c[i] = i*43
+    f[i] = i + 4
   end
 
   print n.c[7]

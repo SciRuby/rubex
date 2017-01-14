@@ -135,6 +135,7 @@ module Rubex
         end
 
         def generate_code code, local_scope
+          # pp self
           code << @type.printf(@expression.c_code(local_scope))
           code.nl
         end

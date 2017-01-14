@@ -111,10 +111,17 @@ module Rubex
           @name, @pos = name, pos
         end
 
-        def analyse_statement local_scope
+        def analyse_statement local_scope, struct_scope=nil
           @pos.analyse_statement local_scope
-          @name = local_scope[@name]
-          @type = @name.type.type # Assign type CArray
+          puts " \n\n\n>>>>> #{@name}"
+          if struct_scope.nil?
+            @name = local_scope[@name]
+          else
+            @name = struct_scope[@name]
+          end
+          
+          @type = @name.type.type # assign actual type
+          puts ">>>>>>> #{@type}"
         end
 
         def c_code local_scope
@@ -124,24 +131,24 @@ module Rubex
 
       module Literal
         include Rubex::AST::Expression
-        attr_reader :value
+        attr_reader :name
 
-        def initialize value
-          @value = value
+        def initialize name
+          @name = name
         end
 
         def c_code local_scope
-          @value
+          @name
         end
 
         def c_name
-          @value
+          @name
         end
 
         def literal?; true; end
 
         def == other
-          self.class == other.class && @value == other.value
+          self.class == other.class && @name == other.name
         end
 
         class Double
@@ -198,14 +205,14 @@ module Rubex
       # Singular name node with no sub expressions.
       class Name
         include Rubex::AST::Expression
-        attr_reader :value, :entry, :type
+        attr_reader :name, :entry, :type
 
-        def initialize value
-          @value = value
+        def initialize name
+          @name = name
         end
 
         def analyse_statement local_scope
-          @entry = local_scope[@value]
+          @entry = local_scope[@name]
           @type = @entry.type
         end
 
@@ -213,6 +220,20 @@ module Rubex
           @entry.c_name
         end
       end # class Name
+
+      class MethodCall
+        include Rubex::AST::Expression
+        attr_reader :name, :type
+
+        def initialize name
+          @name = name
+          @type = Rubex::DataType::RubyObject.new
+        end
+
+        def c_code local_scope
+          @name
+        end
+      end
 
       class CommandCall
         include Rubex::AST::Expression
@@ -227,24 +248,28 @@ module Rubex
             arg.analyse_statement local_scope
           end
           @expr.analyse_statement local_scope
-          @type = @expr.type
+          analyse_command_type local_scope
         end
 
         def c_code local_scope
-          exp = "rb_funcall("
-          exp << "#{@expr.c_code(local_scope)}, rb_intern(\"#{@command}\"), "
-          exp << "#{@arg_list.size}"
-          @arg_list.each do |arg|
-            exp << " ,#{arg.c_code(local_scope)}"
+          if @command.is_a? Rubex::AST::Expression::MethodCall
+            exp = "rb_funcall("
+            exp << "#{@expr.c_code(local_scope)}, rb_intern(\"#{@command}\"), "
+            exp << "#{@arg_list.size}"
+            @arg_list.each do |arg|
+              exp << " ,#{arg.c_code(local_scope)}"
+            end
+            exp << ", NULL" if @arg_list.empty?
+            exp << ")"
+            optimize_method_call(exp, local_scope) if @type.object?
+          else
+            "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
           end
-          exp << ", NULL" if @arg_list.empty?
-          exp << ")"
-          optimize_command_call(exp, local_scope) if @type.object?
         end
 
       private
 
-        def optimize_command_call exp, local_scope
+        def optimize_method_call exp, local_scope
           optimized = ""
           # Guess that the Ruby object is a string. Check if yes, and optimize
           #   the call to size with RSTRING_LEN.
@@ -254,6 +279,28 @@ module Rubex
             optimized << exp
           end
           optimized
+        end
+
+        def analyse_command_type local_scope
+          if @expr.type.struct_or_union? # this is a struct
+            scope = @expr.type.scope
+            if @command.is_a? String
+              @command = Expression::Name.new @command
+              @command.analyse_statement scope
+            end
+
+            if !scope.has_entry?(@command.name)
+              raise "Entry #{@command.name} does not exist in #{@expr}."
+            end
+
+            if @command.is_a? Rubex::AST::Expression::ArrayRef
+              @command.analyse_statement local_scope, scope
+            end
+          else
+            @command = Expression::MethodCall.new @command
+          end
+
+          @type = @command.type
         end
       end # class CommandCall
     end # module Expression
