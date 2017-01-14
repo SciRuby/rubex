@@ -19,8 +19,8 @@ describe Rubex do
       it "compiles to valid C code" do
         t,c,e = Rubex.compile @path, true
 
-        pp t
-        puts c
+        # pp t
+        # puts c
       end
     end
   end

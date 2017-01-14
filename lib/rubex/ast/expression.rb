@@ -113,7 +113,6 @@ module Rubex
 
         def analyse_statement local_scope, struct_scope=nil
           @pos.analyse_statement local_scope
-          puts " \n\n\n>>>>> #{@name}"
           if struct_scope.nil?
             @name = local_scope[@name]
           else
@@ -121,7 +120,6 @@ module Rubex
           end
           
           @type = @name.type.type # assign actual type
-          puts ">>>>>>> #{@type}"
         end
 
         def c_code local_scope

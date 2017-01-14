@@ -390,6 +390,8 @@ module Rubex
       end
 
       def struct_or_union?; true; end
+
+      def to_s; "#{@name}"; end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64

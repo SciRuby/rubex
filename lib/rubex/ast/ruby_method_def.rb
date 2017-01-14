@@ -51,10 +51,12 @@ module Rubex
     private
 
       def generate_function_definition code
+        declare_sue code
+        define_sue code
         declare_args code
-        declare_vars code
-        declare_carrays code
-        declare_ruby_objects code
+        declare_vars code, @scope
+        declare_carrays code, @scope
+        declare_ruby_objects code, @scope
         generate_arg_checking code
         init_args code
         init_vars code
@@ -62,8 +64,27 @@ module Rubex
         generate_statements code
       end
 
-      def declare_ruby_objects code
-        @scope.ruby_obj_entries.each do |var|
+      def declare_sue code
+        @scope.sue_entries.each do |sue|
+          code << "typedef #{sue.type.kind} #{sue.name} #{sue.name};"
+          code.nl
+        end
+      end
+
+      def define_sue code
+        @scope.sue_entries.each do |sue|
+          code << "typedef #{sue.type.kind} #{sue.name}"
+          code.block("#{sue.name};") do
+            declare_vars code, sue.type.scope
+            declare_carrays code, sue.type.scope
+            declare_ruby_objects code, sue.type.scope
+          end
+          code.nl
+        end
+      end
+
+      def declare_ruby_objects code, scope
+        scope.ruby_obj_entries.each do |var|
           code.declare_variable var
         end
       end
@@ -80,14 +101,14 @@ module Rubex
         end
       end
 
-      def declare_vars code
-        @scope.var_entries.each do |var|
+      def declare_vars code, scope
+        scope.var_entries.each do |var|
           code.declare_variable var
         end
       end
 
-      def declare_carrays code
-        @scope.carray_entries.select { |s|
+      def declare_carrays code, scope
+        scope.carray_entries.select { |s|
           s.type.dimension.is_a? Rubex::AST::Expression::Literal
         }. each do |arr|
           code.declare_carray arr, @scope

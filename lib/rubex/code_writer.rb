@@ -88,7 +88,7 @@ module Rubex
       @code << (" "*@indent + "}")
     end
 
-    def block &block
+    def block str="", &block
       new_line
       lbrace
       indent
@@ -96,6 +96,7 @@ module Rubex
       block.call
       dedent
       rbrace
+      @code << str
       new_line
     end
 

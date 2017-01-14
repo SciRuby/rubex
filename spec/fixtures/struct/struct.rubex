@@ -4,7 +4,7 @@ def structure(a, i32 b, i32 c)
 
   struct node do
     i32 a, b
-    other_node other
+    other_node *other
     f32 c[10]
   end
 

@@ -40,7 +40,7 @@ module Rubex
 
       def declare_sue var
         entry = Rubex::SymbolTable::Entry.new(
-          var.name, var.c_name, var.type, nil)
+          var.name, nil, var.type, nil)
         @entries[var.name] = entry
         @sue_entries << entry
       end

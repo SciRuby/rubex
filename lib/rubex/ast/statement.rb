@@ -84,6 +84,7 @@ module Rubex
             decl.analyse_statement local_scope
           end
           Rubex::CUSTOM_TYPES[@name] = @type
+          outer_scope.declare_sue self
         end
 
         def generate_code code, local_scope
@@ -102,7 +103,7 @@ module Rubex
           elsif /union/.match kind
             @kind = :union
           end
-          Rubex::CUSTOM_TYPES[@name] = nil
+          Rubex::CUSTOM_TYPES[@name] = @name
         end
 
         def analyse_statement local_scope
@@ -135,7 +136,6 @@ module Rubex
         end
 
         def generate_code code, local_scope
-          # pp self
           code << @type.printf(@expression.c_code(local_scope))
           code.nl
         end
