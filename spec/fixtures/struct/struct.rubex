@@ -25,7 +25,7 @@ def structure(a, i32 b, i32 c)
   shell.b = 555
 
   i32 i
-  for 0 >= i > 10 do
+  for 0 <= i < 10 do
     n.c[i] = i*43
     f[i] = i + 4
   end

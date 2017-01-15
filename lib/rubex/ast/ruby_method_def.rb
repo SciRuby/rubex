@@ -33,6 +33,13 @@ module Rubex
         end
       end
 
+      def rescan_declarations scope
+        @statements.each do |stat|
+          stat.respond_to?(:rescan_declarations) and
+          stat.rescan_declarations(@scope)
+        end
+      end
+
       def generate_code code
         code.write_func_declaration @type.to_s, @c_name
         code.write_func_definition_header @type.to_s, @c_name

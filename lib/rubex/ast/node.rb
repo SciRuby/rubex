@@ -14,6 +14,7 @@ module Rubex
       def process_statements target_name, code
         @scope = Rubex::SymbolTable::Scope::Klass.new 'Object'
         analyse_statements
+        rescan_declarations @scope
         generate_preamble code
         generate_code code
         generate_init_method target_name, code
@@ -34,6 +35,13 @@ module Rubex
       def analyse_statements
         @statements.each do |stat|
           stat.analyse_statements @scope
+        end
+      end
+
+      def rescan_declarations scope
+        @statements.each do |stat|
+          stat.respond_to?(:rescan_declarations) and
+            stat.rescan_declarations(@scope)
         end
       end
 

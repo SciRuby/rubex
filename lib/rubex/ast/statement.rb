@@ -37,6 +37,13 @@ module Rubex
           end
         end
 
+        def rescan_declarations scope
+          if @type.is_a? String
+            @type = Rubex::CUSTOM_TYPES[@type]
+            scope[@name].type = @type
+          end
+        end
+
         def generate_code code, local_scope
 
         end
@@ -49,18 +56,84 @@ module Rubex
         def initialize dtype, name, value
           @name, @value = name, value
           @c_name = Rubex::POINTER_PREFIX + name
-          @type = CPtr.new Rubex::TYPE_MAPPINGS[dtype].new
+          @type = dtype
         end
 
         def analyse_statement local_scope
+          @type =
+          if Rubex::TYPE_MAPPINGS.has_key? @type
+            Rubex::TYPE_MAPPINGS[@type].new
+          elsif Rubex::CUSTOM_TYPES.has_key? @type
+            Rubex::CUSTOM_TYPES[@type]
+          else
+            raise "Cannot decipher type #{@type}"
+          end
+          @type = CPtr.new @type
           @value.analyse_statement(local_scope) unless @value.nil?
           local_scope.declare_var self
+        end
+
+        def rescan_declarations scope
+          if @type.type.is_a? String
+            @type = CPtr.new Rubex::CUSTOM_TYPES[@type.type]
+            scope[@name].type = @type
+          end
         end
 
         def generate_code code, local_scope
 
         end
       end
+
+      class CArrayDecl
+        include Rubex::AST::Statement
+        attr_reader :type, :array_list, :name, :dimension
+
+        def initialize type, array_ref, array_list
+          @name, @array_list = array_ref.name, array_list
+          @dimension = array_ref.pos
+          @type = Rubex::TYPE_MAPPINGS[type].new
+        end
+
+        def analyse_statement local_scope
+          @dimension.analyse_statement local_scope
+          create_symbol_table_entry local_scope
+          return if @array_list.nil?
+          analyse_array_list local_scope
+          verify_array_list_types local_scope
+        end
+
+        def generate_code code, local_scope
+
+        end
+
+        def rescan_declarations local_scope
+
+        end
+
+      private
+
+        def analyse_array_list local_scope
+          @array_list.each do |expr|
+            if expr.is_a? Rubex::AST::Expression
+              expr.analyse_statement(local_scope)
+            else
+              raise Rubex::SymbolNotFoundError, "Symbol #{expr} not found anywhere."
+            end
+          end
+        end
+
+        def verify_array_list_types local_scope
+          @array_list.all? do |expr|
+            return true if @type > expr.type
+            raise "Specified type #{@type} but list contains #{expr.type}."
+          end
+        end
+
+        def create_symbol_table_entry local_scope
+          local_scope.add_carray @name, @dimension, @array_list, @type
+        end
+      end # class CArrayDecl
 
       class CStructOrUnionDef
         include Rubex::AST::Statement
@@ -89,6 +162,14 @@ module Rubex
 
         def generate_code code, local_scope
           
+        end
+
+        def rescan_declarations local_scope
+          struct_scope = Rubex::CUSTOM_TYPES[@name].scope
+          @declarations.each do |decl|
+            decl.respond_to?(:rescan_declarations) and
+            decl.rescan_declarations(struct_scope)
+          end
         end
       end
 
@@ -196,7 +277,13 @@ module Rubex
               str << "#{@rhs.type.to_ruby_function(@rhs.c_code(local_scope))}"
             end
           else
-            str << "#{@rhs.c_code(local_scope)}"
+            if @lhs.type.cptr?
+              if @lhs.type.type.char? && @rhs.type.object?
+                str << "StringValueCStr(#{@rhs.c_code(local_scope)})"
+              end
+            else
+              str << "#{@rhs.c_code(local_scope)}"
+            end
           end
           str << ";"
           code << str
@@ -289,52 +376,6 @@ module Rubex
           end
         end # class Else
       end # class IfBlock
-
-      class CArrayDecl
-        include Rubex::AST::Statement
-        attr_reader :type, :array_list, :name, :dimension
-
-        def initialize type, array_ref, array_list
-          @name, @array_list = array_ref.name, array_list
-          @dimension = array_ref.pos
-          @type = Rubex::TYPE_MAPPINGS[type].new
-        end
-
-        def analyse_statement local_scope
-          @dimension.analyse_statement local_scope
-          create_symbol_table_entry local_scope
-          return if @array_list.nil?
-          analyse_array_list local_scope
-          verify_array_list_types local_scope
-        end
-
-        def generate_code code, local_scope
-
-        end
-
-      private
-
-        def analyse_array_list local_scope
-          @array_list.each do |expr|
-            if expr.is_a? Rubex::AST::Expression
-              expr.analyse_statement(local_scope)
-            else
-              raise Rubex::SymbolNotFoundError, "Symbol #{expr} not found anywhere."
-            end
-          end
-        end
-
-        def verify_array_list_types local_scope
-          @array_list.all? do |expr|
-            return true if @type > expr.type
-            raise "Specified type #{@type} but list contains #{expr.type}."
-          end
-        end
-
-        def create_symbol_table_entry local_scope
-          local_scope.add_carray @name, @dimension, @array_list, @type
-        end
-      end # class CArrayDecl
 
       class For
         include Rubex::AST::Statement
