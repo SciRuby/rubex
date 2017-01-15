@@ -10,12 +10,10 @@ describe Rubex do
     context ".ast" do
       it "generates a valid AST" do
         t = Rubex.ast @path
-
-        pp t
       end
     end
 
-    context ".compile", focus: true do
+    context ".compile" do
       it "compiles to valid C code" do
         t,c,e = Rubex.compile @path
 

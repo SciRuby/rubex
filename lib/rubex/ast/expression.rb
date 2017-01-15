@@ -252,14 +252,16 @@ module Rubex
         def c_code local_scope
           if @command.is_a? Rubex::AST::Expression::MethodCall
             exp = "rb_funcall("
-            exp << "#{@expr.c_code(local_scope)}, rb_intern(\"#{@command}\"), "
+            exp << "#{@expr.c_code(local_scope)}, "
+            exp << "rb_intern(\"#{@command.c_code(local_scope)}\"), "
             exp << "#{@arg_list.size}"
             @arg_list.each do |arg|
               exp << " ,#{arg.c_code(local_scope)}"
             end
             exp << ", NULL" if @arg_list.empty?
             exp << ")"
-            optimize_method_call(exp, local_scope) if @type.object?
+            exp = optimize_method_call(exp, local_scope) if @type.object?
+            return exp
           else
             "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
           end
@@ -271,7 +273,7 @@ module Rubex
           optimized = ""
           # Guess that the Ruby object is a string. Check if yes, and optimize
           #   the call to size with RSTRING_LEN.
-          if ['size', 'length'].include? @command
+          if ['size', 'length'].include? @command.c_code(local_scope)
             optimized << "RB_TYPE_P(#{@expr.c_code(local_scope)}, T_STRING) ? "
             optimized << "RSTRING_LEN(#{@expr.c_code(local_scope)}) : "
             optimized << exp
