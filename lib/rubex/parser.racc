@@ -1,7 +1,7 @@
 class Rubex::Parser
 token
   kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE   kTHEN  kSTATIC_ARRAY kFOR kWHILE
-  kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS
+  kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS        kLIB
 
   kDTYPE_UINT  kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32   kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64
@@ -34,10 +34,24 @@ preclow
 rule
 
   program:
-    methods { result = Node.new(val[0]) }
+    topstmts { result = Node.new(val[0]) }
+
+  topstmts:
+    topstmt { result = [val[0]] }
+  | topstmts topstmt { result = [*val[0], val[1]] }
+
+  topstmt:
+    c_bindings {}
+  | classes {} 
+  | methods {}
+
+  c_bindings:
+    
+  classes:
+    {}
 
   methods:
-    methods ruby_method { result = val[1] }
+    methods ruby_method { result = [*val[0], val[1]] }
   | {}
 
   ruby_method:

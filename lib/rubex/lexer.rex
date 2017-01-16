@@ -20,6 +20,7 @@ macros
   STRUCT          /struct/
   UNION           /union/
   ALIAS           /alias/
+  LIB             /lib/
 
   IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN          /\(/
@@ -85,6 +86,7 @@ rules
   /#{TRUE}/   { [:kTRUE, text]   }
   /#{FALSE}/  { [:kFALSE, text]  }
   /#{NIL}/    { [:kNIL, text]    }
+  /#{LIB}/    { [:kLIB, text] }
 
   # Method hacks
 
