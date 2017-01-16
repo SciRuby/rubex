@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Rubex do
   context "Loops in Rubex" do
     before do
-      @path = 'spec/fixtures/ruby_strings/ruby_strings.rubex'
+      @path = 'spec/fixtures/c_bindings/c_bindings.rubex'
     end
 
     context ".ast" do

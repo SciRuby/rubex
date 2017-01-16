@@ -1,0 +1,14 @@
+lib math do
+  double cos(double)
+  struct exception do
+    int type
+    char *name
+  end
+  double pow(double, double)
+end
+
+def maths(double a, double b)
+  i64 p = cos(a)
+
+  return pow(p, b)
+end
