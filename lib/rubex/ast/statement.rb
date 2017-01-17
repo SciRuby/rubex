@@ -459,6 +459,33 @@ module Rubex
           end
         end
       end # class While
+
+      class Alias
+        include Rubex::AST::Statement
+        attr_reader :lhs, :rhs
+
+        def initialize lhs, rhs
+          @lhs, @rhs = lhs, rhs
+        end
+      end
+
+      class CBindings
+        include Rubex::AST::Statement
+        attr_reader :lib, :declarations
+
+        def initialize lib, declarations
+          @lib, @declarations = lib, declarations
+        end
+
+        class CFunctionDecl
+          include Rubex::AST::Statement
+          attr_reader :type, :name, :args
+
+          def initialize type, name, args
+            @type, @name, @args = type, name, args
+          end
+        end # class CFunctionDecl
+      end
     end # module Statement
   end # module AST
 end # module Rubex

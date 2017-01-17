@@ -82,7 +82,6 @@ rules
   /#{STATIC_ARRAY}/ { [:kSTATIC_ARRAY, text] }
   /#{FOR}/    { [:kFOR, text]    }
   /#{WHILE}/  { [:kWHILE, text]  }
-  /#{DO}/     { [:kDO, text]     }
   /#{TRUE}/   { [:kTRUE, text]   }
   /#{FALSE}/  { [:kFALSE, text]  }
   /#{NIL}/    { [:kNIL, text]    }
@@ -122,6 +121,7 @@ rules
   /#{STRUCT}\ / { [:kSTRUCT, text] }
   /#{UNION}\ /  { [:kUNION, text]  }
   /#{ALIAS}\ /  { [:kALIAS, text]  }
+  /#{DO}/     { [:kDO, text]     }
 
   /#{IDENTIFIER}/         { [:tIDENTIFIER, text] }
   /#{LPAREN}/             { [:tLPAREN, text] }

@@ -1,9 +1,11 @@
 lib math do
   double cos(double)
+
   struct exception do
     int type
     char *name
   end
+
   double pow(double, double)
 end
 

@@ -34,28 +34,56 @@ preclow
 rule
 
   program:
-    topstmts { result = Node.new(val[0]) }
+    topstmts opt_terms { result = Node.new(val[0]) }
 
   topstmts:
-    topstmt { result = [val[0]] }
-  | topstmts topstmt { result = [*val[0], val[1]] }
+    {}
+  | topstmt { result = [val[0]] }
+  | topstmts terms topstmt { result = [*val[0], val[2]] }
 
   topstmt:
     c_bindings {}
-  | classes {} 
   | methods {}
 
   c_bindings:
-    
-  classes:
-    {}
+    kLIB tIDENTIFIER kDO terms c_declarations kEND
+      {
+        result = Statement::CBindings.new val[1], val[4]
+      } 
+
+  c_declarations:
+    c_declaration { result = [val[0]] }
+  | c_declarations c_declaration { result = [*val[0], val[1]] }
+
+  c_declaration:
+    dtype tIDENTIFIER tLPAREN dtype_list tRPAREN terms
+      {
+        result = Statement::CBindings::CFunctionDecl.new val[0], val[1], val[3]
+      }
+  | kSTRUCT tIDENTIFIER kDO var_decl_stmts kEND terms
+      {
+        result = Statement::CStructOrUnionDef.new val[0], val[1], val[3] 
+      }
+  | kALIAS tIDENTIFIER tASSIGN aliased_type terms
+      {
+        result = Statement::Alias.new val[1], val[3]
+      }
+
+  aliased_type:
+    dtype
+  | kSTRUCT tIDENTIFIER { result = val.join }
+
+  dtype_list:
+    { result = [] }
+  | dtype { result = [val[0]] }
+  | dtype_list tCOMMA dtype { result = [*val[0], val[2]] }
 
   methods:
-    methods ruby_method { result = [*val[0], val[1]] }
-  | {}
+    ruby_method { result = [val[0]] }
+  | methods ruby_method { result = [*val[0], val[1]] }
 
   ruby_method:
-    kDEF f_name f_opt_arglist compstmt kEND opt_terms
+    kDEF f_name f_opt_arglist compstmt kEND
       {
         result = RubyMethodDef.new(val[1], val[2], val[3])
       }
@@ -288,7 +316,16 @@ rule
   atomic_value:
     array_ref {}
   | literal {}
-  | tIDENTIFIER { result = Expression::Name.new val[0] }
+  | tIDENTIFIER command_opt_args
+      { 
+        args = val[1]
+        result =
+        if args.empty?
+          Expression::Name.new val[0]
+        else
+          Expression::CommandCall.new nil, val[0], args          
+        end
+      }
 
   command_call:
     method_or_attr command_opt_args
