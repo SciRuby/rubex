@@ -394,6 +394,16 @@ module Rubex
       def to_s; "#{@name}"; end
     end
 
+    class CFunction
+      include Helpers
+      attr_reader :name, :args, :type
+      attr_accessor :c_name
+      
+      def initialize name, args, type
+        @name, @args, @type = name, args, type
+      end
+    end
+
     class Alias
       include Helpers
       attr_reader :type, :name, :c_name
