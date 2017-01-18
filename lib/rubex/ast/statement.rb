@@ -20,7 +20,7 @@ module Rubex
           @type = type
         end
 
-        def analyse_statement local_scope
+        def analyse_statement local_scope, extern: false
           # TODO: Have type checks for knowing if correct literal assignment
           # is taking place. For example, a char should not be assigned a float.
           @type =
@@ -29,7 +29,7 @@ module Rubex
           elsif Rubex::CUSTOM_TYPES.has_key? @type
             Rubex::CUSTOM_TYPES[@type]
           else
-            raise "Cannot decipher type #{type}"
+            raise "Cannot decipher type #{@type}"
           end
           local_scope.declare_var self
           if @value.is_a? Rubex::AST::Expression
@@ -59,7 +59,7 @@ module Rubex
           @type = dtype
         end
 
-        def analyse_statement local_scope
+        def analyse_statement local_scope, extern: false
           @type =
           if Rubex::TYPE_MAPPINGS.has_key? @type
             Rubex::TYPE_MAPPINGS[@type].new
@@ -95,7 +95,7 @@ module Rubex
           @type = Rubex::TYPE_MAPPINGS[type].new
         end
 
-        def analyse_statement local_scope
+        def analyse_statement local_scope, extern: false
           @dimension.analyse_statement local_scope
           create_symbol_table_entry local_scope
           return if @array_list.nil?
@@ -149,7 +149,7 @@ module Rubex
           @name = name
         end
 
-        def analyse_statement outer_scope
+        def analyse_statement outer_scope, extern: false
           local_scope = Rubex::SymbolTable::Scope::StructOrUnion.new outer_scope
           @type = CStructOrUnion.new @kind, @name, @c_name, local_scope
 
@@ -161,7 +161,7 @@ module Rubex
         end
 
         def generate_code code, local_scope
-          
+
         end
 
         def rescan_declarations local_scope
@@ -188,11 +188,11 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          
+
         end
 
         def generate_code code, local_scope
-          
+
         end
       end # class ForwardDecl
 
@@ -462,29 +462,21 @@ module Rubex
 
       class Alias
         include Rubex::AST::Statement
-        attr_reader :lhs, :rhs
+        attr_reader :new_name, :original, :type
 
-        def initialize lhs, rhs
-          @lhs, @rhs = lhs, rhs
-        end
-      end
-
-      class CBindings
-        include Rubex::AST::Statement
-        attr_reader :lib, :declarations
-
-        def initialize lib, declarations
-          @lib, @declarations = lib, declarations
-        end
-
-        class CFunctionDecl
-          include Rubex::AST::Statement
-          attr_reader :type, :name, :args
-
-          def initialize type, name, args
-            @type, @name, @args = type, name, args
+        def initialize new_type, orig_type
+          @new_type, @orig_type = new_type, orig_type
+          Rubex::CUSTOM_TYPES[@new_type] = @new_type
+          original = @orig_type.gsub("struct ", "")
+          if !Rubex::CUSTOM_TYPES.has_key?(original) &&
+              !Rubex::TYPE_MAPPINGS.has_key?(original)
+            raise "Type #{original} has not been defined."
           end
-        end # class CFunctionDecl
+        end
+
+        def analyse_statement local_scope
+
+        end
       end
     end # module Statement
   end # module AST

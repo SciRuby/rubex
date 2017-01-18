@@ -48,8 +48,8 @@ rule
   c_bindings:
     kLIB tIDENTIFIER kDO terms c_declarations kEND
       {
-        result = Statement::CBindings.new val[1], val[4]
-      } 
+        result = CBindings.new val[1], val[4]
+      }
 
   c_declarations:
     c_declaration { result = [val[0]] }
@@ -58,14 +58,18 @@ rule
   c_declaration:
     dtype tIDENTIFIER tLPAREN dtype_list tRPAREN terms
       {
-        result = Statement::CBindings::CFunctionDecl.new val[0], val[1], val[3]
+        result = CBindings::CFunctionDecl.new val[0], val[1], val[3]
       }
   | kSTRUCT tIDENTIFIER kDO var_decl_stmts kEND terms
       {
-        result = Statement::CStructOrUnionDef.new val[0], val[1], val[3] 
+        result = Statement::CStructOrUnionDef.new val[0], val[1], val[3]
       }
-  | kALIAS tIDENTIFIER tASSIGN aliased_type terms
+  | alias_stmt terms
+
+  alias_stmt:
+    kALIAS tIDENTIFIER tASSIGN aliased_type
       {
+        add_dtype_to_lexer val[1]
         result = Statement::Alias.new val[1], val[3]
       }
 
@@ -131,11 +135,12 @@ rule
         add_dtype_to_lexer val[1]
         result = Statement::CStructOrUnionDef.new val[0], val[1], val[4]
       }
-  | forward_declaration {} 
+  | forward_declaration {}
+  | alias_stmt
 
   forward_declaration:
-    kSTRUCT tIDENTIFIER 
-    { 
+    kSTRUCT tIDENTIFIER
+    {
       val.flatten!
       add_dtype_to_lexer val[1]
       result = Statement::ForwardDecl.new val[0], val[1]
@@ -162,9 +167,9 @@ rule
 
   var_decl:
     dtype opt_star var_names
-    { 
+    {
       val[2].each { |d| d[:pointer] = val[1] }
-      result = { 
+      result = {
         dtype: val[0],
         decl:  val[2]
       }
@@ -317,13 +322,13 @@ rule
     array_ref {}
   | literal {}
   | tIDENTIFIER command_opt_args
-      { 
+      {
         args = val[1]
         result =
         if args.empty?
           Expression::Name.new val[0]
         else
-          Expression::CommandCall.new nil, val[0], args          
+          Expression::CommandCall.new nil, val[0], args
         end
       }
 

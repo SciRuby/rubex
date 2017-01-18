@@ -393,6 +393,17 @@ module Rubex
 
       def to_s; "#{@name}"; end
     end
+
+    class Alias
+      include Helpers
+      attr_reader :type, :name, :c_name
+
+      def initialize name, type
+        @name, @type = name, type
+      end
+
+      def alias_type?; true; end
+    end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64
     #   def to_s; "long double"; end

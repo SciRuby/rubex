@@ -9,6 +9,8 @@ module Rubex
       attr_accessor :type
       # Default value of the entry, if any.
       attr_accessor :value
+      # Is an extern entry
+      attr_accessor :extern
 
       def initialize name, c_name, type, value
         @name, @c_name, @type, @value = name, c_name, type, value
@@ -17,6 +19,8 @@ module Rubex
       def c_code local_scope
         c_name
       end
+
+      def extern?; @extern; end
     end
   end
 end
