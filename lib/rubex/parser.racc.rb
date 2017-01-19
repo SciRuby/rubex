@@ -27,14 +27,80 @@ end
 def next_token
   t = @lexer.next_token
 
-  if !t.nil? && @custom_dtypes.has_key?(t[1])
-    if t[0] == :tIDENTIFIER && !(@prev_token[0] == :kSTRUCT)
-      return [:tCUSTOM_DTYPE, t[1]]
+  if !t.nil?
+    if t[0] == :tIDENTIFIER
+      if @custom_dtypes.has_key?(t[1]) && !(@prev_token[0] == :kSTRUCT)
+        t = [:tCUSTOM_DTYPE, t[1]]
+      end
+      t = check_for_primitive_dtype(t)
+      t = check_for_keyword(t)
     end
   end
 
   @prev_token = t
   t
+end
+
+def check_for_keyword token
+  match = token[1]
+  if match == "def"
+    return [:kDEF, match]
+  elsif match == "do"
+    return [:kDO, match]
+  elsif match == "end"
+    return [:kEND, match]
+  elsif match == "return"
+    return [:kRETURN, match]
+  elsif match == "print"
+    return [:kPRINT , match]
+  elsif match == "if"
+    return [:kIF    , match]
+  elsif match == "elsif"
+    return [:kELSIF , match]
+  elsif match == "else"
+    return [:kELSE  , match]
+  elsif match == "then"
+    return [:kTHEN  , match]
+  end
+
+  return token
+end
+
+def check_for_primitive_dtype token
+  match = token[1]
+  if match == "char"
+    return [:kDTYPE_CHAR, match]
+  elsif match == "i8"
+    return [:kDTYPE_I8, match]
+  elsif match == "i16"
+    return [:kDTYPE_I16, match]
+  elsif match == "i32"
+    return [:kDTYPE_I32, match]
+  elsif match == "i64"
+    return [:kDTYPE_I64, match]
+  elsif match == "u8"
+    return [:kDTYPE_UI8, match]
+  elsif match == "u16"
+    return [:kDTYPE_UI16, match]
+  elsif match == "u32"
+    return [:kDTYPE_UI32, match]
+  elsif match == "u64"
+    return [:kDTYPE_UI64, match]
+  elsif match == "int"
+    return [:kDTYPE_INT, match]
+  elsif match == "f32"
+    return [:kDTYPE_F32, match]
+  elsif match == "float"
+    return [:kDTYPE_F32, match]
+  elsif match == "f64"
+    return [:kDTYPE_F64, match]
+  elsif match == "double"
+    return [:kDTYPE_F64, match]
+  elsif match == "object"
+    return[:kDTYPE_ROBJ, match]
+  end
+
+  token
 end
 
 def binary_op val
@@ -944,7 +1010,7 @@ module_eval(<<'.,.,', 'parser.racc', 45)
 
 module_eval(<<'.,.,', 'parser.racc', 50)
   def _reduce_7(val, _values, result)
-            result = Statement::CBindings.new val[1], val[4]
+            result = CBindings.new val[1], val[4]
       
     result
   end
@@ -952,7 +1018,7 @@ module_eval(<<'.,.,', 'parser.racc', 50)
 
 module_eval(<<'.,.,', 'parser.racc', 54)
   def _reduce_8(val, _values, result)
-     result = [val[0]] 
+     result = val[0] 
     result
   end
 .,.,
@@ -966,7 +1032,7 @@ module_eval(<<'.,.,', 'parser.racc', 55)
 
 module_eval(<<'.,.,', 'parser.racc', 60)
   def _reduce_10(val, _values, result)
-            result = Statement::CBindings::CFunctionDecl.new val[0], val[1], val[3]
+            result = CBindings::CFunctionDecl.new val[0], val[1], val[3]
       
     result
   end
@@ -1023,7 +1089,7 @@ module_eval(<<'.,.,', 'parser.racc', 82)
 
 module_eval(<<'.,.,', 'parser.racc', 85)
   def _reduce_19(val, _values, result)
-     result = [val[0]] 
+     result = val[0] 
     result
   end
 .,.,

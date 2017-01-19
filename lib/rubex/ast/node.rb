@@ -4,7 +4,7 @@ module Rubex
       attr_reader :statements
 
       def initialize statements
-        @statements = statements.is_a?(Array) ? statements : [statements]
+        @statements = statements
       end
 
       def add_child child

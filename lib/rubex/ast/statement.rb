@@ -12,7 +12,7 @@ module Rubex
 
       class VarDecl
         include Rubex::AST::Statement
-        attr_reader :type, :name, :c_name, :value
+        attr_reader :type, :name, :c_name, :value, :extern
 
         def initialize type, name, value
           @name, @value = name, value
@@ -30,8 +30,8 @@ module Rubex
           else
             raise "Cannot decipher type #{@type}"
           end
-
-          if extern
+          @extern = extern
+          if @extern
             @c_name = @name
           else
             @c_name = Rubex::VAR_PREFIX + name
@@ -57,11 +57,10 @@ module Rubex
 
       class CPtrDecl
         include Rubex::AST::Statement
-        attr_reader :type, :name, :value, :c_name
+        attr_reader :type, :name, :value, :c_name, :extern
 
         def initialize dtype, name, value
           @name, @value = name, value
-          @c_name = Rubex::POINTER_PREFIX + name
           @type = dtype
         end
 
@@ -75,7 +74,8 @@ module Rubex
             raise "Cannot decipher type #{@type}"
           end
 
-          if extern
+          @extern = extern
+          if @extern
             @c_name = @name
           else
             @c_name = Rubex::POINTER_PREFIX + @name
@@ -149,7 +149,7 @@ module Rubex
 
       class CStructOrUnionDef
         include Rubex::AST::Statement
-        attr_reader :name, :declarations, :type, :kind
+        attr_reader :name, :declarations, :type, :kind, :extern
 
         def initialize kind, name, declarations
           @declarations = declarations
@@ -163,7 +163,8 @@ module Rubex
 
         def analyse_statement outer_scope, extern: false
           local_scope = Rubex::SymbolTable::Scope::StructOrUnion.new outer_scope
-          if extern
+          @extern = extern
+          if @extern
             c_name = @kind.to_s + " " + @name
           else
             c_name = Rubex::TYPE_PREFIX + @name
@@ -484,19 +485,17 @@ module Rubex
         def initialize new_type, orig_type
           @new_type, @orig_type = new_type, orig_type
           Rubex::CUSTOM_TYPES[@new_type] = @new_type
+        end
+
+        def analyse_statement local_scope, extern: false
           original = @orig_type.gsub("struct ", "").gsub("union ", "")
           if !Rubex::CUSTOM_TYPES.has_key?(original) &&
               !Rubex::TYPE_MAPPINGS.has_key?(original)
             raise "Type #{original} has not been defined."
           end
-        end
-
-        def analyse_statement local_scope
-          original = @orig_type.gsub("struct ", "").gsub("union ", "")
           original = Rubex::TYPE_MAPPINGS[original] or Rubex::CUSTOM_TYPES[original]
           Rubex::CUSTOM_TYPES[@new_type] =
             Rubex::DataType::TypeDef.new(@new_type, original)
-          Rubex::CUSTOM_TYPES[@new_type].c_name =
         end
       end
     end # module Statement

@@ -35,6 +35,7 @@ module Rubex
           var.name, var.c_name, var.type, var.value)
 
         name = var.name
+        entry.extern = var.extern
         check_entry name
         @entries[name] = entry
         @var_entries << entry
@@ -43,6 +44,7 @@ module Rubex
       def declare_sue var
         entry = Rubex::SymbolTable::Entry.new(
           var.name, nil, var.type, nil)
+        entry.extern = var.extern
         @entries[var.name] = entry
         @sue_entries << entry
       end
@@ -56,6 +58,7 @@ module Rubex
         end
         function.type.c_name = c_name
         entry = Rubex::SymbolTable::Entry.new(name, c_name, function.type, nil)
+        entry.extern = function.extern
         @entries[name] = entry
         @cfunction_entries << entries
       end
@@ -84,6 +87,10 @@ module Rubex
 
       def has_entry? entry
         !!@entries[entry]
+      end
+
+      def find name
+
       end
     end # module Scope
   end # module SymbolTable

@@ -1,7 +1,6 @@
 module Rubex
   module AST
     class CBindings
-      include Rubex::AST::Statement
       attr_reader :lib, :declarations
 
       def initialize lib, declarations

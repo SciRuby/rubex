@@ -118,7 +118,7 @@ module Rubex
           else
             @name = struct_scope[@name]
           end
-          
+
           @type = @name.type.type # assign actual type
         end
 
@@ -225,11 +225,56 @@ module Rubex
 
         def initialize name
           @name = name
-          @type = Rubex::DataType::RubyObject.new
+        end
+
+        def analyse_statement local_scope
+          entry = local_scope.find(@name)
+          if entry && entry.extern? # a symtab entry for a predeclared extern func
+            @type = entry.type
+          else
+            @type = Rubex::DataType::RubyObject.new
+          end
         end
 
         def c_code local_scope
-          @name
+          entry = local_scope.find(@name)
+
+          if entry
+            code_for_c_method_call local_scope
+          else
+            code_for_ruby_method_call local_scope
+          end
+        end
+
+      private
+        def code_for_c_method_call local_scope
+
+        end
+
+        def code_for_ruby_method_call local_scope
+          str = "rb_funcall("
+          str << "#{@expr.c_code(local_scope)}, "
+          str << "rb_intern(\"#{@command.c_code(local_scope)}\"), "
+          str << "#{@arg_list.size}"
+          @arg_list.each do |arg|
+            str << " ,#{arg.c_code(local_scope)}"
+          end
+          str << ", NULL" if @arg_list.empty?
+          str << ")"
+          str = optimize_method_call(str, local_scope) if @type.object?
+          str
+        end
+
+        def optimize_method_call str, local_scope
+          optimized = ""
+          # Guess that the Ruby object is a string. Check if yes, and optimize
+          #   the call to size with RSTRING_LEN.
+          if ['size', 'length'].include? @command.c_code(local_scope)
+            optimized << "RB_TYPE_P(#{@expr.c_code(local_scope)}, T_STRING) ? "
+            optimized << "RSTRING_LEN(#{@expr.c_code(local_scope)}) : "
+            optimized << exp
+          end
+          optimized
         end
       end
 
@@ -245,23 +290,19 @@ module Rubex
           @arg_list.each do |arg|
             arg.analyse_statement local_scope
           end
-          @expr.analyse_statement local_scope
+          if @expr.nil?
+            entry = local_scope.find(@command)
+            if entry && !entry.extern?
+              @expr = Expression::Name.new "self"
+            end
+          end
+          @expr.analyse_statement local_scope unless @expr.nil?
           analyse_command_type local_scope
         end
 
         def c_code local_scope
           if @command.is_a? Rubex::AST::Expression::MethodCall
-            exp = "rb_funcall("
-            exp << "#{@expr.c_code(local_scope)}, "
-            exp << "rb_intern(\"#{@command.c_code(local_scope)}\"), "
-            exp << "#{@arg_list.size}"
-            @arg_list.each do |arg|
-              exp << " ,#{arg.c_code(local_scope)}"
-            end
-            exp << ", NULL" if @arg_list.empty?
-            exp << ")"
-            exp = optimize_method_call(exp, local_scope) if @type.object?
-            return exp
+            return @command.c_code(local_scope)
           else
             "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
           end
@@ -269,20 +310,8 @@ module Rubex
 
       private
 
-        def optimize_method_call exp, local_scope
-          optimized = ""
-          # Guess that the Ruby object is a string. Check if yes, and optimize
-          #   the call to size with RSTRING_LEN.
-          if ['size', 'length'].include? @command.c_code(local_scope)
-            optimized << "RB_TYPE_P(#{@expr.c_code(local_scope)}, T_STRING) ? "
-            optimized << "RSTRING_LEN(#{@expr.c_code(local_scope)}) : "
-            optimized << exp
-          end
-          optimized
-        end
-
         def analyse_command_type local_scope
-          if @expr.type.struct_or_union? # this is a struct
+          if @expr && @expr.type.struct_or_union?
             scope = @expr.type.scope
             if @command.is_a? String
               @command = Expression::Name.new @command
@@ -299,6 +328,7 @@ module Rubex
           else
             @command = Expression::MethodCall.new @command
           end
+          @command.analyse_statement local_scope
 
           @type = @command.type
         end
