@@ -15,7 +15,6 @@ module Rubex
         attr_reader :type, :name, :c_name, :value
 
         def initialize type, name, value
-          @c_name = Rubex::VAR_PREFIX + name
           @name, @value = name, value
           @type = type
         end
@@ -31,6 +30,13 @@ module Rubex
           else
             raise "Cannot decipher type #{@type}"
           end
+
+          if extern
+            @c_name = @name
+          else
+            @c_name = Rubex::VAR_PREFIX + name
+          end
+
           local_scope.declare_var self
           if @value.is_a? Rubex::AST::Expression
             @value.analyse_statement local_scope
@@ -67,6 +73,12 @@ module Rubex
             Rubex::CUSTOM_TYPES[@type]
           else
             raise "Cannot decipher type #{@type}"
+          end
+
+          if extern
+            @c_name = @name
+          else
+            @c_name = Rubex::POINTER_PREFIX + @name
           end
           @type = CPtr.new @type
           @value.analyse_statement(local_scope) unless @value.nil?
@@ -151,7 +163,12 @@ module Rubex
 
         def analyse_statement outer_scope, extern: false
           local_scope = Rubex::SymbolTable::Scope::StructOrUnion.new outer_scope
-          @type = CStructOrUnion.new @kind, @name, @c_name, local_scope
+          if extern
+            c_name = @kind.to_s + " " + @name
+          else
+            c_name = Rubex::TYPE_PREFIX + @name
+          end
+          @type = CStructOrUnion.new @kind, @name, c_name, local_scope
 
           @declarations.each do |decl|
             decl.analyse_statement local_scope
@@ -467,7 +484,7 @@ module Rubex
         def initialize new_type, orig_type
           @new_type, @orig_type = new_type, orig_type
           Rubex::CUSTOM_TYPES[@new_type] = @new_type
-          original = @orig_type.gsub("struct ", "")
+          original = @orig_type.gsub("struct ", "").gsub("union ", "")
           if !Rubex::CUSTOM_TYPES.has_key?(original) &&
               !Rubex::TYPE_MAPPINGS.has_key?(original)
             raise "Type #{original} has not been defined."
@@ -475,7 +492,11 @@ module Rubex
         end
 
         def analyse_statement local_scope
-
+          original = @orig_type.gsub("struct ", "").gsub("union ", "")
+          original = Rubex::TYPE_MAPPINGS[original] or Rubex::CUSTOM_TYPES[original]
+          Rubex::CUSTOM_TYPES[@new_type] =
+            Rubex::DataType::TypeDef.new(@new_type, original)
+          Rubex::CUSTOM_TYPES[@new_type].c_name =
         end
       end
     end # module Statement

@@ -398,13 +398,13 @@ module Rubex
       include Helpers
       attr_reader :name, :args, :type
       attr_accessor :c_name
-      
+
       def initialize name, args, type
         @name, @args, @type = name, args, type
       end
     end
 
-    class Alias
+    class TypeDef
       include Helpers
       attr_reader :type, :name, :c_name
 

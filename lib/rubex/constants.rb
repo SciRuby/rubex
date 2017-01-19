@@ -8,6 +8,7 @@ module Rubex
   ARG_PREFIX = RUBEX_PREFIX + "arg_"
   ARRAY_PREFIX = RUBEX_PREFIX + "arr_"
   POINTER_PREFIX = RUBEX_PREFIX + "ptr_"
+  TYPE_PREFIX   = RUBEX_PREFIX + "t_"
 
   TYPE_MAPPINGS = {
     'char'                   => Rubex::DataType::Char,
