@@ -11,6 +11,11 @@ module Rubex
         @declarations.each do |stat|
           stat.analyse_statement local_scope, extern: true
         end
+        local_scope.include_files.push @lib
+      end
+
+      def generate_code code
+
       end
 
       class CFunctionDecl

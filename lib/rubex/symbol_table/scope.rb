@@ -89,8 +89,24 @@ module Rubex
         !!@entries[entry]
       end
 
+      # Find an entry in this scope or the ones above it recursively.
       def find name
+        puts " >>>> #{name}"
+        return recursive_find name, self
+      end
 
+    private
+      def recursive_find name, scope
+        puts "<<<<<< #{name}"
+        if scope
+          if scope.has_entry?(name)
+            return scope[name]
+          else
+            recursive_find name, scope.outer_scope
+          end
+        end
+
+        return nil
       end
     end # module Scope
   end # module SymbolTable
@@ -103,6 +119,7 @@ module Rubex
         include Rubex::SymbolTable::Scope
 
         attr_reader :name, :c_name
+        attr_accessor :include_files
 
         def initialize name
           name == 'Object' ? super(nil) : super
@@ -113,6 +130,7 @@ module Rubex
           else
             @c_name = Rubex::CLASS_PREFIX + name
           end
+          @include_files = []
         end
       end
 

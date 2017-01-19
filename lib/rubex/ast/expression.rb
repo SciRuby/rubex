@@ -221,14 +221,14 @@ module Rubex
 
       class MethodCall
         include Rubex::AST::Expression
-        attr_reader :name, :type
+        attr_reader :method_name, :type
 
-        def initialize name
-          @name = name
+        def initialize method_name, invoker
+          @method_name, @invoker = method_name, invoker
         end
 
         def analyse_statement local_scope
-          entry = local_scope.find(@name)
+          entry = local_scope.find(@method_name)
           if entry && entry.extern? # a symtab entry for a predeclared extern func
             @type = entry.type
           else
@@ -237,23 +237,26 @@ module Rubex
         end
 
         def c_code local_scope
-          entry = local_scope.find(@name)
-
+          entry = local_scope.find(@method_name)
+          puts ">>>!!!! ==== #{@method_name}"
           if entry
-            code_for_c_method_call local_scope
+            code_for_c_method_call local_scope, entry
           else
             code_for_ruby_method_call local_scope
           end
         end
 
       private
-        def code_for_c_method_call local_scope
-
+        def code_for_c_method_call local_scope, entry
+          str = "#{entry.c_name}("
+          str << @arg_list.map { |a| a.c_code(local_scope) }.join(",")
+          str << ");"
+          str
         end
 
         def code_for_ruby_method_call local_scope
           str = "rb_funcall("
-          str << "#{@expr.c_code(local_scope)}, "
+          str << "#{@invoker.c_code(local_scope)}, "
           str << "rb_intern(\"#{@command.c_code(local_scope)}\"), "
           str << "#{@arg_list.size}"
           @arg_list.each do |arg|
@@ -270,8 +273,8 @@ module Rubex
           # Guess that the Ruby object is a string. Check if yes, and optimize
           #   the call to size with RSTRING_LEN.
           if ['size', 'length'].include? @command.c_code(local_scope)
-            optimized << "RB_TYPE_P(#{@expr.c_code(local_scope)}, T_STRING) ? "
-            optimized << "RSTRING_LEN(#{@expr.c_code(local_scope)}) : "
+            optimized << "RB_TYPE_P(#{@invoker.c_code(local_scope)}, T_STRING) ? "
+            optimized << "RSTRING_LEN(#{@invoker.c_code(local_scope)}) : "
             optimized << exp
           end
           optimized
@@ -302,7 +305,7 @@ module Rubex
 
         def c_code local_scope
           if @command.is_a? Rubex::AST::Expression::MethodCall
-            return @command.c_code(local_scope)
+            @command.c_code(local_scope)
           else
             "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
           end
@@ -326,7 +329,7 @@ module Rubex
               @command.analyse_statement local_scope, scope
             end
           else
-            @command = Expression::MethodCall.new @command
+            @command = Expression::MethodCall.new @command, @expr
           end
           @command.analyse_statement local_scope
 

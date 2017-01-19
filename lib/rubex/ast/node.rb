@@ -29,6 +29,9 @@ module Rubex
       def generate_preamble code
         code << "#include <ruby.h>\n"
         code << "#include <stdint.h>\n"
+        @scope.include_files.each do |name|
+          code << "#include <#{name}.h>\n"
+        end
         code.nl
       end
 
