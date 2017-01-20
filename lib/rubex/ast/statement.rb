@@ -489,13 +489,26 @@ module Rubex
 
         def analyse_statement local_scope, extern: false
           original = @orig_type.gsub("struct ", "").gsub("union ", "")
-          if !Rubex::CUSTOM_TYPES.has_key?(original) &&
-              !Rubex::TYPE_MAPPINGS.has_key?(original)
+          # puts Rubex::CUSTOM_TYPES
+          if !(Rubex::CUSTOM_TYPES.has_key?(original) ||
+               Rubex::TYPE_MAPPINGS.has_key?(original))
             raise "Type #{original} has not been defined."
           end
-          original = Rubex::TYPE_MAPPINGS[original] or Rubex::CUSTOM_TYPES[original]
+          if Rubex::TYPE_MAPPINGS.has_key? original
+            @orig_type = Rubex::TYPE_MAPPINGS[original].new
+          else
+            @orig_type = Rubex::CUSTOM_TYPES[original]
+          end
           Rubex::CUSTOM_TYPES[@new_type] =
-            Rubex::DataType::TypeDef.new(@new_type, original)
+            Rubex::DataType::TypeDef.new(@new_type, @orig_type)
+        end
+
+        def generate_code code, local_scope
+          puts "#{@new_type} #{@orig_type}"
+          base = @orig_type
+          old_type = base.struct_or_union? ? "#{base.kind} #{base.to_s}" : "#{base.to_s}"
+          code << "typedef #{old_type} #{@new_type};"
+          code.nl
         end
       end
     end # module Statement

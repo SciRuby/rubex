@@ -12,10 +12,11 @@ lib math do
 end
 
 def maths(double a, double b)
-  i64 p = cos(a)
-
   alias int_64 = i64
-  int_64 rr = 332
+  i64 p = cos(a)
+  int_64 rr
+  
+  rr = 332
 
   exec e
   e.type = 3
@@ -24,6 +25,6 @@ def maths(double a, double b)
     i32 a,b,c
     char* str
   end
-  
+
   return pow(p, b)
 end

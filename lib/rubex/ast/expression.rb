@@ -211,7 +211,11 @@ module Rubex
 
         def analyse_statement local_scope
           @entry = local_scope[@name]
-          @type = @entry.type
+          if @entry.type.alias_type?
+            @type = @entry.type.type
+          else
+            @type = @entry.type
+          end
         end
 
         def c_code local_scope
@@ -223,8 +227,8 @@ module Rubex
         include Rubex::AST::Expression
         attr_reader :method_name, :type
 
-        def initialize method_name, invoker
-          @method_name, @invoker = method_name, invoker
+        def initialize method_name, invoker, arg_list
+          @method_name, @invoker, @arg_list = method_name, invoker, arg_list
         end
 
         def analyse_statement local_scope
@@ -238,7 +242,6 @@ module Rubex
 
         def c_code local_scope
           entry = local_scope.find(@method_name)
-          puts ">>>!!!! ==== #{@method_name}"
           if entry
             code_for_c_method_call local_scope, entry
           else
@@ -250,14 +253,14 @@ module Rubex
         def code_for_c_method_call local_scope, entry
           str = "#{entry.c_name}("
           str << @arg_list.map { |a| a.c_code(local_scope) }.join(",")
-          str << ");"
+          str << ")"
           str
         end
 
         def code_for_ruby_method_call local_scope
           str = "rb_funcall("
           str << "#{@invoker.c_code(local_scope)}, "
-          str << "rb_intern(\"#{@command.c_code(local_scope)}\"), "
+          str << "rb_intern(\"#{@method_name.c_code(local_scope)}\"), "
           str << "#{@arg_list.size}"
           @arg_list.each do |arg|
             str << " ,#{arg.c_code(local_scope)}"
@@ -299,14 +302,16 @@ module Rubex
               @expr = Expression::Name.new "self"
             end
           end
-          @expr.analyse_statement local_scope unless @expr.nil?
+          @expr.analyse_statement(local_scope) unless @expr.nil?
           analyse_command_type local_scope
         end
 
         def c_code local_scope
+          # Interpreted as a method call
           if @command.is_a? Rubex::AST::Expression::MethodCall
             @command.c_code(local_scope)
           else
+            # Interpreted as referencing the contents of a struct
             "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
           end
         end
@@ -329,9 +334,9 @@ module Rubex
               @command.analyse_statement local_scope, scope
             end
           else
-            @command = Expression::MethodCall.new @command, @expr
+            @command = Expression::MethodCall.new @command, @expr, @arg_list
+            @command.analyse_statement local_scope
           end
-          @command.analyse_statement local_scope
 
           @type = @command.type
         end

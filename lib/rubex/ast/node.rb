@@ -32,7 +32,41 @@ module Rubex
         @scope.include_files.each do |name|
           code << "#include <#{name}.h>\n"
         end
+        declare_extern_c_structs code
+        declare_extern_c_functions code
         code.nl
+      end
+
+      def declare_extern_c_functions code
+        @scope.cfunction_entries.each do |func|
+          code << "#{func.type.type} #{func.c_name} (#{func.type.args.join(',')});"
+          code.nl
+        end
+      end
+
+      def declare_vars code, scope
+        scope.var_entries.each do |var|
+          code.declare_variable var
+        end
+      end
+
+      def declare_carrays code, scope
+        scope.carray_entries.select { |s|
+          s.type.dimension.is_a? Rubex::AST::Expression::Literal
+        }. each do |arr|
+          code.declare_carray arr, @scope
+        end
+      end
+
+      def declare_extern_c_structs code
+        @scope.sue_entries.each do |sue|
+          code << "typedef #{sue.type.kind} #{sue.name}"
+          code.block(" #{sue.name};") do
+            declare_vars code, sue.type.scope
+            declare_carrays code, sue.type.scope
+          end
+          code.nl
+        end
       end
 
       def analyse_statements

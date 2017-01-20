@@ -60,7 +60,7 @@ module Rubex
         entry = Rubex::SymbolTable::Entry.new(name, c_name, function.type, nil)
         entry.extern = function.extern
         @entries[name] = entry
-        @cfunction_entries << entries
+        @cfunction_entries << entry
       end
 
       def add_ruby_obj name, value
@@ -91,18 +91,17 @@ module Rubex
 
       # Find an entry in this scope or the ones above it recursively.
       def find name
-        puts " >>>> #{name}"
-        return recursive_find name, self
+        return recursive_find(name, self)
       end
 
     private
       def recursive_find name, scope
-        puts "<<<<<< #{name}"
         if scope
           if scope.has_entry?(name)
+            puts "hi!!! #{name}\n"
             return scope[name]
           else
-            recursive_find name, scope.outer_scope
+            return recursive_find(name, scope.outer_scope)
           end
         end
 

@@ -11,7 +11,8 @@ module Rubex
         :uint?, :uint8?, :uint16?, :uint32?, :uint64?,
         :lint?, :ulint?, :llint?, :ullint?,
         :char?, :object?, :bool?, :carray?,
-        :cptr?, :nil_type?, :struct_or_union?
+        :cptr?, :nil_type?, :struct_or_union?,
+        :alias_type?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -413,6 +414,10 @@ module Rubex
       end
 
       def alias_type?; true; end
+
+      def to_s
+        @name
+      end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64
