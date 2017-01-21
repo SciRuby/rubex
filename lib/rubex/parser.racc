@@ -290,8 +290,7 @@ rule
   | tIDENTIFIER { result = CBaseType.new 'object', val[0] }
 
   expr:
-    command_call {}
-  | expr_value {}
+    expr_value {}
   | expr_cmp {}
 
   expr_value:
@@ -331,6 +330,7 @@ rule
           Expression::CommandCall.new nil, val[0], args
         end
       }
+  | command_call
 
   command_call:
     method_or_attr command_opt_args
@@ -340,8 +340,17 @@ rule
       }
 
   method_or_attr:
-    expr tDOT f_name { result = [val[0], val[2]] }
-  | expr tDOT array_ref { result = [val[0], val[2]] }
+    tIDENTIFIER tDOT f_name
+      {
+        name = Expression::Name.new val[0]
+        result = [name, val[2]]
+      }
+  | tIDENTIFIER tDOT array_ref
+    {
+      name = Expression::Name.new val[0]
+      result = [name, val[2]]
+    }
+  # | tIDENTIFIER tDOT f_name
 
   command_opt_args:
     { result = [] }

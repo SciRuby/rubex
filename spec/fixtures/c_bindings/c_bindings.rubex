@@ -11,7 +11,7 @@ lib math do
   alias exec = struct exception
 end
 
-def maths(double a, double b)
+def maths(double a, double b, c)
   alias int_64 = i64
   i64 p = cos(a)
   int_64 rr
@@ -27,7 +27,12 @@ def maths(double a, double b)
   end
 
   new_struct s
-  s.a = 3
+  s.a = a
+  s.b = b
+
+  if (s.a > s.b)
+    s.str = c
+  end
 
   return pow(6.7, s.a)
 end
