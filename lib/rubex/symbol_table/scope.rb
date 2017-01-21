@@ -108,7 +108,6 @@ module Rubex
       def recursive_find name, scope
         if scope
           if scope.has_entry?(name)
-            puts "hi!!! #{name}\n"
             return scope[name]
           else
             return recursive_find(name, scope.outer_scope)

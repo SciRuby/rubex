@@ -234,7 +234,7 @@ module Rubex
         def analyse_statement local_scope
           entry = local_scope.find(@method_name)
           if entry && entry.extern? # a symtab entry for a predeclared extern func
-            @type = entry.type
+            @type = entry.type.type
           else
             @type = Rubex::DataType::RubyObject.new
           end
@@ -260,7 +260,7 @@ module Rubex
         def code_for_ruby_method_call local_scope
           str = "rb_funcall("
           str << "#{@invoker.c_code(local_scope)}, "
-          str << "rb_intern(\"#{@method_name.c_code(local_scope)}\"), "
+          str << "rb_intern(\"#{@method_name}\"), "
           str << "#{@arg_list.size}"
           @arg_list.each do |arg|
             str << " ,#{arg.c_code(local_scope)}"
@@ -275,10 +275,10 @@ module Rubex
           optimized = ""
           # Guess that the Ruby object is a string. Check if yes, and optimize
           #   the call to size with RSTRING_LEN.
-          if ['size', 'length'].include? @command.c_code(local_scope)
+          if ['size', 'length'].include? @method_name
             optimized << "RB_TYPE_P(#{@invoker.c_code(local_scope)}, T_STRING) ? "
             optimized << "RSTRING_LEN(#{@invoker.c_code(local_scope)}) : "
-            optimized << exp
+            optimized << str
           end
           optimized
         end
@@ -333,12 +333,17 @@ module Rubex
             if @command.is_a? Rubex::AST::Expression::ArrayRef
               @command.analyse_statement local_scope, scope
             end
-            @type = @command.type
           else
+            # entry = local_scope.find(@command)
+            # if entry && entry.extern? # a symtab entry for a predeclared extern func
+            #   @type = entry.type.type
+            # else
+            #   @type = Rubex::DataType::RubyObject.new
+            # end
             @command = Expression::MethodCall.new @command, @expr, @arg_list
             @command.analyse_statement local_scope
-            @type = @command.type.type
           end
+          @type = @command.type
         end
       end # class CommandCall
     end # module Expression
