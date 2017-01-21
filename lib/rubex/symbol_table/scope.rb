@@ -10,6 +10,7 @@ module Rubex
       attr_accessor :carray_entries
       attr_accessor :sue_entries
       attr_accessor :cfunction_entries
+      attr_accessor :type_entries
 
       def initialize outer_scope=nil
         @outer_scope = outer_scope
@@ -21,6 +22,7 @@ module Rubex
         @carray_entries = []
         @sue_entries = []
         @cfunction_entries = []
+        @type_entries = []
       end
 
       def check_entry name
@@ -43,10 +45,18 @@ module Rubex
 
       def declare_sue var
         entry = Rubex::SymbolTable::Entry.new(
-          var.name, nil, var.type, nil)
+          var.name, var.type.c_name, var.type, nil)
         entry.extern = var.extern
         @entries[var.name] = entry
         @sue_entries << entry
+        @type_entries << entry
+      end
+
+      def declare_type type
+        entry = Rubex::SymbolTable::Entry.new(
+          type.name, type.c_name, type.type, nil)
+        @entries[type.name] = entry
+        @type_entries << entry
       end
 
       def declare_cfunction function

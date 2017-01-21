@@ -15,7 +15,7 @@ def maths(double a, double b)
   alias int_64 = i64
   i64 p = cos(a)
   int_64 rr
-  
+
   rr = 332
 
   exec e
@@ -25,6 +25,8 @@ def maths(double a, double b)
     i32 a,b,c
     char* str
   end
+
+  new_struct s
 
   return pow(p, b)
 end

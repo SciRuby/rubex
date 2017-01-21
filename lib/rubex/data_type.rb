@@ -392,7 +392,7 @@ module Rubex
 
       def struct_or_union?; true; end
 
-      def to_s; "#{@name}"; end
+      def to_s; "#{@c_name}"; end
     end
 
     class CFunction
@@ -409,14 +409,14 @@ module Rubex
       include Helpers
       attr_reader :type, :name, :c_name
 
-      def initialize name, type
-        @name, @type = name, type
+      def initialize name, c_name, type
+        @name, @c_name, @type = name, c_name, type
       end
 
       def alias_type?; true; end
 
       def to_s
-        @name
+        @c_name
       end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?

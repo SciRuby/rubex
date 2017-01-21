@@ -58,8 +58,7 @@ module Rubex
     private
 
       def generate_function_definition code
-        declare_sue code
-        define_sue code
+        declare_types code
         declare_args code
         declare_vars code, @scope
         declare_carrays code, @scope
@@ -71,23 +70,44 @@ module Rubex
         generate_statements code
       end
 
-      def declare_sue code
-        @scope.sue_entries.each do |sue|
-          code << "typedef #{sue.type.kind} #{sue.name} #{sue.name};"
+
+      def declare_types code
+        @scope.type_entries.each do |entry|
+          type = entry.type
+
+          if type.alias_type?
+            code << "typedef #{type.type.to_s} #{type.to_s};"
+          elsif type.struct_or_union?
+            code << sue_header(entry)
+            code.block(sue_footer(entry)) do
+              declare_vars code, type.scope
+              declare_carrays code, type.scope
+              declare_ruby_objects code, type.scope
+            end
+          end
           code.nl
         end
       end
 
-      def define_sue code
-        @scope.sue_entries.each do |sue|
-          code << "typedef #{sue.type.kind} #{sue.name}"
-          code.block("#{sue.name};") do
-            declare_vars code, sue.type.scope
-            declare_carrays code, sue.type.scope
-            declare_ruby_objects code, sue.type.scope
-          end
-          code.nl
+      def sue_header entry
+        type = entry.type
+        str = "#{type.kind} #{type.name}"
+        if !entry.extern
+          str.prepend "typedef "
         end
+
+        str
+      end
+
+      def sue_footer entry
+        str =
+        if entry.extern
+          ";"
+        else
+          " #{entry.type.c_name};"
+        end
+
+        str
       end
 
       def declare_ruby_objects code, scope

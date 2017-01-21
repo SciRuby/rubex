@@ -172,7 +172,7 @@ module Rubex
           @type = CStructOrUnion.new @kind, @name, c_name, local_scope
 
           @declarations.each do |decl|
-            decl.analyse_statement local_scope
+            decl.analyse_statement local_scope, extern: @extern
           end
           Rubex::CUSTOM_TYPES[@name] = @type
           outer_scope.declare_sue self
@@ -251,6 +251,7 @@ module Rubex
         def analyse_statement local_scope
           @expression.analyse_statement local_scope
           @type = @expression.type
+          puts 
           # TODO: Raise error if type as inferred from the
           # is not compatible with the return statement type.
         end
@@ -480,35 +481,39 @@ module Rubex
 
       class Alias
         include Rubex::AST::Statement
-        attr_reader :new_name, :original, :type
+        # name -> new type name, type -> base type
+        attr_reader :name, :type, :c_name
 
-        def initialize new_type, orig_type
-          @new_type, @orig_type = new_type, orig_type
-          Rubex::CUSTOM_TYPES[@new_type] = @new_type
+        def initialize name, type
+          @name, @type = name, type
+          Rubex::CUSTOM_TYPES[@name] = @name
         end
 
         def analyse_statement local_scope, extern: false
-          original = @orig_type.gsub("struct ", "").gsub("union ", "")
+          original = @type.gsub("struct ", "").gsub("union ", "")
           # puts Rubex::CUSTOM_TYPES
           if !(Rubex::CUSTOM_TYPES.has_key?(original) ||
                Rubex::TYPE_MAPPINGS.has_key?(original))
             raise "Type #{original} has not been defined."
           end
+          base_type =
           if Rubex::TYPE_MAPPINGS.has_key? original
-            @orig_type = Rubex::TYPE_MAPPINGS[original].new
+            Rubex::TYPE_MAPPINGS[original].new
           else
-            @orig_type = Rubex::CUSTOM_TYPES[original]
+            Rubex::CUSTOM_TYPES[original]
           end
-          Rubex::CUSTOM_TYPES[@new_type] =
-            Rubex::DataType::TypeDef.new(@new_type, @orig_type)
+          @c_name = Rubex::TYPE_PREFIX + @name
+          @type = Rubex::DataType::TypeDef.new(@name, @c_name, base_type)
+          Rubex::CUSTOM_TYPES[@name] = @type
+          local_scope.declare_type self
         end
 
         def generate_code code, local_scope
-          puts "#{@new_type} #{@orig_type}"
-          base = @orig_type
-          old_type = base.struct_or_union? ? "#{base.kind} #{base.to_s}" : "#{base.to_s}"
-          code << "typedef #{old_type} #{@new_type};"
-          code.nl
+          # puts "#{@new_type} #{@orig_type}"
+          # base = @type
+          # old_type = base.struct_or_union? ? "#{base.kind} #{base.to_s}" : "#{base.to_s}"
+          # code << "typedef #{old_type} #{@new_type};"
+          # code.nl
         end
       end
     end # module Statement
