@@ -333,12 +333,12 @@ module Rubex
             if @command.is_a? Rubex::AST::Expression::ArrayRef
               @command.analyse_statement local_scope, scope
             end
+            @type = @command.type
           else
             @command = Expression::MethodCall.new @command, @expr, @arg_list
             @command.analyse_statement local_scope
+            @type = @command.type.type
           end
-
-          @type = @command.type
         end
       end # class CommandCall
     end # module Expression

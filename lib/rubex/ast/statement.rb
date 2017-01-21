@@ -251,7 +251,7 @@ module Rubex
         def analyse_statement local_scope
           @expression.analyse_statement local_scope
           @type = @expression.type
-          puts 
+          puts @type
           # TODO: Raise error if type as inferred from the
           # is not compatible with the return statement type.
         end

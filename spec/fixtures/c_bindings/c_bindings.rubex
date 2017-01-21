@@ -22,11 +22,12 @@ def maths(double a, double b)
   e.type = 3
 
   struct new_struct do
-    i32 a,b,c
+    double a,b,c
     char* str
   end
 
   new_struct s
+  s.a = 3
 
-  return pow(p, b)
+  return pow(6.7, s.a)
 end
