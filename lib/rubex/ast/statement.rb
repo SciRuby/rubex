@@ -149,7 +149,7 @@ module Rubex
 
       class CStructOrUnionDef
         include Rubex::AST::Statement
-        attr_reader :name, :declarations, :type, :kind, :extern
+        attr_reader :name, :c_name, :declarations, :type, :kind, :extern
 
         def initialize kind, name, declarations
           @declarations = declarations
@@ -165,9 +165,9 @@ module Rubex
           local_scope = Rubex::SymbolTable::Scope::StructOrUnion.new outer_scope
           @extern = extern
           if @extern
-            c_name = @kind.to_s + " " + @name
+            @c_name = @kind.to_s + " " + @name
           else
-            c_name = Rubex::TYPE_PREFIX + @name
+            @c_name = Rubex::TYPE_PREFIX + @name
           end
           @type = CStructOrUnion.new @kind, @name, c_name, local_scope
 
@@ -176,6 +176,7 @@ module Rubex
           end
           Rubex::CUSTOM_TYPES[@name] = @type
           outer_scope.declare_sue self
+          # outer_scope.declare_type self
         end
 
         def generate_code code, local_scope
@@ -193,7 +194,7 @@ module Rubex
 
       class ForwardDecl
         include Rubex::AST::Statement
-        attr_reader :kind, :name, :type
+        attr_reader :kind, :name, :type, :c_name
 
         def initialize kind, name
           @name = name
@@ -205,8 +206,13 @@ module Rubex
           Rubex::CUSTOM_TYPES[@name] = @name
         end
 
-        def analyse_statement local_scope
+        def analyse_statement local_scope, extern: false
+          @c_name = Rubex::TYPE_PREFIX + @name
+        end
 
+        def rescan_declarations local_scope
+          @type = Rubex::CUSTOM_TYPES[@name]
+          local_scope.declare_type self
         end
 
         def generate_code code, local_scope
@@ -508,11 +514,11 @@ module Rubex
         end
 
         def generate_code code, local_scope
-          # puts "#{@new_type} #{@orig_type}"
-          # base = @type
-          # old_type = base.struct_or_union? ? "#{base.kind} #{base.to_s}" : "#{base.to_s}"
-          # code << "typedef #{old_type} #{@new_type};"
-          # code.nl
+          puts "#{@new_type} #{@orig_type}"
+          base = @type
+          old_type = base.struct_or_union? ? "#{base.kind} #{base.to_s}" : "#{base.to_s}"
+          code << "typedef #{old_type} #{@new_type};"
+          code.nl
         end
       end
     end # module Statement

@@ -370,6 +370,11 @@ module Rubex
         str.prepend t.to_s
         str
       end
+
+      def to_ruby_function arg
+        return "StringValueCStr(#{arg})" if @type.char?
+        arg
+      end
     end
 
     class TrueType < Boolean;  end

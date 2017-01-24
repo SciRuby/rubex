@@ -334,12 +334,6 @@ module Rubex
               @command.analyse_statement local_scope, scope
             end
           else
-            # entry = local_scope.find(@command)
-            # if entry && entry.extern? # a symtab entry for a predeclared extern func
-            #   @type = entry.type.type
-            # else
-            #   @type = Rubex::DataType::RubyObject.new
-            # end
             @command = Expression::MethodCall.new @command, @expr, @arg_list
             @command.analyse_statement local_scope
           end
