@@ -53,8 +53,7 @@ module Rubex
       end
 
       def declare_type type
-        entry = Rubex::SymbolTable::Entry.new(
-          type.name, type.c_name, type.type, nil)
+        entry = Rubex::SymbolTable::Entry.new(nil, nil, type.type, nil)
         # @entries[type.name] = entry
         @type_entries << entry
       end

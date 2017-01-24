@@ -70,17 +70,19 @@ module Rubex
 
         def recursive_generate_code local_scope, code, tree
           if tree.respond_to? :left
+            code << "( "
             recursive_generate_code local_scope, code, tree.left
             unless tree.left.respond_to?(:left)
-              code << "( " if !tree.left.is_a?(Rubex::AST::Expression::Unary)
               code << "#{tree.left.c_code(local_scope)}"
             end
+
             code << " #{tree.operator} "
+
             unless tree.right.respond_to?(:right)
               code << "#{tree.right.c_code(local_scope)}"
-              code << " )" if !tree.right.is_a?(Rubex::AST::Expression::Unary)
             end
             recursive_generate_code local_scope, code, tree.right
+            code << " )"
           end
         end
       end # class Binary

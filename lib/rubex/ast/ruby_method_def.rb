@@ -76,7 +76,7 @@ module Rubex
           type = entry.type
 
           if type.alias_type?
-            code << "typedef #{type.type.to_s} #{type.to_s};"
+            code << "typedef #{type.old_name} #{type.new_name};"
           elsif type.struct_or_union?
             code << sue_header(entry)
             code.block(sue_footer(entry)) do

@@ -412,16 +412,16 @@ module Rubex
 
     class TypeDef
       include Helpers
-      attr_reader :type, :name, :c_name
+      attr_reader :type, :old_name, :new_name
 
-      def initialize name, c_name, type
-        @name, @c_name, @type = name, c_name, type
+      def initialize old_name, new_name, type
+        @old_name, @new_name, @type = old_name, new_name, type
       end
 
       def alias_type?; true; end
 
       def to_s
-        @c_name
+        @new_name
       end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?

@@ -13,7 +13,7 @@ end
 
 def maths(double a, double b, c)
   alias int_64 = i64
-  i64 p = cos(a)
+  int_64 p = cos(a)
   int_64 rr
 
   rr = 332
