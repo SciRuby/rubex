@@ -40,7 +40,7 @@ VALUE __rubex_f_maths (int argc, VALUE* argv, VALUE __rubex_arg_self)
   __rubex_v_e.type = 3;
   __rubex_v_s.__rubex_v_a = __rubex_arg_a;
   __rubex_v_s.__rubex_v_b = __rubex_arg_b;
-  if (( __rubex_v_s.__rubex_v_a > __rubex_v_s.__rubex_v_b ))
+  if (( __rubex_v_s.__rubex_v_a > __rubex_v_s.__rubex_v_b )) 
   {
     __rubex_v_s.__rubex_ptr_str = StringValueCStr(__rubex_arg_c);
 

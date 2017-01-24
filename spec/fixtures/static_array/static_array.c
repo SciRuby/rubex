@@ -20,7 +20,7 @@ VALUE __rubex_f_static_array (int argc, VALUE* argv, VALUE __rubex_arg_self)
   int32_t __rubex_arr_e[__rubex_v_size];
   __rubex_arr_a[2] = 443;
   printf("%d", __rubex_arr_a[2]);
-  if (( __rubex_arr_a[2] == 443 ))
+  if (( __rubex_arr_a[2] == 443 )) 
   {
     __rubex_arr_b[4] = 123;
 

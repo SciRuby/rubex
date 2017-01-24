@@ -21,7 +21,7 @@ VALUE __rubex_f_blank_qmark (int argc, VALUE* argv, VALUE __rubex_arg_self)
   __rubex_v_length = (int32_t)(RB_TYPE_P(__rubex_arg_string, T_STRING) ? RSTRING_LEN(__rubex_arg_string) : rb_funcall(__rubex_arg_string, rb_intern("size"), 0, NULL));
   while (( __rubex_v_i < __rubex_v_length ))
   {
-    if (( __rubex_ptr_s[__rubex_v_i] != ' ' ))
+    if (( __rubex_ptr_s[__rubex_v_i] != ' ' )) 
     {
       return       Qfalse;
 
