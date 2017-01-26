@@ -33,7 +33,7 @@ module Rubex
           code << "#include <#{name}.h>\n"
         end
         declare_types code
-        declare_extern_c_functions code
+        # declare_extern_c_functions code
         code.nl
       end
 

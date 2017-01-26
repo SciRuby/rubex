@@ -1,7 +1,11 @@
+lib ruby do
+  double RSTRING_LEN(object)
+end
+
 def blank?(string)
   i32 i = 0
   char *s = string
-  i32 length = string.size
+  i32 length = RSTRING_LEN(string)
 
   while i < length do
     if s[i] != ' '

@@ -38,8 +38,8 @@ module Rubex
 
     def init_variable var, local_scope=nil
       rhs = var.value.c_code(local_scope)
-      if var.type.object?
-        rhs = "#{var.type.to_ruby_function(rhs)}"
+      if var.value.type.object?
+        rhs = "#{var.type.from_ruby_function(rhs)}"
       end
       rhs = "(#{var.type.to_s})(#{rhs})"
       stat = " "*@indent + "#{var.c_name} = #{rhs};"

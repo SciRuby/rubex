@@ -52,7 +52,7 @@ rule
       }
 
   c_declarations:
-    c_declaration { result = val[0] }
+    c_declaration { result = [val[0]] }
   | c_declarations c_declaration { result = [*val[0], val[1]] }
 
   c_declaration:
@@ -472,6 +472,8 @@ def check_for_primitive_dtype token
     return [:kDTYPE_UI64, match]
   elsif match == "int"
     return [:kDTYPE_INT, match]
+  elsif match == "long"
+    return [:kDTYPE_LINT, match]
   elsif match == "f32"
     return [:kDTYPE_F32, match]
   elsif match == "float"

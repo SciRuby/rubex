@@ -88,6 +88,8 @@ def check_for_primitive_dtype token
     return [:kDTYPE_UI64, match]
   elsif match == "int"
     return [:kDTYPE_INT, match]
+  elsif match == "long"
+    return [:kDTYPE_LINT, match]
   elsif match == "f32"
     return [:kDTYPE_F32, match]
   elsif match == "float"
@@ -976,7 +978,7 @@ module_eval(<<'.,.,', 'parser.racc', 50)
 
 module_eval(<<'.,.,', 'parser.racc', 54)
   def _reduce_8(val, _values, result)
-     result = val[0] 
+     result = [val[0]] 
     result
   end
 .,.,

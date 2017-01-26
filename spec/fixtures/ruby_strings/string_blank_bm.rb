@@ -6,19 +6,14 @@ require 'fast_blank'
 require 'benchmark'
 require 'benchmark/ips'
 
-str= "     "*50 + "dff"
-
-Benchmark.bm do |x|
-  x.report("fast_blank") do
-    str.blank?
-  end
-
-  x.report("blank?") do
-    blank? str
-  end
-end
+str= " "*2500 + "dff"
 
 Benchmark.ips do |x|
+  x.config(:time => 5, :warmup => 2)
+
+  x.time = 5
+  x.warmup = 2
+
   x.report("fast_blank") do
     str.blank?
   end
@@ -30,18 +25,13 @@ Benchmark.ips do |x|
   x.compare!
 end
 
-# Results
-#        user     system      total        real
-# fast_blank  0.000000   0.000000   0.000000 (  0.000012)
-# blank?  0.000000   0.000000   0.000000 (  0.000005)
 # Warming up --------------------------------------
-#           fast_blank    14.890k i/100ms
-#               blank?   103.550k i/100ms
+#           fast_blank     3.401k i/100ms
+#               blank?    57.041k i/100ms
 # Calculating -------------------------------------
-#           fast_blank    165.912k (± 3.6%) i/s -    833.840k in   5.032727s
-#               blank?      2.390M (± 2.3%) i/s -     12.012M in   5.028894s
-# 
+#           fast_blank     35.068k (± 0.4%) i/s -    176.852k in   5.043263s
+#               blank?    671.289k (± 1.1%) i/s -      3.365M in   5.014016s
+#
 # Comparison:
-#               blank?:  2390066.7 i/s
-#           fast_blank:   165912.1 i/s - 14.41x  slower
-# 
+#               blank?:   671289.0 i/s
+#           fast_blank:    35067.6 i/s - 19.14x  slower

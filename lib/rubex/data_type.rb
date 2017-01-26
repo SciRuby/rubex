@@ -371,7 +371,8 @@ module Rubex
         str
       end
 
-      def to_ruby_function arg
+      # from a Ruby function get a pointer to some value.
+      def from_ruby_function arg
         return "StringValueCStr(#{arg})" if @type.char?
         arg
       end
