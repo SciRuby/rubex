@@ -1,6 +1,14 @@
 # rubex
 rubex - A Crystal-inspired language for writing Ruby extensions.
 
+# Overview
+
+# Installation
+
+# Usage
+
+All code that you write should be a
+
 # Background
 
 Rubex aims to make writing C extensions as intuitive as writing Ruby code. A very simple example would be a recursive implementation of a function that computes the factorial of a given number. The method for this is called `factorial` and the class in which it resides is called `Fact`. The code in rubex would like this:
@@ -39,23 +47,9 @@ void Init_factorial()
 
 Now imagine growing this to solving a non-trivial problem, and the benefits imparted by rubex in terms of productivity and simplicity become increasingly apparent. Users will simply need to call a command or rake task that will generate the relevant C code and create a shared object binary, that can be then imported into any Ruby program with a call to `require`.
 
-# Syntax specification
+# Language particulars
 
-WARNING: Specification set to change!
-
-#### File extensions
-
-Rubex files will have a `.rubex` file extension.
-
-#### Comments
-
-Rubex will only support single line comments in lines that start with a `#` character, just like Ruby.
-
-#### Line termination
-
-A line of code can be terminated with a newline (`\n`) character.
-
-#### Support for C data types
+#### Supported C data types
 
 The above example demonstrated the factorial function being used with a 64 bit integer data type, and rubex will support many such data types. The keywords for these data types will be borrowed from Crystal, and they will be translated to the corresponding C types with the rubex compiler. For the first version (v0.1) the following data types will be supported:
 
@@ -87,7 +81,7 @@ i32 int_number
 f64 float_number
 i8 u, i = 33
 ```
-I will use the `stdint.h` header file that provides support for declaring integer types of precise bit length.
+The `stdint.h` header file will be used for providing support for declaring integer types of precise bit length.
 
 #### Structs
 
@@ -103,11 +97,11 @@ end
 #   struct Node* next;    
 # };
 ```
-Varibles of type `Node` can be declared by using `struct Node`, like `struct Node foo`, or pointers with `Pointer(struct Node)` or `struct Node*`.
+Varibles of type `Node` can be declared by using `Node`, like `Node foo`, or pointers with `Node* foo`.
 
 #### Typedefs
 
-The `struct` in the example above can also be aliased with the `alias` keyword. The function of `alias` is similar to `typedef` in C. So `alias Node = struct Node` will declarations in the form of `Node foo`. Once a type has been aliased, the original name (`struct Node`) can be used interchangably with the new name (`Node`).
+The `struct` in the example above can also be aliased with the `alias` keyword. The function of `alias` is similar to `typedef` in C. So `alias CNode = Node` will support declarations in the form of `CNode foo`. Once a type has been aliased, the original name (`Node`) can be used interchangably with the new name (`Node`).
 
 #### Unions
 
@@ -119,7 +113,7 @@ union IntAndFloat do
 end
 ```
 
-The `union` must either be aliased to some other user-defined type or must be reffered to by the `union` keyword. So a variable of the above union will be declared as `union IntAndFloat intfloat`.
+The `union` must either be aliased to some other user-defined type or must be reffered to by the `union` keyword. So a variable of the above union will be declared as `IntAndFloat intfloat`.
 
 #### Enums
 
@@ -160,7 +154,7 @@ These will be defined just like normal Ruby methods, but will support typed form
 To define a method of this kind, the user can use syntax that looks like this:
 ``` ruby
 def plus_one(f32 n)
-  n + 1
+  return n + 1
 end
 ```
 
@@ -175,7 +169,7 @@ These are methods that are only callable from C code. They cannot be called dire
 They also look very similar to the pure Ruby methods, but have a caveat that they must be defined with `cdef` instead of `def` and should also specify a return data type. These methods must specify the type of their formal arguments. Therefore, the syntax for writing a simple addition function would look like this:
 ``` ruby
 cdef f32 plus_one(f32 n)
-  n + 1
+  return n + 1
 end
 ```
 In above example, the function `plus_one` takes a 32 bit floating point number `n` as an argument and returns a 32 bit floating point number after adding `1` to it. If a return type is not specified for a C function, it is assumed to be `VALUE` (Ruby object).
@@ -273,7 +267,6 @@ This is the most important functionality of rubex. A lot of it will be borrowed 
 
 For interfacing any C library with Ruby, rubex will provide the `lib` keyword. The `lib` declaration will basically group C functions and types that belong to a particular library. For example,
 ```
-#@[Link("pcre")]
 lib LibPCRE
 end
 ```
@@ -284,77 +277,6 @@ The `Link` keyword inside the `@[...]` syntax of the magic comment will ensure t
 
 If `Link(ldflags: "...")` is passed into the magic comment, those flags will be passed directly to the linker, without any modification, for example `Link(ldflags: "-lpcre")`. Enclosing those commands inside backticks will execute those commands, for example `Link(ldflags: "`pkg-config libpcre --libs`")`.
 
-**require_header**
-
-The `require_header` keyword will include C headers in the generated C code. For example `require_header 'math'` will put a statement `#include <math.h>`.
-
-**fun**
-
-A `fun` declaration will bind a C function.
-```
-require_header 'math'
-
-class Maths
-  def cos(f32 v)
-    CMath.cos(v)
-  end
-end
-
-lib CMath
-  fun f32 cos(f32 value)
-end
-```
-The user can the call the `cos` function from Ruby with `Maths.new.cos(0.7)`. Calls to `fun` must be inside a `lib` block. This facilitates easy linking and namespacing of C bindings.
-
-The parentheses can be omitted if the function does not accept arguments:
-```
-# In rubex
-lib C
-  fun i32 getch
-end
-
-# In Ruby
-C.getch
-```
-If the return type is `void` you can omit it:
-```
-# In Rubex
-lib C
-  fun srand(u32 seed)
-end
-
-# In Ruby
-C.srand(1)
-```
-
-Functions with variable arguments can also be bound:
-```
-# In Rubex
-lib X
-  fun i32 variadic(i32 value, ...)
-end
-
-# In Ruby
-X.variadic(1, 2, 3, 4)
-```
-
-If a function starts with a name that you don't want to use in your Ruby program, or if it contains characters that cannot be used in Ruby methods, you can assign it a different name with `=`. For example,
-```
-lib C
-  fun cosine = f32 cos(f32 value)
-end
-```
-Or say the function starts with a capital letter (which is a constant in Ruby and is confusing to use as a method name) or contains an invalid character like `.`, in which case you can wrap it in a string:
-```
-lib LibSDL
-  fun init = u32 SDL_Init(u32 flags)
-end
-
-lib LLVMIntrinsics
-  fun ceil_f32 = f32 "llvm.ceil.f32"(f32 value)
-end
-```
-
 #### Embedding C code
 
 If you must write C, you can do that with a `%{ ... %}` block or a `BEGIN_C do ... end` block.
@@ -362,3 +284,14 @@ If you must write C, you can do that with a `%{ ... %}` block or a `BEGIN_C do .
 #### Method calls
 
 Methods can be called using the usual Ruby dot syntax (`object.method_name`). However, certain methods on certain standard library objects have been optimized to directly return a value from the C API instead of making a Ruby method call. For example, calling `size` on a Ruby string object will call `RSTRING_LEN` instead going through Ruby-land and causing a performance bottleneck.
+
+# Roadmap
+
+* Support for string literals and interconversions between C and Ruby data types.
+* Getting positions of symbols.
+* String interpolation with variables similar to Ruby string interpolation.
+* C functions starting with cdef.
+* Ability to call functions from the same scope (C functions or Ruby functions).
+* Encapsulate functions inside modules and classes.
+* Loops with #each and #map.
+* Create emacs, atom, sublime text, vim, ruby mine extensions for better syntax highlighting.

@@ -1,3 +1,16 @@
+# Setup
+
+If you wish to contribute to Rubex, you can setup rubex on your system with the following commands:
+```
+bundle install
+rake install
+```
+
+Then you can compile a Rubex file with this:
+```
+rubex file_name.rubex
+```
+
 # Development notes
 
 Couple of conventions that I followed when writing the code:

@@ -22,8 +22,9 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
+  spec.add_runtime_dependency 'racc', '~> 1.4.14'
+
   spec.add_development_dependency 'oedipus_lex', '~> 2.4'
-  spec.add_development_dependency 'racc', '~> 1.4.14'
   spec.add_development_dependency 'rake', '~> 11.2'
   spec.add_development_dependency 'rspec', '~> 3.4'
   spec.add_development_dependency 'awesome_print'
