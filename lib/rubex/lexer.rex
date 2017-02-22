@@ -30,6 +30,7 @@ macros
   NL              /\n/
   COMMA           /,/
   SQUOTE          /'/
+  DQUOTE          /"/
   SCOLON          /;/
   INTEGER         /-?\d+/
   FLOAT           /-?\d+\.\d+/

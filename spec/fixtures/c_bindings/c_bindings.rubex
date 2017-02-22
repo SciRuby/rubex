@@ -1,4 +1,4 @@
-lib math do
+lib "math.h" do
   double cos(double)
 
   struct exception do

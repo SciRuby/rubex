@@ -1,0 +1,15 @@
+class RubyTypes
+  def these_types(string str, array arr, hash h)
+    str[4] = "a"
+    arr.append(44)
+
+    print str
+    print arr
+
+    print hash["fff"]
+    hash["fff"] = 565
+    print hash["fff"]
+
+    return hash
+  end
+end

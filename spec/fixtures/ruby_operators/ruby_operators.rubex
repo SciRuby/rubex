@@ -1,0 +1,9 @@
+class StringCaller
+  def call_now(string)
+    print string[0]
+    string[2] = "h"
+    print string
+
+    return string
+  end
+end

@@ -1,0 +1,11 @@
+class Kustom
+  def bye
+    print "Bye world!"
+  end
+end
+
+class Klass < Kustom
+  def hello
+    print "Hello world!"
+  end
+end

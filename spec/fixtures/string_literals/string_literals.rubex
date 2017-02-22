@@ -1,0 +1,10 @@
+def strings
+  char* s = "My name is Ted."
+  obj = "My name is also Ted."
+  int a = 4
+  float b = 5.6
+
+  print "The number a is : #{a}\nThe number b is: #{b}"
+
+  return obj
+end

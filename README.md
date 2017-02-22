@@ -295,3 +295,4 @@ Methods can be called using the usual Ruby dot syntax (`object.method_name`). Ho
 * Encapsulate functions inside modules and classes.
 * Loops with #each and #map.
 * Create emacs, atom, sublime text, vim, ruby mine extensions for better syntax highlighting.
+* Caching of method names in C API (as in `rb_intern` calls).
