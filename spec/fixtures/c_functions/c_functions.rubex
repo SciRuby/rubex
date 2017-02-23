@@ -1,0 +1,16 @@
+class CFunctions
+  def pure_ruby_method
+    a = 55
+    b = 5.43
+    int c = first_c_function(a, b)
+
+    return a + c
+  end
+
+  cdef int first_c_function(int a, float b)
+    int c = a + 5
+    int d = (c * b + 3)/5
+
+    return c - d
+  end
+end

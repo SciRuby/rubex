@@ -1,0 +1,11 @@
+class InitRubyClass
+  def init_classes
+    a = String.new
+    a[0] = "5"
+
+    f = StringIO.new("Hello! This is a test")
+    s = f.read
+
+    return s
+  end
+end

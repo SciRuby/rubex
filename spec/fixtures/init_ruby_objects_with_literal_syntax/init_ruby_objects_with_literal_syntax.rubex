@@ -1,0 +1,15 @@
+class DataInit
+  def init_this(a, b, c)
+    arr = [1,2,3,4,5,6]
+    str = "Hello world! Lets have a picnic!"
+    h = {
+      "hello" => arr,
+      "world" => 666,
+      "message" => str
+    }
+
+    print h["hello"]
+
+    return h
+  end
+end

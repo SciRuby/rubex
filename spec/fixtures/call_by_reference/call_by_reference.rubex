@@ -1,0 +1,22 @@
+struct attribs do
+  int a, b
+  float c
+end
+
+class CallByReference
+  def reference_call
+    attribs a
+    int b_flat = 460
+    a.a = 56
+    a.b = 65
+    a.c = 23
+
+    c_function(&a, b_flat)
+
+    return a.a
+  end
+
+  cdef void c_function(attribs *a, int b)
+    a[0].a = b
+  end
+end
