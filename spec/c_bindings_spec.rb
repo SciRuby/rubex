@@ -12,11 +12,10 @@ describe Rubex do
       end
     end
 
-    context ".compile", focus: true do
+    context ".compile" do
       it "compiles to valid C file" do
-        t,c,e = Rubex.compile(@path + '.rubex')#, true)
-        puts c
-        # expect_compiled_code c, @path + ".c"
+        t,c,e = Rubex.compile((@path + '.rubex'), true)
+        expect_compiled_code c, @path + ".c"
       end
     end
   end

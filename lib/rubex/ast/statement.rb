@@ -388,7 +388,6 @@ module Rubex
         end
 
         def generate_code code, local_scope
-          super
           generate_code_for_statement "if", code, local_scope
         end
 
@@ -403,7 +402,6 @@ module Rubex
           end
 
           def generate_code code, local_scope
-            super
             generate_code_for_statement "else if", code, local_scope
           end
         end # class Elsif
@@ -425,7 +423,6 @@ module Rubex
           end
 
           def generate_code code, local_scope
-            super
             generate_code_for_statement "else", code, local_scope
           end
         end # class Else
@@ -454,7 +451,6 @@ module Rubex
         end
 
         def generate_code code, local_scope
-          super
           code << for_loop_header(local_scope)
           code.block do
             @statements.each do |stat|
@@ -507,7 +503,6 @@ module Rubex
         end
 
         def generate_code code, local_scope
-          super
           stmt = "while (#{@expr.c_code(local_scope)})"
           code << stmt
           code.block do

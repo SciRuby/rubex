@@ -62,15 +62,15 @@ rule
       }
   | kSTRUCT tIDENTIFIER kDO var_decl_stmts kEND terms
       {
-        result = Statement::CStructOrUnionDef.new val[0], val[1], val[3]
+        result = Statement::CStructOrUnionDef.new val[0], val[1], val[3], location
       }
   | alias_stmt terms
 
   alias_stmt:
     kALIAS tIDENTIFIER tASSIGN aliased_type
       {
-        add_dtype_to_lexer val[1]
-        result = Statement::Alias.new val[1], val[3]
+        add_dtype_to_lexer val[2]
+        result = Statement::Alias.new val[2], val[4], location
       }
 
   aliased_type:
@@ -123,15 +123,22 @@ rule
       {
         result = Statement::IfBlock.new val[1], [*val[3]], [*val[4]], location
       }
-  | stmt kIF expr { result = Statement::IfBlock.new val[2], [*val[0]], [], location }
+  | stmt kIF expr
+      {
+        set_location
+        result = Statement::IfBlock.new val[2], [*val[0]], [], location
+      }
   | kFOR for_expr kDO compstmt kEND
       {
         result = Statement::For.new *val[1], val[3], location
       }
-  | kWHILE expr kDO compstmt kEND { result = Statement::While.new val[1], val[3], location }
+  | kWHILE expr kDO compstmt kEND
+      {
+        result = Statement::While.new val[1], val[3], location
+      }
   | op_assign {}
   | kSTRUCT tIDENTIFIER kDO opt_terms var_decl_stmts kEND
-      {
+      { 
         add_dtype_to_lexer val[1]
         result = Statement::CStructOrUnionDef.new val[0], val[1], val[4], location
       }
@@ -413,8 +420,8 @@ def location
 end
 
 def next_token
+  set_location
   t = @lexer.next_token
-  @location = @lexer.location
 
   if !t.nil?
     if t[0] == :tIDENTIFIER
@@ -522,4 +529,8 @@ end
 
 def add_dtype_to_lexer dtype
   @custom_dtypes[dtype] = true
+end
+
+def set_location
+  @location = @lexer.location
 end
