@@ -1,4 +1,6 @@
 class Rubex::Lexer
+options
+  lineno
 macros
   # reserved words
 
@@ -71,7 +73,6 @@ rules
   /#{INTEGER}/    { [:tINTEGER, text] }
 
   # Reserved words
-
 
   /#{STATIC_ARRAY}/ { [:kSTATIC_ARRAY, text] }
   /#{FOR}/    { [:kFOR, text]    }

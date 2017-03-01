@@ -35,6 +35,7 @@ class Rubex::Lexer
   NL            = /\n/
   COMMA         = /,/
   SQUOTE        = /'/
+  DQUOTE        = /"/
   SCOLON        = /;/
   INTEGER       = /-?\d+/
   FLOAT         = /-?\d+\.\d+/
@@ -66,6 +67,7 @@ class Rubex::Lexer
   class LexerError < StandardError ; end
   class ScanError < LexerError ; end
 
+  attr_accessor :lineno
   attr_accessor :filename
   attr_accessor :ss
   attr_accessor :state
@@ -88,6 +90,7 @@ class Rubex::Lexer
 
   def parse str
     self.ss     = scanner_class.new str
+    self.lineno = 1
     self.state  ||= nil
 
     do_parse
@@ -103,6 +106,7 @@ class Rubex::Lexer
   def location
     [
       (filename || "<input>"),
+      lineno,
     ].compact.join(":")
   end
 
@@ -111,6 +115,7 @@ class Rubex::Lexer
     token = nil
 
     until ss.eos? or token do
+      self.lineno += 1 if ss.peek(1) == "\n"
       token =
         case state
         when nil then

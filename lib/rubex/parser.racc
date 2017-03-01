@@ -112,28 +112,28 @@ rule
 
         result = variables
       }
-  | kRETURN expr { result = Statement::Return.new val[1] }
-  | kPRINT expr { result = Statement::Print.new val[1] }
+  | kRETURN expr { result = Statement::Return.new val[1], location }
+  | kPRINT expr { result = Statement::Print.new val[1], location }
   | normal_init
       {
         match = val[0]
-        result = Statement::Assign.new match[:name], match[:value]
+        result = Statement::Assign.new match[:name], match[:value], location
       }
   | kIF expr then compstmt if_tail kEND
       {
-        result = Statement::IfBlock.new val[1], [*val[3]], [*val[4]]
+        result = Statement::IfBlock.new val[1], [*val[3]], [*val[4]], location
       }
-  | stmt kIF expr { result = Statement::IfBlock.new val[2], [*val[0]], [] }
+  | stmt kIF expr { result = Statement::IfBlock.new val[2], [*val[0]], [], location }
   | kFOR for_expr kDO compstmt kEND
       {
-        result = Statement::For.new *val[1], val[3]
+        result = Statement::For.new *val[1], val[3], location
       }
-  | kWHILE expr kDO compstmt kEND { result = Statement::While.new val[1], val[3] }
+  | kWHILE expr kDO compstmt kEND { result = Statement::While.new val[1], val[3], location }
   | op_assign {}
   | kSTRUCT tIDENTIFIER kDO opt_terms var_decl_stmts kEND
       {
         add_dtype_to_lexer val[1]
-        result = Statement::CStructOrUnionDef.new val[0], val[1], val[4]
+        result = Statement::CStructOrUnionDef.new val[0], val[1], val[4], location
       }
   | forward_declaration {}
   | alias_stmt
@@ -143,7 +143,7 @@ rule
     {
       val.flatten!
       add_dtype_to_lexer val[1]
-      result = Statement::ForwardDecl.new val[0], val[1]
+      result = Statement::ForwardDecl.new val[0], val[1], location
     }
 
   var_decl_stmts:
@@ -204,11 +204,11 @@ rule
   | opt_else {}
   | kELSIF expr then compstmt if_tail
       {
-        result = Statement::IfBlock::Elsif.new val[1], [*val[3]], [*val[4]]
+        result = Statement::IfBlock::Elsif.new val[1], [*val[3]], [*val[4]], location
       }
 
   opt_else:
-    kELSE compstmt { result = Statement::IfBlock::Else.new val[1] }
+    kELSE compstmt { result = Statement::IfBlock::Else.new val[1], location }
 
   var_decl_or_init:
     dtype opt_star decl_or_init
@@ -408,8 +408,13 @@ def parse file_name
   @lexer.parse_file file_name
 end
 
+def location
+  @location
+end
+
 def next_token
   t = @lexer.next_token
+  @location = @lexer.location
 
   if !t.nil?
     if t[0] == :tIDENTIFIER
@@ -498,18 +503,18 @@ def unary_op val
 end
 
 def op_assign val # expr, op_assign, expr => expr = expr op expr
-  Statement::Assign.new(val[0], binary_op([val[0], val[1][0], val[2]]))
+  Statement::Assign.new(val[0], binary_op([val[0], val[1][0], val[2]]), location)
 end
 
 def node_variable dtype, di
   if di[:name].is_a? Expression::ArrayRef
-    var = Statement::CArrayDecl.new(dtype, di[:name], di[:value])
+    var = Statement::CArrayDecl.new(dtype, di[:name], di[:value], location)
   elsif di[:pointer]
     if di[:pointer] == '*'
-      var = Statement::CPtrDecl.new(dtype, di[:name], di[:value])
+      var = Statement::CPtrDecl.new(dtype, di[:name], di[:value], location)
     end
   else
-    var = Statement::VarDecl.new(dtype, di[:name], di[:value])
+    var = Statement::VarDecl.new(dtype, di[:name], di[:value], location)
   end
 
   var

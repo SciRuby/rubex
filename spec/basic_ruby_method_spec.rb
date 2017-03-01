@@ -14,8 +14,8 @@ describe Rubex do
           CBaseType.new('i32', 'b')
         ])
         expr       = Expression::Binary.new('a', '+' ,'b')
-        statement  = [Statement::Return.new(expr)]
-        method     = RubyMethodDef.new('addition', arguments, statement)
+        statement  = [Statement::Return.new(expr, "2")]
+        method     = RubyMethodDef.new('addition', arguments, statement, "1")
         node       = Node.new([method])
 
         expect(Rubex.ast(@path + "basic_ruby_method.rubex")).to eq(node)

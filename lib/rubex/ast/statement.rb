@@ -4,17 +4,29 @@ module Rubex
       include Rubex::Helpers::NodeTypeMethods
       include Rubex::DataType
 
+      # File name and line number of statement in "file_name:lineno" format.
+      attr_reader :location
+
+      def initialize location
+        @location = location
+      end
+
       def statement?; true; end
 
       def == other
         self.class == other.class
       end
 
+      def generate_code code, local_scope
+        code.write_location @location
+      end
+
       class VarDecl
         include Rubex::AST::Statement
         attr_reader :type, :name, :c_name, :value, :extern
 
-        def initialize type, name, value
+        def initialize type, name, value, location
+          super(location)
           @name, @value = name, value
           @type = type
         end
@@ -59,7 +71,8 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :type, :name, :value, :c_name, :extern
 
-        def initialize dtype, name, value
+        def initialize dtype, name, value, location
+          super(location)
           @name, @value = name, value
           @type = dtype
         end
@@ -101,7 +114,8 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :type, :array_list, :name, :dimension
 
-        def initialize type, array_ref, array_list
+        def initialize type, array_ref, array_list, location
+          super(location)
           @name, @array_list = array_ref.name, array_list
           @dimension = array_ref.pos
           @type = Rubex::TYPE_MAPPINGS[type].new
@@ -151,7 +165,8 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :name, :c_name, :declarations, :type, :kind, :extern
 
-        def initialize kind, name, declarations
+        def initialize kind, name, declarations, location
+          super(location)
           @declarations = declarations
           if /struct/.match kind
             @kind = :struct
@@ -196,7 +211,8 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :kind, :name, :type, :c_name
 
-        def initialize kind, name
+        def initialize kind, name, location
+          super(location)
           @name = name
           if /struct/.match kind
             @kind = :struct
@@ -226,7 +242,8 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :expression, :type
 
-        def initialize expression
+        def initialize expression, location
+          super(location)
           @expression = expression
         end
 
@@ -243,6 +260,7 @@ module Rubex
         end
 
         def generate_code code, local_scope
+          super
           code << @type.printf(@expression.c_code(local_scope))
           code.nl
         end
@@ -252,7 +270,8 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :expression, :type
 
-        def initialize expression
+        def initialize expression, location
+          super(location)
           @expression = expression
         end
 
@@ -264,6 +283,7 @@ module Rubex
         end
 
         def generate_code code, local_scope
+          super
           code << "return "
           code << @type.to_ruby_function("#{@expression.c_code(local_scope)}") + ";"
           code.nl
@@ -274,7 +294,8 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :lhs, :rhs
 
-        def initialize lhs, rhs
+        def initialize lhs, rhs, location
+          super(location)
           @lhs, @rhs = lhs, rhs
         end
 
@@ -295,6 +316,7 @@ module Rubex
         end
 
         def generate_code code, local_scope
+          super
           str = "#{@lhs.c_code(local_scope)} = "
           if @ruby_obj_init
             if @rhs.is_a?(Rubex::AST::Expression::Literal::Char)
@@ -360,11 +382,13 @@ module Rubex
         include Rubex::AST::Statement
         include Rubex::AST::Statement::IfBlock::Helper
 
-        def initialize expr, statements, if_tail
+        def initialize expr, statements, if_tail, location
+          super(location)
           @expr, @statements, @if_tail = expr, statements, if_tail
         end
 
         def generate_code code, local_scope
+          super
           generate_code_for_statement "if", code, local_scope
         end
 
@@ -373,11 +397,13 @@ module Rubex
           include Rubex::AST::Statement
           include Rubex::AST::Statement::IfBlock::Helper
 
-          def initialize expr, statements, if_tail
+          def initialize expr, statements, if_tail, location
+            super(location)
             @expr, @statements, @if_tail = expr, statements, if_tail
           end
 
           def generate_code code, local_scope
+            super
             generate_code_for_statement "else if", code, local_scope
           end
         end # class Elsif
@@ -387,7 +413,8 @@ module Rubex
           include Rubex::AST::Statement
           include Rubex::AST::Statement::IfBlock::Helper
 
-          def initialize statements
+          def initialize statements, location
+            super(location)
             @statements = statements
           end
 
@@ -398,6 +425,7 @@ module Rubex
           end
 
           def generate_code code, local_scope
+            super
             generate_code_for_statement "else", code, local_scope
           end
         end # class Else
@@ -409,7 +437,8 @@ module Rubex
                     :statements, :order
 
         def initialize left_expr, left_op, middle, right_op, right_expr,
-          statements
+          statements, location
+          super(location)
           @left_expr, @left_op, @middle, @right_op, @right_expr =
             left_expr, left_op, middle, right_op, right_expr
           @statements, @order = statements, order
@@ -425,6 +454,7 @@ module Rubex
         end
 
         def generate_code code, local_scope
+          super
           code << for_loop_header(local_scope)
           code.block do
             @statements.each do |stat|
@@ -464,7 +494,8 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :expr, :statements
 
-        def initialize expr, statements
+        def initialize expr, statements, location
+          super(location)
           @expr, @statements = expr, statements
         end
 
@@ -476,6 +507,7 @@ module Rubex
         end
 
         def generate_code code, local_scope
+          super
           stmt = "while (#{@expr.c_code(local_scope)})"
           code << stmt
           code.block do
@@ -490,7 +522,8 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :new_name, :type, :old_name
 
-        def initialize new_name, old_name
+        def initialize new_name, old_name, location
+          super(location)
           @new_name, @old_name = new_name, old_name
           Rubex::CUSTOM_TYPES[@new_name] = @new_name
         end

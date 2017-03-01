@@ -19,6 +19,12 @@ module Rubex
       write_func_prototype return_type, c_name, args
     end
 
+    def write_location location
+      new_line
+      @code << "/* Rubex file location: #{location} */"
+      new_line
+    end
+
     def declare_variable var
       @code << " "*@indent + "#{var.type.to_s} #{var.c_name};"
       new_line

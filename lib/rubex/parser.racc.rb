@@ -24,8 +24,13 @@ def parse file_name
   @lexer.parse_file file_name
 end
 
+def location
+  @location
+end
+
 def next_token
   t = @lexer.next_token
+  @location = @lexer.location
 
   if !t.nil?
     if t[0] == :tIDENTIFIER
@@ -114,18 +119,18 @@ def unary_op val
 end
 
 def op_assign val # expr, op_assign, expr => expr = expr op expr
-  Statement::Assign.new(val[0], binary_op([val[0], val[1][0], val[2]]))
+  Statement::Assign.new(val[0], binary_op([val[0], val[1][0], val[2]]), location)
 end
 
 def node_variable dtype, di
   if di[:name].is_a? Expression::ArrayRef
-    var = Statement::CArrayDecl.new(dtype, di[:name], di[:value])
+    var = Statement::CArrayDecl.new(dtype, di[:name], di[:value], location)
   elsif di[:pointer]
     if di[:pointer] == '*'
-      var = Statement::CPtrDecl.new(dtype, di[:name], di[:value])
+      var = Statement::CPtrDecl.new(dtype, di[:name], di[:value], location)
     end
   else
-    var = Statement::VarDecl.new(dtype, di[:name], di[:value])
+    var = Statement::VarDecl.new(dtype, di[:name], di[:value], location)
   end
 
   var
@@ -1113,14 +1118,14 @@ module_eval(<<'.,.,', 'parser.racc', 106)
 
 module_eval(<<'.,.,', 'parser.racc', 114)
   def _reduce_27(val, _values, result)
-     result = Statement::Return.new val[1] 
+     result = Statement::Return.new val[1], location 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 115)
   def _reduce_28(val, _values, result)
-     result = Statement::Print.new val[1] 
+     result = Statement::Print.new val[1], location 
     result
   end
 .,.,
@@ -1128,7 +1133,7 @@ module_eval(<<'.,.,', 'parser.racc', 115)
 module_eval(<<'.,.,', 'parser.racc', 118)
   def _reduce_29(val, _values, result)
             match = val[0]
-        result = Statement::Assign.new match[:name], match[:value]
+        result = Statement::Assign.new match[:name], match[:value], location
       
     result
   end
@@ -1136,7 +1141,7 @@ module_eval(<<'.,.,', 'parser.racc', 118)
 
 module_eval(<<'.,.,', 'parser.racc', 123)
   def _reduce_30(val, _values, result)
-            result = Statement::IfBlock.new val[1], [*val[3]], [*val[4]]
+            result = Statement::IfBlock.new val[1], [*val[3]], [*val[4]], location
       
     result
   end
@@ -1144,14 +1149,14 @@ module_eval(<<'.,.,', 'parser.racc', 123)
 
 module_eval(<<'.,.,', 'parser.racc', 125)
   def _reduce_31(val, _values, result)
-     result = Statement::IfBlock.new val[2], [*val[0]], [] 
+     result = Statement::IfBlock.new val[2], [*val[0]], [], location 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 128)
   def _reduce_32(val, _values, result)
-            result = Statement::For.new *val[1], val[3]
+            result = Statement::For.new *val[1], val[3], location
       
     result
   end
@@ -1159,7 +1164,7 @@ module_eval(<<'.,.,', 'parser.racc', 128)
 
 module_eval(<<'.,.,', 'parser.racc', 130)
   def _reduce_33(val, _values, result)
-     result = Statement::While.new val[1], val[3] 
+     result = Statement::While.new val[1], val[3], location 
     result
   end
 .,.,
@@ -1174,7 +1179,7 @@ module_eval(<<'.,.,', 'parser.racc', 131)
 module_eval(<<'.,.,', 'parser.racc', 134)
   def _reduce_35(val, _values, result)
             add_dtype_to_lexer val[1]
-        result = Statement::CStructOrUnionDef.new val[0], val[1], val[4]
+        result = Statement::CStructOrUnionDef.new val[0], val[1], val[4], location
       
     result
   end
@@ -1193,7 +1198,7 @@ module_eval(<<'.,.,', 'parser.racc', 143)
   def _reduce_38(val, _values, result)
           val.flatten!
       add_dtype_to_lexer val[1]
-      result = Statement::ForwardDecl.new val[0], val[1]
+      result = Statement::ForwardDecl.new val[0], val[1], location
     
     result
   end
@@ -1313,7 +1318,7 @@ module_eval(<<'.,.,', 'parser.racc', 203)
 
 module_eval(<<'.,.,', 'parser.racc', 206)
   def _reduce_57(val, _values, result)
-            result = Statement::IfBlock::Elsif.new val[1], [*val[3]], [*val[4]]
+            result = Statement::IfBlock::Elsif.new val[1], [*val[3]], [*val[4]], location
       
     result
   end
@@ -1321,7 +1326,7 @@ module_eval(<<'.,.,', 'parser.racc', 206)
 
 module_eval(<<'.,.,', 'parser.racc', 210)
   def _reduce_58(val, _values, result)
-     result = Statement::IfBlock::Else.new val[1] 
+     result = Statement::IfBlock::Else.new val[1], location 
     result
   end
 .,.,
