@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Rubex do
   path = 'spec/fixtures/var_declarations/var_declarations'
 
-  context "Rubex Ruby method with variable initialization and declaration file #{path}", focus: true do
+  context "Rubex Ruby method with variable initialization and declaration file #{path}" do
     context ".ast" do
       it "generates a valid AST" do
         t = Rubex.ast(path + '.rubex')

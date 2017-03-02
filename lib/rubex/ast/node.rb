@@ -30,7 +30,7 @@ module Rubex
         code << "#include <ruby.h>\n"
         code << "#include <stdint.h>\n"
         @scope.include_files.each do |name|
-          code << "#include <#{name}.h>\n"
+          code << "#include #{name}\n"
         end
         declare_types code
         # declare_extern_c_functions code

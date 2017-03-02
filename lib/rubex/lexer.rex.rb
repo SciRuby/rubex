@@ -126,6 +126,8 @@ class Rubex::Lexer
             action { [:tFLOAT, text] }
           when text = ss.scan(/#{INTEGER}/) then
             action { [:tINTEGER, text] }
+          when ss.skip(/#{DQUOTE}/) then
+            action { @state = :STRING_LITERAL; @string_text = ""; nil }
           when text = ss.scan(/#{STATIC_ARRAY}/) then
             action { [:kSTATIC_ARRAY, text] }
           when text = ss.scan(/#{FOR}/) then
@@ -228,6 +230,26 @@ class Rubex::Lexer
             # do nothing
           when ss.skip(/\s+/) then
             # do nothing
+          else
+            text = ss.string[ss.pos .. -1]
+            raise ScanError, "can not match (#{state.inspect}) at #{location}: '#{text}'"
+          end
+        when :STRING_LITERAL then
+          case
+          when text = ss.scan(/[^\\"]./) then
+            action { @string_text << text; puts ">>>>>> #{@string_text}" }
+          when ss.skip(/#{DQUOTE}/) then
+            action { @state = nil; return [:tSTRING, @string_text] }
+          when text = ss.scan(/\\/) then
+            action { @state = :STRING_LITERAL_BSLASH; @string_text << text }
+          else
+            text = ss.string[ss.pos .. -1]
+            raise ScanError, "can not match (#{state.inspect}) at #{location}: '#{text}'"
+          end
+        when :STRING_LITERAL_BSLASH then
+          case
+          when text = ss.scan(/./) then
+            action { @state = :STRING_LITERAL; @string_text << text }
           else
             text = ss.string[ss.pos .. -1]
             raise ScanError, "can not match (#{state.inspect}) at #{location}: '#{text}'"
