@@ -48,7 +48,6 @@ rule
   c_bindings:
     kLIB tSTRING kDO terms c_declarations kEND
       {
-        puts ">>>>>> #{val[1]}"
         result = CBindings.new val[1], val[4]
       }
 

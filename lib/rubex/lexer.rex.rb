@@ -237,7 +237,7 @@ class Rubex::Lexer
         when :STRING_LITERAL then
           case
           when text = ss.scan(/[^\\"]./) then
-            action { @string_text << text; puts ">>>>>> #{@string_text}" }
+            action { @string_text << text;  }
           when ss.skip(/#{DQUOTE}/) then
             action { @state = nil; return [:tSTRING, @string_text] }
           when text = ss.scan(/\\/) then

@@ -1,10 +1,10 @@
 def strings
   char* s = "My name is Ted."
-  obj = "My name is also Ted."
+  obj = "Ted says \"Oh my God thats a big sandwich!\""
   int a = 4
   float b = 5.6
 
-  print "The number a is : #{a}\nThe number b is: #{b}"
+  print "The number a is : #{a}\nThe number b is: #{b}.\n Their sum is #{a+b}."
 
   return obj
 end
