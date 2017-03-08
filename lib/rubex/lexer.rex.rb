@@ -236,12 +236,12 @@ class Rubex::Lexer
           end
         when :STRING_LITERAL then
           case
-          when text = ss.scan(/[^\\"]./) then
-            action { @string_text << text;  }
           when ss.skip(/#{DQUOTE}/) then
             action { @state = nil; return [:tSTRING, @string_text] }
+          when text = ss.scan(/[^"\\]/) then
+            action { @string_text << text; puts "#{@string_text}"; nil }
           when text = ss.scan(/\\/) then
-            action { @state = :STRING_LITERAL_BSLASH; @string_text << text }
+            action { @state = :STRING_LITERAL_BSLASH; @string_text << text; nil }
           else
             text = ss.string[ss.pos .. -1]
             raise ScanError, "can not match (#{state.inspect}) at #{location}: '#{text}'"
@@ -249,7 +249,7 @@ class Rubex::Lexer
         when :STRING_LITERAL_BSLASH then
           case
           when text = ss.scan(/./) then
-            action { @state = :STRING_LITERAL; @string_text << text }
+            action { @state = :STRING_LITERAL; @string_text << text; nil }
           else
             text = ss.string[ss.pos .. -1]
             raise ScanError, "can not match (#{state.inspect}) at #{location}: '#{text}'"

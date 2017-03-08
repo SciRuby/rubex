@@ -167,7 +167,17 @@ module Rubex
           end
         end
 
-        # class Str; include Rubex::AST::Expression::Literal;  end
+        class Str
+          include Rubex::AST::Expression::Literal
+
+          def type
+            Rubex::DataType::Str.new
+          end
+
+          def c_code local_scope
+            
+          end
+        end
 
         class Char
           include Rubex::AST::Expression::Literal

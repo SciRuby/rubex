@@ -12,7 +12,7 @@ module Rubex
         :lint?, :ulint?, :llint?, :ullint?,
         :char?, :object?, :bool?, :carray?,
         :cptr?, :nil_type?, :struct_or_union?,
-        :alias_type?
+        :alias_type?, :string?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -424,6 +424,12 @@ module Rubex
       def to_s
         @new_name
       end
+    end
+
+    class Str
+      include Helpers
+
+      def string?; true; end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64
