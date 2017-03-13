@@ -1,0 +1,19 @@
+lib "<ruby/encoding.h>" do
+  struct rb_encoding do
+
+  end
+
+  rb_encoding *rb_enc_from_index(int)
+  unsigned int rb_enc_codepoint(char *, char *, rb_encoding *)
+  int ENCODING_GET(object)
+end
+
+def test_function string
+  rb_enconding *enc
+  unsigned int cc
+
+  enc = rb_enc_from_index(ENCODING_GET(string))
+  cc = rb_enc_codepoint(s, e, enc)
+
+  return cc
+end
