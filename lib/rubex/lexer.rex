@@ -76,7 +76,7 @@ rules
 
                   /#{DQUOTE}/     { @state = :STRING_LITERAL; @string_text = ""; nil }
   :STRING_LITERAL /#{DQUOTE}/     { @state = nil; return [:tSTRING, @string_text] }
-  :STRING_LITERAL /[^"\\]/        { @string_text << text; puts "#{@string_text}"; nil }
+  :STRING_LITERAL /[^"\\]/        { @string_text << text; nil }
   :STRING_LITERAL /\\/          { @state = :STRING_LITERAL_BSLASH; @string_text << text; nil }
   :STRING_LITERAL_BSLASH /./      { @state = :STRING_LITERAL; @string_text << text; nil }
 

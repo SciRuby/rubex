@@ -239,7 +239,7 @@ class Rubex::Lexer
           when ss.skip(/#{DQUOTE}/) then
             action { @state = nil; return [:tSTRING, @string_text] }
           when text = ss.scan(/[^"\\]/) then
-            action { @string_text << text; puts "#{@string_text}"; nil }
+            action { @string_text << text; nil }
           when text = ss.scan(/\\/) then
             action { @state = :STRING_LITERAL_BSLASH; @string_text << text; nil }
           else

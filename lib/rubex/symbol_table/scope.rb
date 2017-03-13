@@ -65,7 +65,6 @@ module Rubex
         else
           c_name = Rubex::C_FUNC_PREFIX + name
         end
-        function.type.c_name = c_name
         entry = Rubex::SymbolTable::Entry.new(name, c_name, function.type, nil)
         entry.extern = function.extern
         @entries[name] = entry

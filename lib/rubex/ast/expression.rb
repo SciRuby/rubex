@@ -246,7 +246,7 @@ module Rubex
         def analyse_statement local_scope
           entry = local_scope.find(@method_name)
           if entry && entry.extern? # a symtab entry for a predeclared extern func
-            @type = entry.type.type
+            @type = entry.type
           else
             @type = Rubex::DataType::RubyObject.new
           end
@@ -255,9 +255,9 @@ module Rubex
         def c_code local_scope
           entry = local_scope.find(@method_name)
           if entry
-            code_for_c_method_call local_scope, entry
+            return code_for_c_method_call(local_scope, entry)
           else
-            code_for_ruby_method_call local_scope
+            return code_for_ruby_method_call(local_scope)
           end
         end
 

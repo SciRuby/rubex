@@ -29,11 +29,24 @@ module Rubex
         def analyse_statement local_scope, extern: false
           @extern = extern
           @args.map! do |a|
-            Rubex::TYPE_MAPPINGS[a].new || Rubex::CUSTOM_TYPES[a]
+            determine_dtype a
           end
-          ret_t = Rubex::TYPE_MAPPINGS[@type].new || Rubex::CUSTOM_TYPES[@type]
-          @type = Rubex::DataType::CFunction.new @name, @args, ret_t
+          @type = determine_dtype @type
           local_scope.declare_cfunction self
+        end
+
+      private
+
+        def determine_dtype dtype_or_ptr
+          if dtype_or_ptr[-1] == "*"
+            Rubex::DataType::CPtr.new simple_dtype(dtype_or_ptr[0...-1])
+          else
+            simple_dtype(dtype_or_ptr)
+          end
+        end
+
+        def simple_dtype dtype
+          Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new
         end
       end # class CFunctionDecl
     end # class CBindings

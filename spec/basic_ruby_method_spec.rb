@@ -25,7 +25,6 @@ describe Rubex do
     context ".compile" do
       it "generates valid C code" do
         t, c, e = Rubex.compile @path + "basic_ruby_method.rubex", true
-        puts c
         expect(c.to_s).to eq(File.read(@path + "basic_ruby_method.c"))
       end
     end

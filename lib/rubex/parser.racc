@@ -71,11 +71,14 @@ rule
     dtype opt_star { result = val.join }
 
   alias_stmt:
-    kALIAS tIDENTIFIER tASSIGN aliased_type
+    kALIAS ident_or_custom_dtype tASSIGN aliased_type
       {
         add_dtype_to_lexer val[1]
         result = Statement::Alias.new val[1], val[3], location
       }
+
+  ident_or_custom_dtype:
+    tIDENTIFIER | tCUSTOM_DTYPE {}
 
   aliased_type:
     dtype

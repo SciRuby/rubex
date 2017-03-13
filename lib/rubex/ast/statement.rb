@@ -328,6 +328,8 @@ module Rubex
             if @lhs.type.cptr?
               if @lhs.type.type.char? && @rhs.type.object?
                 str << "StringValueCStr(#{@rhs.c_code(local_scope)})"
+              else
+                str << "#{@rhs.c_code(local_scope)}"  
               end
             else
               str << "#{@rhs.c_code(local_scope)}"
@@ -538,7 +540,7 @@ module Rubex
 
           @type = Rubex::DataType::TypeDef.new(base_type, @new_name, base_type)
           Rubex::CUSTOM_TYPES[@new_name] = @type
-          local_scope.declare_type self
+          local_scope.declare_type self if original != @new_name
         end
 
         def generate_code code, local_scope

@@ -9,7 +9,7 @@ describe Rubex do
     end
 
     it "compiles to C." do
-      t, c, e = Rubex.compile(path + '.rubex', true)
+      t, c, e = Rubex.compile(path + '.rubex')
     end
   end
 end

@@ -11,7 +11,7 @@ describe Rubex do
         t = Rubex.ast(@path + '.rubex')
       end
     end
-    context ".compile" do
+    context ".compile", focus: true do
       it "compiles to valid C file" do
         t,c,e = Rubex.compile(@path + '.rubex', true)
         expect_compiled_code(c, @path + ".c")
