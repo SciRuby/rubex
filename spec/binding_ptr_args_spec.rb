@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Rubex do
   path = "spec/fixtures/binding_ptr_args/binding_ptr_args"
 
-	context "String literals. File: #{path}", focus: true do
+	context "Pointer dtypes in C bindings. File: #{path}", focus: true do
     it "generates the AST." do
       t = Rubex.ast(path + '.rubex')
     end

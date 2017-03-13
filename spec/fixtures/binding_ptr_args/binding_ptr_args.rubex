@@ -8,8 +8,8 @@ lib "<ruby/encoding.h>" do
   int ENCODING_GET(object)
 end
 
-def test_function string
-  rb_enconding *enc
+def test_function(string)
+  rb_encoding *enc
   unsigned int cc
 
   enc = rb_enc_from_index(ENCODING_GET(string))

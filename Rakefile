@@ -10,7 +10,7 @@ task :lexer  => "lib/rubex/lexer.rex.rb"
 
 desc "Generate Parser"
 task :parser => :lexer do
-  `racc lib/rubex/parser.racc -o lib/rubex/parser.racc.rb`
+  `racc -v -t lib/rubex/parser.racc -o lib/rubex/parser.racc.rb`
 end
 
 # -v -> verbose

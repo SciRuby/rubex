@@ -52,19 +52,23 @@ rule
       }
 
   c_declarations:
-    c_declaration { result = [val[0]] }
-  | c_declarations c_declaration { result = [*val[0], val[1]] }
+    c_declaration opt_terms { result = [val[0]] }
+  | c_declarations c_declaration opt_terms { result = [*val[0], val[1]] }
 
   c_declaration:
-    dtype tIDENTIFIER tLPAREN dtype_list tRPAREN terms
+    dtype_or_ptr tIDENTIFIER tLPAREN dtype_list tRPAREN
       {
         result = CBindings::CFunctionDecl.new val[0], val[1], val[3]
       }
-  | kSTRUCT tIDENTIFIER kDO var_decl_stmts kEND terms
+  | kSTRUCT tIDENTIFIER kDO var_decl_stmts kEND
       {
+        add_dtype_to_lexer val[1]
         result = Statement::CStructOrUnionDef.new val[0], val[1], val[3], location
       }
-  | alias_stmt terms
+  | alias_stmt
+
+  dtype_or_ptr:
+    dtype opt_star { result = val.join }
 
   alias_stmt:
     kALIAS tIDENTIFIER tASSIGN aliased_type
@@ -79,8 +83,8 @@ rule
 
   dtype_list:
     { result = [] }
-  | dtype { result = [val[0]] }
-  | dtype_list tCOMMA dtype { result = [*val[0], val[2]] }
+  | dtype_or_ptr { result = [val[0]] }
+  | dtype_list tCOMMA dtype_or_ptr { result = [*val[0], val[2]] }
 
   methods:
     ruby_method { result = val[0] }
@@ -157,7 +161,7 @@ rule
     var_decls opt_terms
       {
         declarations = []
-        val[0].each do |data|
+        val[0]&.each do |data|
           dtype = data[:dtype]
           data[:decl].each do |d|
             declarations << node_variable(dtype, d)
@@ -428,9 +432,10 @@ def next_token
     if t[0] == :tIDENTIFIER
       if @custom_dtypes.has_key?(t[1]) && !(@prev_token[0] == :kSTRUCT)
         t = [:tCUSTOM_DTYPE, t[1]]
+      else
+        t = check_for_primitive_dtype(t)
+        t = check_for_keyword(t)
       end
-      t = check_for_primitive_dtype(t)
-      t = check_for_keyword(t)
     end
   end
 
@@ -510,7 +515,8 @@ def unary_op val
   Expression::Unary.new val[0], val[1]
 end
 
-def op_assign val # expr, op_assign, expr => expr = expr op expr
+# expr, op_assign, expr => expr = expr op expr
+def op_assign val
   Statement::Assign.new(val[0], binary_op([val[0], val[1][0], val[2]]), location)
 end
 
