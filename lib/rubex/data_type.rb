@@ -235,6 +235,16 @@ module Rubex
       def from_ruby_function(arg); "(unsigned int)NUM2UINT(#{arg})"; end
 
       def uint?; true; end
+
+      def <=> other
+        if other.char? || other.int8? || other.int16? || other.uint8? || other.uint16?
+          return 1
+        elsif other.uint? || other.int? || other.int32? || other.uint32?
+          return 0
+        else
+          return -1
+        end
+      end
     end
 
     class LInt
@@ -375,6 +385,10 @@ module Rubex
       def from_ruby_function arg
         return "StringValueCStr(#{arg})" if @type.char?
         arg
+      end
+
+      def <=> other
+        return -1
       end
     end
 

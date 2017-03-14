@@ -20,6 +20,7 @@ module Rubex
 
         def initialize left, operator, right
           @left, @operator, @right = left, operator, right
+          @@analyse_visited = []
         end
 
         def analyse_statement local_scope
@@ -44,8 +45,21 @@ module Rubex
         def analyse_left_and_right_nodes local_scope, tree
           if tree.respond_to?(:left)
             analyse_left_and_right_nodes local_scope, tree.left
-            tree.left.analyse_statement(local_scope)
-            tree.right.analyse_statement(local_scope)
+
+            if !@@analyse_visited.include?(tree.left.object_id)
+              tree.left.analyse_statement(local_scope)
+              @@analyse_visited << tree.left.object_id
+            end
+            
+            if !@@analyse_visited.include?(tree.right.object_id)
+              tree.right.analyse_statement(local_scope)
+              @@analyse_visited << tree.right.object_id
+            end
+
+            @@analyse_visited << tree.object_id
+
+            ap @analyse_visited
+
             analyse_left_and_right_nodes local_scope, tree.right
           end
         end
@@ -55,7 +69,7 @@ module Rubex
             analyse_return_type local_scope, tree.left
             analyse_return_type local_scope, tree.right
 
-            if ['==', '<', '>', '<=', '>='].include? tree.operator
+            if ['==', '<', '>', '<=', '>=', '||', '&&'].include? tree.operator
               tree.type = Rubex::DataType::Boolean.new
             else
               if tree.left.type.bool? || tree.right.type.bool?

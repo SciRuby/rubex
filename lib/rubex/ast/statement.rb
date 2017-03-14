@@ -344,6 +344,7 @@ module Rubex
       class IfBlock
         module Helper
           def analyse_statement local_scope
+            # binding.pry
             @expr.analyse_statement(local_scope)
             @statements.each do |stat|
               stat.analyse_statement local_scope
