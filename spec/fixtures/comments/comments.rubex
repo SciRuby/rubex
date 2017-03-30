@@ -1,8 +1,8 @@
 # This is a comment
 
-class Hello # So is this
-  def crazy
-    # And this
-    int i = 4 # ... and this
-  end # This is a comment too
-end
+def crazy # so is this
+  # And this
+  int i = 4 # ... and this
+end # This is a comment too
+
+# This is the end

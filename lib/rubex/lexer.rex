@@ -38,6 +38,7 @@ macros
   FLOAT           /-?\d+\.\d+/
   DOT             /\./
   QMARK           /\?/
+  OCTOTHORP       /#/
 
   # operators
 
@@ -79,6 +80,12 @@ rules
   :STRING_LITERAL /[^"\\]/        { @string_text << text; nil }
   :STRING_LITERAL /\\/          { @state = :STRING_LITERAL_BSLASH; @string_text << text; nil }
   :STRING_LITERAL_BSLASH /./      { @state = :STRING_LITERAL; @string_text << text; nil }
+
+  # Comments
+
+             /#{OCTOTHORP}/ { @state = :COMMENT; nil }
+  :COMMENT   /./           { @state = :COMMENT; nil }
+  :COMMENT   /\n/       { @state = nil; }
 
   # Reserved words
 

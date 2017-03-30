@@ -85,10 +85,6 @@ module Rubex
       end
     end
 
-    # class CString
-    #   # TODO: define string behaviour.
-    # end
-
     class Int8
       include IntHelpers
 
@@ -440,10 +436,11 @@ module Rubex
       end
     end
 
-    class Str
+    class CStr
       include Helpers
 
       def string?; true; end
+      
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64

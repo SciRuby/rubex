@@ -41,6 +41,7 @@ class Rubex::Lexer
   FLOAT         = /-?\d+\.\d+/
   DOT           = /\./
   QMARK         = /\?/
+  OCTOTHORP     = /#/
   EXPO          = /\*\*/
   EXPOASSIGN    = /\*\*=/
   STAR          = /\*/
@@ -128,6 +129,8 @@ class Rubex::Lexer
             action { [:tINTEGER, text] }
           when ss.skip(/#{DQUOTE}/) then
             action { @state = :STRING_LITERAL; @string_text = ""; nil }
+          when ss.skip(/#{OCTOTHORP}/) then
+            action { @state = :COMMENT; nil }
           when text = ss.scan(/#{STATIC_ARRAY}/) then
             action { [:kSTATIC_ARRAY, text] }
           when text = ss.scan(/#{FOR}/) then
@@ -250,6 +253,16 @@ class Rubex::Lexer
           case
           when text = ss.scan(/./) then
             action { @state = :STRING_LITERAL; @string_text << text; nil }
+          else
+            text = ss.string[ss.pos .. -1]
+            raise ScanError, "can not match (#{state.inspect}) at #{location}: '#{text}'"
+          end
+        when :COMMENT then
+          case
+          when ss.skip(/./) then
+            action { @state = :COMMENT; nil }
+          when ss.skip(/\n/) then
+            action { @state = nil; }
           else
             text = ss.string[ss.pos .. -1]
             raise ScanError, "can not match (#{state.inspect}) at #{location}: '#{text}'"

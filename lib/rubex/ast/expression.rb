@@ -185,7 +185,7 @@ module Rubex
           include Rubex::AST::Expression::Literal
 
           def type
-            Rubex::DataType::Str.new
+            Rubex::DataType::CStr.new
           end
 
           def c_code local_scope
