@@ -23,7 +23,10 @@ module Rubex
 
       class VarDecl
         include Rubex::AST::Statement
-        attr_reader :type, :name, :c_name, :value, :extern
+        # The name with which this particular variable can be identified with
+        #   in the symbol table.
+        attr_reader :name
+        attr_reader :type, :value
 
         def initialize type, name, value, location
           super(location)
@@ -42,17 +45,11 @@ module Rubex
           else
             raise "Cannot decipher type #{@type}"
           end
-          @extern = extern
-          if @extern
-            @c_name = @name
-          else
-            @c_name = Rubex::VAR_PREFIX + name
-          end
+          c_name = extern ? @name : Rubex::VAR_PREFIX + @name
+          @value.analyse_statement(local_scope) if @value
 
-          local_scope.declare_var self
-          if @value.is_a? Rubex::AST::Expression
-            @value.analyse_statement local_scope
-          end
+          local_scope.declare_var name: @name, c_name: c_name, type: @type,
+            value: @value, extern: extern
         end
 
         def rescan_declarations scope
@@ -69,7 +66,7 @@ module Rubex
 
       class CPtrDecl
         include Rubex::AST::Statement
-        attr_reader :type, :name, :value, :c_name, :extern
+        attr_reader :type, :name, :value
 
         def initialize dtype, name, value, location
           super(location)
@@ -86,16 +83,12 @@ module Rubex
           else
             raise "Cannot decipher type #{@type}"
           end
-
-          @extern = extern
-          if @extern
-            @c_name = @name
-          else
-            @c_name = Rubex::POINTER_PREFIX + @name
-          end
+          c_name = extern ? @name : Rubex::POINTER_PREFIX + @name
           @type = CPtr.new @type
-          @value.analyse_statement(local_scope) unless @value.nil?
-          local_scope.declare_var self
+          @value.analyse_statement(local_scope) if @value
+
+          local_scope.declare_var name: @name, c_name: c_name, type: @type,
+            value: @value, extern: extern
         end
 
         def rescan_declarations scope
@@ -240,29 +233,46 @@ module Rubex
 
       class Print
         include Rubex::AST::Statement
-        attr_reader :expression, :type
 
-        def initialize expression, location
+        # An Array containing expressions that are passed to the print statement.
+        #   Can either contain a single string containing interpolated exprs or
+        #   a set of comma separated exprs. For example, the print statement can
+        #   either be of like:
+        #     print "Hello #{a} world!"
+        #   OR
+        #     print "Hello", a, " world!"
+        attr_reader :expressions
+
+        def initialize expressions, location
           super(location)
-          @expression = expression
+          @expressions = expressions
         end
 
         def analyse_statement local_scope
-          if @expression.is_a? Rubex::AST::Expression
-            @expression.analyse_statement(local_scope)
-            @type = @expression.type
-          elsif local_scope.has_entry? @expression
-            @expression = local_scope[@expression]
-            @type = @expression.type
+          @expressions.each do |expr|
+            expr.analyse_statement local_scope
           end
-
-          @type = @type.type if @type.carray?
         end
 
         def generate_code code, local_scope
           super
+          str = "printf("
+          if @expressions.size == 1 && @expressions.type.cstr?
+            str << resolve_cstring_interpolations_if_any
+          else
+
+          end
           code << @type.printf(@expression.c_code(local_scope))
           code.nl
+        end
+
+      private
+        def resolve_cstring_interpolations_if_any
+          string = @expressions[0]
+
+          string.each_char do |c|
+            
+          end
         end
       end # class Print
 

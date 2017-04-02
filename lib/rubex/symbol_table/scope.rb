@@ -32,12 +32,10 @@ module Rubex
       end
 
       # vars - Rubex::AST::Statement::VarDecl/CPtrDecl
-      def declare_var var
-        entry = Rubex::SymbolTable::Entry.new(
-          var.name, var.c_name, var.type, var.value)
+      def declare_var(name: "", c_name: "", type: nil, value: nil, extern: false)
+        entry = Rubex::SymbolTable::Entry.new(name, c_name, type, value)
 
-        name = var.name
-        entry.extern = var.extern
+        entry.extern = extern
         check_entry name
         @entries[name] = entry
         @var_entries << entry

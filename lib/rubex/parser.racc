@@ -120,7 +120,7 @@ rule
         result = variables
       }
   | kRETURN expr { result = Statement::Return.new val[1], location }
-  | kPRINT expr { result = Statement::Print.new val[1], location }
+  | kPRINT command_arg_list { result = Statement::Print.new val[1], location }
   | normal_init
       {
         match = val[0]
