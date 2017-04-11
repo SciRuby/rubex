@@ -282,6 +282,8 @@ module Rubex
           format_string
         end
 
+        # Method not currently in use. Will be after string interpolation using
+        # a Ruby-like #{} syntax is figured out.
         def resolve_cstring_interpolations_if_any
           string = @expressions[0].name
           i = 0
@@ -338,7 +340,7 @@ module Rubex
         def generate_code code, local_scope
           super
           code << "return "
-          code << @type.to_ruby_function("#{@expression.c_code(local_scope)}") + ";"
+          code << @type.to_ruby_object("#{@expression.c_code(local_scope)}") + ";"
           code.nl
         end
       end # class Return
@@ -373,16 +375,16 @@ module Rubex
           str = "#{@lhs.c_code(local_scope)} = "
           if @ruby_obj_init
             if @rhs.is_a?(Rubex::AST::Expression::Literal::Char)
-              str << "#{@rhs.type.to_ruby_function(@rhs.c_code(local_scope), true)}"
+              str << "#{@rhs.type.to_ruby_object(@rhs.c_code(local_scope), true)}"
             else
-              str << "#{@rhs.type.to_ruby_function(@rhs.c_code(local_scope))}"
+              str << "#{@rhs.type.to_ruby_object(@rhs.c_code(local_scope))}"
             end
           else
             if @lhs.type.cptr?
               if @lhs.type.type.char? && @rhs.type.object?
                 str << "StringValueCStr(#{@rhs.c_code(local_scope)})"
               else
-                str << "#{@rhs.c_code(local_scope)}"  
+                str << "#{@rhs.c_code(local_scope)}"
               end
             else
               str << "#{@rhs.c_code(local_scope)}"

@@ -144,7 +144,7 @@ module Rubex
 
       def init_args code
         @scope.arg_entries.each_with_index do |arg, i|
-          code << arg.c_name + '=' + arg.type.from_ruby_function("argv[#{i}]")
+          code << arg.c_name + '=' + arg.type.from_ruby_object("argv[#{i}]")
           code << ";"
           code.nl
         end
@@ -152,8 +152,19 @@ module Rubex
 
       def init_vars code
         @scope.var_entries.select { |v| v.value }.each do |var|
-          code.init_variable var, @scope
+          init_variable code, var
         end
+      end
+
+      def init_variable code, var
+        rhs = var.value.c_code(@scope)
+        if var.value.type.object?
+          rhs = "#{var.type.from_ruby_object(rhs)}"
+        end
+        rhs = "(#{var.type.to_s})(#{rhs})"
+        lhs = var.c_name
+
+        code.init_variable lhs: lhs, rhs: rhs
       end
 
       def declare_carrays_using_init_var_value code

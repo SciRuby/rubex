@@ -42,13 +42,8 @@ module Rubex
       nl
     end
 
-    def init_variable var, local_scope=nil
-      rhs = var.value.c_code(local_scope)
-      if var.value.type.object?
-        rhs = "#{var.type.from_ruby_function(rhs)}"
-      end
-      rhs = "(#{var.type.to_s})(#{rhs})"
-      stat = " "*@indent + "#{var.c_name} = #{rhs};"
+    def init_variable lhs: lhs, rhs: rhs
+      stat = " "*@indent + "#{lhs} = #{rhs};"
       @code << stat
       new_line
     end

@@ -21,19 +21,19 @@ module Rubex
         self.class == other.class
       end
 
-      def to_ruby_function(arg); arg;  end
+      def to_ruby_object(arg); arg;  end
 
-      def from_ruby_function(arg); arg; end
+      def from_ruby_object(arg); arg; end
     end
 
     module IntHelpers
       include Helpers
-      def to_ruby_function(arg); "INT2NUM(#{arg})"; end
+      def to_ruby_object(arg); "INT2NUM(#{arg})"; end
     end
 
     module UIntHelpers
       include Helpers
-      def to_ruby_function(arg); "UINT2NUM(#{arg})"; end
+      def to_ruby_object(arg); "UINT2NUM(#{arg})"; end
     end
 
     module FloatHelpers
@@ -57,13 +57,13 @@ module Rubex
       include Helpers
       def to_s; "char";  end
 
-      def to_ruby_function(arg, literal=false)
+      def to_ruby_object(arg, literal=false)
         return "rb_str_new2(\"#{arg[1]}\")" if literal
 
         "rb_str_new2(&#{arg})"
       end
 
-      def from_ruby_function(arg); "(char)NUM2INT(#{arg})"; end
+      def from_ruby_object(arg); "(char)NUM2INT(#{arg})"; end
 
       def p_formatter; "%c"; end
 
@@ -83,7 +83,7 @@ module Rubex
 
       def to_s; "int8_t"; end
 
-      def from_ruby_function(arg); "(int8_t)NUM2INT(#{arg})"; end
+      def from_ruby_object(arg); "(int8_t)NUM2INT(#{arg})"; end
 
       def int8?; true; end
 
@@ -104,7 +104,7 @@ module Rubex
       include IntHelpers
       def to_s; "int16_t"; end
 
-      def from_ruby_function(arg); "(int16_t)NUM2INT(#{arg})"; end
+      def from_ruby_object(arg); "(int16_t)NUM2INT(#{arg})"; end
 
       def int16?; true; end
 
@@ -125,7 +125,7 @@ module Rubex
       include IntHelpers
       def to_s; "int32_t"; end
 
-      def from_ruby_function(arg); "(int32_t)NUM2INT(#{arg})"; end
+      def from_ruby_object(arg); "(int32_t)NUM2INT(#{arg})"; end
 
       def int32?; true; end
 
@@ -146,9 +146,9 @@ module Rubex
       include IntHelpers
       def to_s; "int64_t"; end
 
-      def to_ruby_function(arg); "LONG2NUM(#{arg})"; end
+      def to_ruby_object(arg); "LONG2NUM(#{arg})"; end
 
-      def from_ruby_function(arg); "(int64_t)NUM2LONG(#{arg})"; end
+      def from_ruby_object(arg); "(int64_t)NUM2LONG(#{arg})"; end
 
       def p_formatter; "%ld"; end
 
@@ -170,7 +170,7 @@ module Rubex
       include UIntHelpers
       def to_s; "uint8_t"; end
 
-      def from_ruby_function(arg); "(uint8_t)NUM2UINT(#{arg})"; end
+      def from_ruby_object(arg); "(uint8_t)NUM2UINT(#{arg})"; end
 
       def uint8?; true; end
 
@@ -181,7 +181,7 @@ module Rubex
       include UIntHelpers
       def to_s; "uint16_t"; end
 
-      def from_ruby_function(arg); "(uint16_t)NUM2UINT(#{arg})"; end
+      def from_ruby_object(arg); "(uint16_t)NUM2UINT(#{arg})"; end
 
       def uint16?; true; end
 
@@ -192,7 +192,7 @@ module Rubex
       include UIntHelpers
       def to_s; "uint32_t"; end
 
-      def from_ruby_function(arg); "(int32_t)NUM2UINT(#{arg})"; end
+      def from_ruby_object(arg); "(int32_t)NUM2UINT(#{arg})"; end
 
       def uint32?; true; end
 
@@ -203,9 +203,9 @@ module Rubex
       include UIntHelpers
       def to_s; "uint64_t"; end
 
-      def to_ruby_function(arg); "ULONG2NUM(#{arg})"; end
+      def to_ruby_object(arg); "ULONG2NUM(#{arg})"; end
 
-      def from_ruby_function(arg); "(int64_t)NUM2UINT(#{arg})"; end
+      def from_ruby_object(arg); "(int64_t)NUM2UINT(#{arg})"; end
 
       def uint64?; true; end
 
@@ -216,7 +216,7 @@ module Rubex
       include IntHelpers
       def to_s; "int"; end
 
-      def from_ruby_function(arg); "NUM2INT(#{arg})"; end
+      def from_ruby_object(arg); "NUM2INT(#{arg})"; end
 
       def int?; true; end
 
@@ -237,7 +237,7 @@ module Rubex
       include UIntHelpers
       def to_s; "unsigned int"; end
 
-      def from_ruby_function(arg); "(unsigned int)NUM2UINT(#{arg})"; end
+      def from_ruby_object(arg); "(unsigned int)NUM2UINT(#{arg})"; end
 
       def uint?; true; end
 
@@ -258,9 +258,9 @@ module Rubex
       include IntHelpers
       def to_s; "long int"; end
 
-      def to_ruby_function(arg); "LONG2NUM(#{arg})"; end
+      def to_ruby_object(arg); "LONG2NUM(#{arg})"; end
 
-      def from_ruby_function(arg); "NUM2LONG(#{arg})"; end
+      def from_ruby_object(arg); "NUM2LONG(#{arg})"; end
 
       def lint?; true; end
 
@@ -271,9 +271,9 @@ module Rubex
       include UIntHelpers
       def to_s; "unsigned long int"; end
 
-      def to_ruby_function(arg); "ULONG2NUM(#{arg})"; end
+      def to_ruby_object(arg); "ULONG2NUM(#{arg})"; end
 
-      def from_ruby_function(arg); "NUM2ULONG(#{arg})"; end
+      def from_ruby_object(arg); "NUM2ULONG(#{arg})"; end
 
       def ulint?; true; end
 
@@ -284,9 +284,9 @@ module Rubex
       include IntHelpers
       def to_s; "long long int"; end
 
-      def to_ruby_function(arg); "LL2NUM(#{arg})"; end
+      def to_ruby_object(arg); "LL2NUM(#{arg})"; end
 
-      def from_ruby_function(arg); "NUM2LL(#{arg})"; end
+      def from_ruby_object(arg); "NUM2LL(#{arg})"; end
 
       def llint?; true; end
 
@@ -297,9 +297,9 @@ module Rubex
       include UIntHelpers
       def to_s; "unsigned long long int"; end
 
-      def to_ruby_function(arg); "ULL2NUM(#{arg})"; end
+      def to_ruby_object(arg); "ULL2NUM(#{arg})"; end
 
-      def from_ruby_function(arg); "NUM2ULL(#{arg})"; end
+      def from_ruby_object(arg); "NUM2ULL(#{arg})"; end
 
       def ullint?; true; end
 
@@ -310,9 +310,9 @@ module Rubex
       include FloatHelpers
       def to_s; "float"; end
 
-      def to_ruby_function(arg); "rb_float_new((double)(#{arg}))"; end
+      def to_ruby_object(arg); "rb_float_new((double)(#{arg}))"; end
 
-      def from_ruby_function(arg); "(float)NUM2DBL(#{arg})"; end
+      def from_ruby_object(arg); "(float)NUM2DBL(#{arg})"; end
 
       def float32?; true; end
 
@@ -336,9 +336,9 @@ module Rubex
       include FloatHelpers
       def to_s; "double"; end
 
-      def to_ruby_function(arg); "rb_float_new(#{arg})"; end
+      def to_ruby_object(arg); "rb_float_new(#{arg})"; end
 
-      def from_ruby_function(arg); "NUM2DBL(#{arg})"; end
+      def from_ruby_object(arg); "NUM2DBL(#{arg})"; end
 
       def float64?; true; end
 
@@ -401,7 +401,7 @@ module Rubex
       end
 
       # from a Ruby function get a pointer to some value.
-      def from_ruby_function arg
+      def from_ruby_object arg
         return "StringValueCStr(#{arg})" if @type.char?
         arg
       end
@@ -465,14 +465,22 @@ module Rubex
       def cstr?; true; end
       
       def p_formatter; "%s"; end
+
+      def from_ruby_object arg
+        "StringValueCStr(#{arg})"
+      end
+
+      def to_ruby_object arg
+        "rb_str_new_cstr(#{arg})"
+      end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64
     #   def to_s; "long double"; end
 
-    #   def to_ruby_function(arg); "INT2NUM"; end
+    #   def to_ruby_object(arg); "INT2NUM"; end
 
-    #   def from_ruby_function(arg); "(int32_t)NUM2INT"; end
+    #   def from_ruby_object(arg); "(int32_t)NUM2INT"; end
     # end
   end
 end
