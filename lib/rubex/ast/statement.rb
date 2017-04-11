@@ -261,7 +261,7 @@ module Rubex
           # else
           super
           str = "printf("
-          str << prepare_format_string
+          str << "\"#{prepare_format_string}\""
           @expressions.each do |expr|
             str << ", #{expr.c_code(local_scope)}"
           end
