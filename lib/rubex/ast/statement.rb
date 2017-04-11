@@ -255,24 +255,67 @@ module Rubex
         end
 
         def generate_code code, local_scope
+          # if @expressions.size == 1 && @expressions[0].type.cstr?
+          #   exprs = resolve_cstring_interpolations_if_any
+          #   #TODO: figure out a way to parse the individual strings into AST nodes.
+          # else
           super
           str = "printf("
-          if @expressions.size == 1 && @expressions.type.cstr?
-            str << resolve_cstring_interpolations_if_any
-          else
-
+          str << prepare_format_string
+          @expressions.each do |expr|
+            str << ", #{expr.c_code(local_scope)}"
           end
-          code << @type.printf(@expression.c_code(local_scope))
+          str << ");"
+
+          code << str
           code.nl
         end
 
       private
-        def resolve_cstring_interpolations_if_any
-          string = @expressions[0]
 
-          string.each_char do |c|
-            
+        def prepare_format_string
+          format_string = ""
+          @expressions.each do |expr|
+            format_string << expr.type.p_formatter
           end
+
+          format_string
+        end
+
+        def resolve_cstring_interpolations_if_any
+          string = @expressions[0].name
+          i = 0
+          exprs = []
+
+          while i < string.size
+            if string[i] == "#"
+              i += 1
+
+              if string[i] == "{"
+                expr = ""
+                i += 1
+                while string[i] != "}"
+                  expr << string[i]
+                  i += 1
+                end
+                i += 1
+                exprs << expr
+              else # go back cuz if its just a # then its a part of string.
+                i -= 1
+              end
+            end
+
+            str_part = ""
+            while i < string.size
+              break if string[i] == "#"
+              str_part << string[i]
+              i += 1
+            end
+
+            exprs << str_part unless str_part.empty?
+          end
+
+          exprs
         end
       end # class Print
 

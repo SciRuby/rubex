@@ -58,8 +58,6 @@ module Rubex
 
             @@analyse_visited << tree.object_id
 
-            ap @analyse_visited
-
             analyse_left_and_right_nodes local_scope, tree.right
           end
         end
@@ -189,7 +187,7 @@ module Rubex
           end
 
           def c_code local_scope
-            
+            "\"#{@name}\""
           end
         end
 
