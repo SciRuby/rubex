@@ -602,7 +602,7 @@ module Rubex
         def generate_code code, local_scope
 
         end
-      end
+      end # class Alias
     end # module Statement
   end # module AST
 end # module Rubex

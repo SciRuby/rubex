@@ -8,7 +8,7 @@ describe Rubex do
       t = Rubex.ast(path + '.rubex')
     end
 
-    it "compiles to C.", focus: true do
+    it "compiles to C." do
       t, c, e = Rubex.compile(path + '.rubex', true)
     end
   end

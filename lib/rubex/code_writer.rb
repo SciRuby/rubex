@@ -42,7 +42,7 @@ module Rubex
       nl
     end
 
-    def init_variable lhs: lhs, rhs: rhs
+    def init_variable lhs: , rhs:
       stat = " "*@indent + "#{lhs} = #{rhs};"
       @code << stat
       new_line
