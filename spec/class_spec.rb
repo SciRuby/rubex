@@ -7,7 +7,7 @@ describe Rubex do
     end
 
     context ".ast" do
-      it "generates the AST", focus: true do
+      it "generates the AST" do
         t = Rubex.ast(@path + '.rubex')
         pp t
       end

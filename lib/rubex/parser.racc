@@ -34,20 +34,27 @@ preclow
 rule
 
   program:
-    topstmts opt_terms { result = Node.new(val[0]) }
+    top_compstmts opt_terms {result = Node.new(val[0])}
 
-  topstmts:
-    {}
-  | topstmt { result = [val[0]] }
-  | topstmts terms topstmt { result = [*val[0], val[2]] }
+  top_compstmts:
+    top_compstmt { result = [val[0]] }
+  | top_compstmts terms top_compstmt { result = [*val[0], val[2]] }
 
-  topstmt:
+  top_compstmt:
     c_bindings {}
-  | methods {}
+  | top_stmts terms { result = val[0] }
+
+  top_stmts:
+    {}
+  | top_stmt {}
+  | top_stmts terms top_stmt { result = [*val[0], val[2]] }
+
+  top_stmt:
+    methods {}
   | klass {}
 
   klass:
-    kCLASS tIDENTIFIER opt_inheritance terms methods kEND
+    kCLASS tIDENTIFIER opt_inheritance eol top_stmts terms kEND
       {
         result = TopStatement::Klass.new val[1], val[2], val[4]
       }
@@ -57,14 +64,14 @@ rule
   | tLT tIDENTIFIER { result = val[1] }
 
   c_bindings:
-    kLIB tSTRING kDO terms c_declarations kEND
+    kLIB tSTRING kDO eol c_declarations terms kEND
       {
         result = TopStatement::CBindings.new val[1], val[4]
       }
 
   c_declarations:
-    c_declaration opt_terms { result = [val[0]] }
-  | c_declarations c_declaration opt_terms { result = [*val[0], val[1]] }
+    c_declaration { result = [val[0]] }
+  | c_declarations terms c_declaration { result = [*val[0], val[2]] }
 
   c_declaration:
     dtype_or_ptr tIDENTIFIER tLPAREN dtype_list tRPAREN
@@ -102,7 +109,7 @@ rule
 
   methods:
     ruby_method { result = val[0] }
-  | methods ruby_method { result = [*val[0], val[1]] }
+  # | methods ruby_method { result = [*val[0], val[1]] }
 
   ruby_method:
     kDEF f_name f_opt_arglist compstmt kEND
@@ -111,7 +118,7 @@ rule
       }
 
   compstmt:
-    stmts opt_terms { result = val[0] }
+    stmts terms { result = val[0] }
 
   stmts:
     {}
@@ -155,7 +162,7 @@ rule
         result = Statement::While.new val[1], val[3], location
       }
   | op_assign {}
-  | kSTRUCT tIDENTIFIER kDO opt_terms var_decl_stmts kEND
+  | kSTRUCT tIDENTIFIER kDO eol var_decl_stmts kEND
       { 
         add_dtype_to_lexer val[1]
         result = Statement::CStructOrUnionDef.new val[0], val[1], val[4], location
@@ -172,7 +179,7 @@ rule
     }
 
   var_decl_stmts:
-    var_decls opt_terms
+    var_decls terms
       {
         declarations = []
         val[0]&.each do |data|
