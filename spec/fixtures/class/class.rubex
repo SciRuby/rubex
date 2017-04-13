@@ -1,11 +1,17 @@
 class Kustom
   def bye
+    prelude
     print "Bye world!"
+  end
+
+  def prelude
+    print "This is a prelude."
   end
 end
 
-class Klass < Kustom
+class Kustom2 < Kustom
   def hello
+    bye
     print "Hello world!"
   end
 end

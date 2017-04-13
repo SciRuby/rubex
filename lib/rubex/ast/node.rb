@@ -123,7 +123,7 @@ module Rubex
         code.write_func_definition_header "void", name, "void"
         code.block do
           @statements.each do |stat|
-            if stat.is_a? Rubex::AST::RubyMethodDef
+            if stat.is_a? Rubex::AST::TopStatement::RubyMethodDef
               code.define_instance_method_under @scope, stat.name, stat.c_name
             end
           end

@@ -9,14 +9,14 @@ require 'rubex/parser.racc.rb'
 
 module Rubex
   class << self
-    def compile path, test=false
+    def compile path, test: false, directory: nil
       tree = ast path
       target_name = extract_target_name path
       code = generate_code tree, target_name
-      ext = extconf target_name
+      ext = extconf target_name, directory: directory
       
       return [tree, code, ext] if test
-      write_files target_name, code, ext
+      write_files target_name, code, ext, directory: directory
     end
 
     def ast path
@@ -25,10 +25,11 @@ module Rubex
       parser.do_parse
     end
 
-    def extconf target_name, dir=nil
+    def extconf target_name, directory: nil
+      path = directory ? directory : "#{Dir.pwd}/#{target_name}"
       extconf = ""
       extconf << "require 'mkmf'\n"
-      extconf << "create_makefile('#{target_name}/#{target_name}')\n"
+      extconf << "create_makefile('#{path}/#{target_name}')\n"
       extconf
     end
 
@@ -44,13 +45,15 @@ module Rubex
       File.basename(path).split('.')[0]      
     end
 
-    def write_files target_name, code, ext
-      Dir.mkdir(target_name)
-      code_file = File.new "#{target_name}/#{target_name}.c", "w+"
+    def write_files target_name, code, ext, directory: nil
+      path = directory ? directory : "#{Dir.pwd}/#{target_name}"
+      Dir.mkdir(path) unless directory
+      
+      code_file = File.new "#{path}/#{target_name}.c", "w+"
       code_file.puts code.to_s
       code_file.close
 
-      extconf_file = File.new "#{target_name}/extconf.rb", "w+"
+      extconf_file = File.new "#{path}/extconf.rb", "w+"
       extconf_file.puts ext
       extconf_file.close
     end

@@ -9,3 +9,7 @@ def strings
 
   return obj
 end
+
+def string_ret
+  return "This is a returned string."
+end
