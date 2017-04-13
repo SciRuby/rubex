@@ -8,7 +8,18 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'rubex'
 
-def generate_shared_object test_case, path, dir
+def dir_str test_case
+  "#{Dir.pwd}/spec/fixtures/#{test_case}"
+end
+
+def path_str test_case
+  "#{Dir.pwd}/spec/fixtures/#{test_case}/#{test_case}"
+end
+
+def generate_shared_object test_case
+  path = path_str test_case
+  dir = dir_str test_case
+
   Rubex.compile(path + '.rubex', directory: dir)
   Dir.chdir(dir) do
     `ruby extconf.rb`
@@ -16,7 +27,9 @@ def generate_shared_object test_case, path, dir
   end
 end
 
-def delete_generated_files test_case, path, dir
+def delete_generated_files test_case
+  dir = dir_str test_case
+
   Dir.chdir(dir) do
     [
       "#{test_case}.c", "#{test_case}.so", "Makefile",
@@ -27,10 +40,10 @@ def delete_generated_files test_case, path, dir
   end
 end
 
-def setup_and_teardown_compiled_files test_case, path, dir, &block
-  generate_shared_object test_case, path, dir
+def setup_and_teardown_compiled_files test_case, &block
+  generate_shared_object test_case
   block.call
-  delete_generated_files test_case, path, dir
+  delete_generated_files test_case
 end
 
 def expect_compiled_code code, path

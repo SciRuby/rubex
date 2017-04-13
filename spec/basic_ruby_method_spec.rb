@@ -6,7 +6,7 @@ describe Rubex do
 
   context "Case : #{test_case}" do
     before do
-      @path = "#{Dir.pwd}/spec/fixtures/#{test_case}/#{test_case}"
+      @path = path_str test_case
     end
 
     context ".ast" do
@@ -23,8 +23,8 @@ describe Rubex do
 
     context "Black Box testing", focus: true do
       it "compiles and checks for valid output" do
-        dir = "#{Dir.pwd}/spec/fixtures/#{test_case}"
-        setup_and_teardown_compiled_files(test_case, @path, dir) do
+        setup_and_teardown_compiled_files(test_case) do
+          dir = dir_str test_case
           require_relative "#{dir}/#{test_case}.so"
           expect(addition(4,5)).to eq(9)
         end
