@@ -109,7 +109,6 @@ rule
 
   methods:
     ruby_method { result = val[0] }
-  # | methods ruby_method { result = [*val[0], val[1]] }
 
   ruby_method:
     kDEF f_name f_opt_arglist compstmt kEND
@@ -118,7 +117,7 @@ rule
       }
 
   compstmt:
-    stmts terms { result = val[0] }
+    stmts opt_terms { result = val[0] }
 
   stmts:
     {}

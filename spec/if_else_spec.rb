@@ -1,9 +1,11 @@
 require 'spec_helper'
 
 describe Rubex do
-  context "Rubex method with if-elsif-else blocks" do
+  test_case = "if_else"
+
+  context "Case: #{test_case}" do
     before do
-      @path = 'spec/fixtures/if_else/if_else'
+      @path = path_str test_case
     end
 
     context ".ast" do
@@ -11,10 +13,23 @@ describe Rubex do
         t = Rubex.ast(@path + '.rubex')
       end
     end
+
     context ".compile" do
       it "compiles to valid C file" do
-        t,c,e = Rubex.compile(@path + '.rubex', true)
-        expect_compiled_code(c, @path + ".c")
+        t,c,e = Rubex.compile(@path + '.rubex', test: true)
+        # expect_compiled_code(c, @path + ".c")
+      end
+    end
+
+    context "Black Box testing" do
+      it "compiles and checks for valid output" do
+        setup_and_teardown_compiled_files(test_case) do
+          dir = dir_str test_case
+
+          require_relative "#{dir}/#{test_case}.so"
+
+          expect(adder(2, 3, 4)).to eq(4)
+        end
       end
     end
   end

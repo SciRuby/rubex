@@ -1,9 +1,11 @@
 require 'spec_helper'
 
 describe Rubex do
-  context "Loops in Rubex" do
+  test_case = "c_bindings"
+
+  context "Case: #{test_case}" do
     before do
-      @path = 'spec/fixtures/c_bindings/c_bindings'
+      @path = path_str test_case
     end
 
     context ".ast" do
@@ -14,8 +16,20 @@ describe Rubex do
 
     context ".compile" do
       it "compiles to valid C file" do
-        t,c,e = Rubex.compile((@path + '.rubex'), true)
-        expect_compiled_code c, @path + ".c"
+        t,c,e = Rubex.compile((@path + '.rubex'), test: true)
+        # expect_compiled_code c, @path + ".c"
+      end
+    end
+
+    context "Black Box testing" do
+      it "compiles and checks for valid output" do
+        setup_and_teardown_compiled_files(test_case) do
+          dir = dir_str test_case
+
+          require_relative "#{dir}/#{test_case}.so"
+
+          expect(maths(3,5,"hello")).to be_within(0.001).of(300.763)
+        end
       end
     end
   end
