@@ -86,7 +86,8 @@ rules
 
              /#{OCTOTHORP}/ { @state = :COMMENT; nil }
   :COMMENT   /./           { @state = :COMMENT; nil }
-  :COMMENT   /\n/       { @state = nil; }
+  # return a tNL since it is a way for the parser to figure that a line of code has end.
+  :COMMENT   /\n/       { @state = nil; [:tNL, "\n"] }
 
   # Reserved words
 

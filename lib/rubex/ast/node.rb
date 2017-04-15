@@ -4,7 +4,7 @@ module Rubex
       attr_reader :statements
 
       def initialize statements
-        @statements = statements
+        @statements = statements.flatten
       end
 
       def add_child child

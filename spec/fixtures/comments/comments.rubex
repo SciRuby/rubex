@@ -1,6 +1,6 @@
 # This is a comment
 
-def crazy # so is this
+def crazy_comment # so is this
   # And this
   int i = 4 # ... and this
   return i # this!!

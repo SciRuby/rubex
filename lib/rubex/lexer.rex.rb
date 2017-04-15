@@ -265,7 +265,7 @@ class Rubex::Lexer
           when ss.skip(/./) then
             action { @state = :COMMENT; nil }
           when ss.skip(/\n/) then
-            action { @state = nil; }
+            action { @state = nil; [:tNL, "\n"] }
           else
             text = ss.string[ss.pos .. -1]
             raise ScanError, "can not match (#{state.inspect}) at #{location}: '#{text}'"

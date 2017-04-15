@@ -42,7 +42,8 @@ end
 
 def setup_and_teardown_compiled_files test_case, &block
   generate_shared_object test_case
-  block.call
+  dir = dir_str test_case
+  block.call(dir)
   delete_generated_files test_case
 end
 
