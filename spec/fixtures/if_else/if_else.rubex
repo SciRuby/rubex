@@ -1,4 +1,4 @@
-def adder(int a, i64 b, f64 c)
+def adder_if_else(int a, i64 b, f64 c)
   i32 d
 
   if a < 5

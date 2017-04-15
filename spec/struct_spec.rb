@@ -1,10 +1,11 @@
 require 'spec_helper'
-require 'pp'
 
 describe Rubex do
-  context "Rubex Ruby method with variable initialization and declaration" do
+  test_case = "struct"
+
+  context "Case: #{test_case}" do
     before do
-      @path = 'spec/fixtures/struct/struct'
+      @path = path_str test_case
     end
 
     context ".ast" do
@@ -15,8 +16,18 @@ describe Rubex do
 
     context ".compile" do
       it "compiles to valid C code" do
-        t,c,e = Rubex.compile(@path + '.rubex', true)
-        expect_compiled_code c, @path + ".c"
+        t,c,e = Rubex.compile(@path + '.rubex', test: true)
+        # expect_compiled_code c, @path + ".c"
+      end
+    end
+
+    context "Black Box testing" do
+      it "compiles and checks for valid output" do
+        setup_and_teardown_compiled_files(test_case) do |dir|
+          require_relative "#{dir}/#{test_case}.so"
+
+          expect(structure("aa",2,3)).to eq(666)
+        end
       end
     end
   end

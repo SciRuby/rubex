@@ -23,12 +23,10 @@ describe Rubex do
 
     context "Black Box testing" do
       it "compiles and checks for valid output" do
-        setup_and_teardown_compiled_files(test_case) do
-          dir = dir_str test_case
-
+        setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.so"
 
-          expect(adder(2, 3, 4)).to eq(4)
+          expect(adder_if_else(2, 3, 4)).to eq(4)
         end
       end
     end

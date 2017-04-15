@@ -1,9 +1,11 @@
 require 'spec_helper'
 
 describe Rubex do
+  test_case = "static_array"
+
   context "Rubex method static arrays" do
     before do
-      @path = 'spec/fixtures/static_array/static_array'
+      @path = path_str test_case
     end
 
     context ".ast" do
@@ -14,8 +16,17 @@ describe Rubex do
 
     context ".compile" do
       it "compiles to valid C file" do
-        t,c,e = Rubex.compile(@path + '.rubex', true)
-        expect_compiled_code c, @path + ".c"
+        t,c,e = Rubex.compile(@path + '.rubex', test: true)
+      end
+    end
+
+    context "Black box testing" do
+      it "compiles and checks for valid output" do
+        setup_and_teardown_compiled_files(test_case) do |dir|
+          require_relative "#{dir}/#{test_case}.so"
+
+          expect(static_array).to eq(123)
+        end
       end
     end
   end

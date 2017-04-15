@@ -1,10 +1,11 @@
 require 'spec_helper'
 
 describe Rubex do
-  context "Rubex method with arithmetic expressions" do
+  test_case = "expressions"
+
+  context "Case: #{test_case}" do
     before do
-      @path = 'spec/fixtures/expressions/expressions'
-      include Rubex::AST
+      @path = path_str test_case
     end
 
     context ".ast" do
@@ -12,10 +13,20 @@ describe Rubex do
         t = Rubex.ast(@path + '.rubex')
       end
     end
+
     context ".compile" do
       it "compiles to valid C file" do
-        t,c,e = Rubex.compile(@path + '.rubex', true)
-        expect_compiled_code c, @path + ".c"
+        t,c,e = Rubex.compile(@path + '.rubex', test: true)
+      end
+    end
+
+    context "Black Box testing" do
+      it "compiles and checks for valid output" do
+        setup_and_teardown_compiled_files(test_case) do |dir|
+          require_relative "#{dir}/#{test_case}.so"
+
+          expect(adder(1,3.4)).to eq(-548)
+        end
       end
     end
   end

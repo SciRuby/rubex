@@ -26,7 +26,7 @@ describe Rubex do
       setup_and_teardown_compiled_files(test_case) do |dir|
         require_relative "#{dir}/#{test_case}.so"
 
-        expect(test_function("hello")).to eq(33)
+        expect(test_function("hello")).to eq(104)
       end
     end
   end
