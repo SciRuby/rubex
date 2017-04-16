@@ -1,17 +1,17 @@
 class Kustom
   def bye
     prelude
-    print "Bye world!"
+    return "Bye world!"
   end
 
   def prelude
-    print "This is a prelude."
+    return "This is a prelude."
   end
 end
 
 class Kustom2 < Kustom
   def hello
-    bye
-    print "Hello world!"
+    a = prelude
+    return a.concat("Hello world!")
   end
 end
