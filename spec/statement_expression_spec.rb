@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Rubex do
-  test_case = "static_array"
+  test_case = "statement_expression"
 
   context "Case: #{test_case}" do
     before do
@@ -25,7 +25,7 @@ describe Rubex do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.so"
 
-          expect(static_array).to eq(123)
+          expect(expr_stat).to eq("success.")
         end
       end
     end

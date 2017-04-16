@@ -1,0 +1,17 @@
+# This file contains sample Rubex code that contains an expression as a
+#   statement. For example, simply stating `1+2` or `function_name` is an
+#   expression that is actually a statement.
+
+def test_string_return
+  print "This string."
+end
+
+def expr_stat
+  int a = 3
+
+  test_string_return
+  4 + 5 * 6 - 333 + (3455)
+  a * 5 + 3
+
+  return "success."
+end
