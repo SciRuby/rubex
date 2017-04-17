@@ -603,6 +603,24 @@ module Rubex
 
         end
       end # class Alias
+
+      class Expression
+        include Rubex::AST::Statement
+        attr_reader :expr
+
+        def initialize expr, location
+          super(location)
+          @expr = expr         
+        end
+
+        def analyse_statement local_scope
+                    
+        end
+
+        def generate_code code, local_scope
+          
+        end
+      end
     end # module Statement
   end # module AST
 end # module Rubex

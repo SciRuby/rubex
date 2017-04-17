@@ -236,7 +236,24 @@ module Rubex
       end # class RubyMethodDef
 
       class Klass
+        # Stores the scope of the class. Rubex::SymbolTable::Scope::Klass.
+        attr_reader :scope
+
+        attr_reader :name
+
+        attr_reader :ancestor
+
+        attr_reader :statements
+
         def initialize name, ancestor, statements
+          @name, @ancestor, @statments = name, ancestor, statements
+        end
+
+        def analyse_statements local_scope
+          
+        end
+
+        def generate_code code, local_scope
           
         end
       end # class Klass

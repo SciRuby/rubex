@@ -168,6 +168,7 @@ rule
       }
   | forward_declaration {}
   | alias_stmt
+  | expr { result = Statement::Expression.new(val[0], location) }
 
   forward_declaration:
     kSTRUCT tIDENTIFIER

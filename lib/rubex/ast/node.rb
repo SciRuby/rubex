@@ -13,6 +13,7 @@ module Rubex
 
       def process_statements target_name, code
         @scope = Rubex::SymbolTable::Scope::Klass.new 'Object'
+        add_top_level_ruby_methods_to_object_class_scope
         analyse_statements
         rescan_declarations @scope
         generate_preamble code
@@ -25,6 +26,20 @@ module Rubex
       end
 
      private
+
+      def add_top_level_ruby_methods_to_object_class_scope
+        ruby_methods = @statements.select do |s| 
+          s.is_a?(Rubex::AST::TopStatement::RubyMethodDef)
+        end
+        
+        @statements.delete_if do |s|
+          s.is_a?(Rubex::AST::TopStatement::RubyMethodDef)
+        end
+
+        @statements << Rubex::AST::TopStatement::Klass.from_ast(
+          'Object', ruby_methods, @scope
+        )
+      end
 
       def generate_preamble code
         code << "#include <ruby.h>\n"
