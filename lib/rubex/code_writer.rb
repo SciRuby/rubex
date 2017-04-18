@@ -67,9 +67,9 @@ module Rubex
       @indent -= 2
     end
 
-    def define_instance_method_under scope, name, c_name
-      @code << " "*@indent + "rb_define_method(" + scope.c_name + " ,\"" +
-        name + "\", " + c_name + ", -1);"
+    def define_instance_method klass: , method_name: , method_c_name:
+      @code << " "*@indent + "rb_define_method(" + klass + " ,\"" +
+        method_name + "\", " + method_c_name + ", -1);"
       new_line
     end
 

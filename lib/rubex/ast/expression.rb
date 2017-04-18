@@ -234,8 +234,8 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          @entry = local_scope[@name]
-          if @entry.type.alias_type?
+          @entry = local_scope.find @name
+          if @entry.type.alias_type? || @entry.type.ruby_method?
             @type = @entry.type.type
           else
             @type = @entry.type
@@ -243,7 +243,10 @@ module Rubex
         end
 
         def c_code local_scope
-          @entry.c_name
+          c_name = @entry.c_name
+          c_name += "()" if @entry.type.ruby_method?
+          
+          c_name
         end
       end # class Name
 

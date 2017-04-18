@@ -48,7 +48,6 @@ module Rubex
           code << "#include #{name}\n"
         end
         declare_types code
-        # declare_extern_c_functions code
         code.nl
       end
 
@@ -58,58 +57,10 @@ module Rubex
 
           if type.alias_type?
             code << "typedef #{type.type.to_s} #{type.to_s};"
-          # elsif type.struct_or_union?
-          #   code << sue_header(entry)
-          #   code.block(sue_footer(entry)) do
-          #     declare_vars code, type.scope
-          #     declare_carrays code, type.scope
-          #   end
           end
           code.nl
         end
       end
-
-      # def sue_header entry
-      #   type = entry.type
-      #   str = "#{type.kind} #{type.name}"
-      #   if !entry.extern
-      #     str.prepend "typedef "
-      #   end
-
-      #   str
-      # end
-
-      # def sue_footer entry
-      #   str =
-      #   if entry.extern
-      #     ";"
-      #   else
-      #     " #{entry.type.c_name};"
-      #   end
-
-      #   str
-      # end
-
-      # def declare_extern_c_functions code
-      #   @scope.cfunction_entries.each do |func|
-      #     code << "#{func.type.type} #{func.c_name} (#{func.type.args.join(',')});"
-      #     code.nl
-      #   end
-      # end
-
-      # def declare_vars code, scope
-      #   scope.var_entries.each do |var|
-      #     code.declare_variable var
-      #   end
-      # end
-
-      # def declare_carrays code, scope
-      #   scope.carray_entries.select { |s|
-      #     s.type.dimension.is_a? Rubex::AST::Expression::Literal
-      #   }. each do |arr|
-      #     code.declare_carray arr, @scope
-      #   end
-      # end
 
       def analyse_statements
         create_symtab_entries_for_top_statements
@@ -158,9 +109,12 @@ module Rubex
         code.write_func_declaration "void", name, "void"
         code.write_func_definition_header "void", name, "void"
         code.block do
-          @statements.each do |stat|
-            if stat.is_a? Rubex::AST::TopStatement::RubyMethodDef
-              code.define_instance_method_under @scope, stat.name, stat.c_name
+          @statements.each do |klass|
+            entry = @scope.find klass.name
+            klass_scope = entry.type.scope
+            klass_scope.ruby_method_entries.each do |meth|
+              code.define_instance_method klass: entry.c_name, 
+                method_name: meth.name, method_c_name: meth.c_name
             end
           end
         end

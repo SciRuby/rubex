@@ -614,11 +614,13 @@ module Rubex
         end
 
         def analyse_statement local_scope
-                    
+          @expr.analyse_statement local_scope
         end
 
         def generate_code code, local_scope
-          
+          super
+          code << @expr.c_code(local_scope) + ";"
+          code.nl
         end
       end
     end # module Statement

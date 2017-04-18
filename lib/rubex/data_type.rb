@@ -12,7 +12,8 @@ module Rubex
         :lint?, :ulint?, :llint?, :ullint?,
         :char?, :object?, :bool?, :carray?,
         :cptr?, :nil_type?, :struct_or_union?,
-        :alias_type?, :string?, :cstr?, :ruby_class?
+        :alias_type?, :string?, :cstr?, :ruby_class?,
+        :ruby_method?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -483,6 +484,22 @@ module Rubex
       def initialize scope
         @scope = scope
       end
+
+      def ruby_class?; true; end
+    end
+
+    class RubyMethod
+      include Helpers
+
+      attr_reader :name, :c_name, :type
+      attr_accessor :scope
+
+      def initialize name, c_name
+        @name, @c_name, @scope = name, c_name, scope
+        @type = RubyObject.new
+      end
+
+      def ruby_method?; true; end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64

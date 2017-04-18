@@ -98,7 +98,7 @@ module Rubex
       end
 
       def add_ruby_method name:, c_name:
-        type = Rubex::DataType::RubyObject.new
+        type = Rubex::DataType::RubyMethod.new name, c_name
         entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
         @entries[name] = entry
         @ruby_method_entries << entry

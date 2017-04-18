@@ -55,30 +55,23 @@ module Rubex
       class RubyMethodDef
         # Ruby name of the method.
         attr_reader :name
-        # The equivalent C name of the method.
-        attr_reader :c_name
         # Method arguments.
         attr_reader :args
         # The statments/expressions contained within the method.
         attr_reader :statements
         # Symbol Table entry.
         attr_reader :entry
-        # Return type of the function.
-        attr_reader :type
 
         def initialize name, args, statements
-          @name, @args = name, args
-          @c_name = Rubex::RUBY_FUNC_PREFIX + 
-            name.gsub("?", "_qmark").gsub("!", "_bang")
-          @statements = []
-          statements.each { |s| @statements << s }
-          @type = Rubex::DataType::RubyObject.new
+          @name, @args, @statements = name, args, statements
         end
 
         def analyse_statements outer_scope
           @scope = Rubex::SymbolTable::Scope::Local.new
+          @entry = outer_scope.find @name
+          @entry.type.scope = @scope
           @scope.outer_scope = outer_scope
-          @scope.type = @type.dup
+          @scope.type = @entry.type
           @scope.declare_args @args
 
           @statements.each do |stat|
@@ -94,8 +87,8 @@ module Rubex
         end
 
         def generate_code code
-          code.write_func_declaration @type.to_s, @c_name
-          code.write_func_definition_header @type.to_s, @c_name
+          code.write_func_declaration @entry.type.type.to_s, @entry.c_name
+          code.write_func_definition_header @entry.type.type.to_s, @entry.c_name
           code.block do
             generate_function_definition code
           end
@@ -262,10 +255,21 @@ module Rubex
           @scope = @name == 'Object' ? @ancestor : 
             Rubex::SymbolTable::Scope::Klass.new(@name, @ancestor)
           add_statement_symbols_to_symbol_table
+          @statements.each do |stat|
+            stat.analyse_statements @scope
+          end
+        end
+
+        def rescan_declarations local_scope
+          @statements.each do |stat|
+            stat&.rescan_declarations(@scope)
+          end
         end
 
         def generate_code code
-          
+          @statements.each do |stat|
+            stat.generate_code code
+          end
         end
 
       private
@@ -278,8 +282,9 @@ module Rubex
         def add_statement_symbols_to_symbol_table
           @statements.each do |stat|
             if stat.is_a? Rubex::AST::TopStatement::RubyMethodDef
+              class_c_name = @scope.find(@name).c_name
               name = stat.name
-              c_name = Rubex::RUBY_FUNC_PREFIX + 
+              c_name = Rubex::RUBY_FUNC_PREFIX + class_c_name + "_" +
                 name.gsub("?", "_qmark").gsub("!", "_bang")
               @scope.add_ruby_method name: name, c_name: c_name
             end
