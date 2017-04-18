@@ -1314,7 +1314,7 @@ module_eval(<<'.,.,', 'parser.racc', 168)
 
 module_eval(<<'.,.,', 'parser.racc', 170)
   def _reduce_47(val, _values, result)
-     Statement::Expression.new(val[0], location) 
+     result = Statement::Expression.new(val[0], location) 
     result
   end
 .,.,

@@ -19,14 +19,14 @@ describe Rubex do
         t, c, e = Rubex.compile(@path + '.rubex', test: true)
       end
     end
-  end
 
-  context "Black Box testing", focus: true do
-    it "compiles and checks for valid output" do
-      setup_and_teardown_compiled_files(test_case) do |dir|
-        require_relative "#{dir}/#{test_case}.so"
+    context "Black Box testing" do
+      it "compiles and checks for valid output" do
+        setup_and_teardown_compiled_files(test_case) do |dir|
+          require_relative "#{dir}/#{test_case}.so"
 
-        expect(test_function("hello")).to eq(104)
+          expect(test_function("hello")).to eq(104)
+        end
       end
     end
   end

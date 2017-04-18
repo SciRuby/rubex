@@ -12,7 +12,7 @@ module Rubex
         :lint?, :ulint?, :llint?, :ullint?,
         :char?, :object?, :bool?, :carray?,
         :cptr?, :nil_type?, :struct_or_union?,
-        :alias_type?, :string?, :cstr?
+        :alias_type?, :string?, :cstr?, :ruby_class?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -472,6 +472,16 @@ module Rubex
 
       def to_ruby_object arg
         "rb_str_new_cstr(#{arg})"
+      end
+    end
+
+    class RubyClass
+      include Helpers
+
+      attr_reader :scope
+
+      def initialize scope
+        @scope = scope
       end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?

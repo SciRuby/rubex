@@ -68,7 +68,8 @@ module Rubex
 
         def initialize name, args, statements
           @name, @args = name, args
-          @c_name = Rubex::FUNC_PREFIX + name.gsub("?", "_qmark").gsub("!", "_bang")
+          @c_name = Rubex::RUBY_FUNC_PREFIX + 
+            name.gsub("?", "_qmark").gsub("!", "_bang")
           @statements = []
           statements.each { |s| @statements << s }
           @type = Rubex::DataType::RubyObject.new
@@ -245,16 +246,44 @@ module Rubex
 
         attr_reader :statements
 
+        # Name of the class. Ancestor can be Scope::Klass or String object 
+        #   depending on whether invoker is another higher level scope or
+        #   the parser. Statements are the statements inside the class.
         def initialize name, ancestor, statements
-          @name, @ancestor, @statments = name, ancestor, statements
+          @name, @ancestor, @statements = name, ancestor, statements
         end
 
         def analyse_statements local_scope
+          set_scope_for_ancestor(local_scope) if @ancestor.is_a?(String)
+          # In Ruby, Object is the top level scope, and the first ancestor of
+          #   Object is also Object. In order to maintain consistency, we decide
+          #   to have only one scope called 'Object' that exists for an entire
+          #   Rubex project.
+          @scope = @name == 'Object' ? @ancestor : 
+            Rubex::SymbolTable::Scope::Klass.new(@name, @ancestor)
+          add_statement_symbols_to_symbol_table
+        end
+
+        def generate_code code
           
         end
 
-        def generate_code code, local_scope
-          
+      private
+
+        def set_scope_for_ancestor local_scope
+          entry = local_scope.find @ancestor
+          @ancestor = entry.type.scope
+        end
+
+        def add_statement_symbols_to_symbol_table
+          @statements.each do |stat|
+            if stat.is_a? Rubex::AST::TopStatement::RubyMethodDef
+              name = stat.name
+              c_name = Rubex::RUBY_FUNC_PREFIX + 
+                name.gsub("?", "_qmark").gsub("!", "_bang")
+              @scope.add_ruby_method name: name, c_name: c_name
+            end
+          end
         end
       end # class Klass
     end # module TopStatement

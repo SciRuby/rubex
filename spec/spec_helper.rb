@@ -43,8 +43,11 @@ end
 def setup_and_teardown_compiled_files test_case, &block
   generate_shared_object test_case
   dir = dir_str test_case
-  block.call(dir)
-  delete_generated_files test_case
+  begin
+    block.call(dir)
+  ensure
+    delete_generated_files test_case
+  end
 end
 
 def expect_compiled_code code, path

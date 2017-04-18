@@ -1,10 +1,10 @@
 module Rubex
   RUBEX_PREFIX = "__rubex_"
 
-  FUNC_PREFIX = RUBEX_PREFIX + "f_"
+  RUBY_FUNC_PREFIX = RUBEX_PREFIX + "f_"
   C_FUNC_PREFIX = RUBEX_PREFIX + "c_f_"
   VAR_PREFIX  = RUBEX_PREFIX + "v_"
-  CLASS_PREFIX = RUBEX_PREFIX + "cls_"
+  RUBY_CLASS_PREFIX = RUBEX_PREFIX + "rb_cls_"
   ARG_PREFIX = RUBEX_PREFIX + "arg_"
   ARRAY_PREFIX = RUBEX_PREFIX + "arr_"
   POINTER_PREFIX = RUBEX_PREFIX + "ptr_"
@@ -35,7 +35,7 @@ module Rubex
 
   CUSTOM_TYPES = {}
 
-  CLASS_MAPPINGS = {
+  DEFAULT_CLASS_MAPPINGS = {
     'Object' => 'rb_cObject'
   }
 

@@ -11,6 +11,8 @@ module Rubex
       attr_accessor :sue_entries
       attr_accessor :cfunction_entries
       attr_accessor :type_entries
+      attr_accessor :ruby_class_entries
+      attr_accessor :ruby_method_entries
 
       def initialize outer_scope=nil
         @outer_scope = outer_scope
@@ -23,6 +25,8 @@ module Rubex
         @sue_entries = []
         @cfunction_entries = []
         @type_entries = []
+        @ruby_class_entries = []
+        @ruby_method_entries = []
       end
 
       def check_entry name
@@ -86,6 +90,20 @@ module Rubex
         @carray_entries << entry
       end
 
+      def add_ruby_class name: , c_name:, scope:
+        type = Rubex::DataType::RubyClass.new scope
+        entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
+        @entries[name] = entry
+        @ruby_class_entries << entry
+      end
+
+      def add_ruby_method name:, c_name:
+        type = Rubex::DataType::RubyObject.new
+        entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
+        @entries[name] = entry
+        @ruby_method_entries << entry
+      end
+
       def [] entry
         @entries[entry] or raise(Rubex::SymbolNotFoundError,
           "Symbol #{entry} does not exist in this scope.")
@@ -122,18 +140,12 @@ module Rubex
       class Klass
         include Rubex::SymbolTable::Scope
 
-        attr_reader :name, :c_name
-        attr_accessor :include_files
+        attr_reader :name
+        attr_accessor :include_files #TODO: this should probably not be here.
 
-        def initialize name
-          name == 'Object' ? super(nil) : super
+        def initialize name, outer_scope
+          super(outer_scope)
           @name = name
-
-          if Rubex::CLASS_MAPPINGS.has_key? name
-            @c_name = Rubex::CLASS_MAPPINGS[name]
-          else
-            @c_name = Rubex::CLASS_PREFIX + name
-          end
           @include_files = []
         end
       end
