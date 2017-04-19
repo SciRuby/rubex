@@ -21,7 +21,7 @@ module Rubex
 
     def write_location location
       new_line
-      @code << "/* Rubex file location: #{location} */"
+      self << "/* Rubex file location: #{location} */"
       new_line
     end
 

@@ -234,6 +234,7 @@ module Rubex
         end
 
         def analyse_statement local_scope
+          print "????? #{@name}"
           @entry = local_scope.find @name
           if @entry.type.alias_type? || @entry.type.ruby_method?
             @type = @entry.type.type
