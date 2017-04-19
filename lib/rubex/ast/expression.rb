@@ -234,8 +234,27 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          print "????? #{@name}"
           @entry = local_scope.find @name
+
+          # FIXME: Figure out a way to perform compile time checking of expressions
+          #   to see if the said Ruby methods are actually present in the Ruby
+          #   runtime. Maybe read symbols in the Ruby interpreter and load them
+          #   as a pre-compilation step?
+
+          # If entry is not present, assume its a Ruby method call to some method
+          #   outside of the current Rubex scope.
+          if !@entry
+            local_scope.add_ruby_method name: @name, c_name: @name, extern: true
+            @entry = local_scope.find @name
+          end
+          # If the entry is a RubyMethod, it should be interpreted as a command
+          # call. So, make the @name a CommandCall Node.
+          if @entry.type.ruby_method?
+            @name = Rubex::AST::Expression::CommandCall.new(
+              Name.new("self"), @name, [])
+            @name.analyse_statement local_scope
+          end
+
           if @entry.type.alias_type? || @entry.type.ruby_method?
             @type = @entry.type.type
           else
@@ -244,10 +263,11 @@ module Rubex
         end
 
         def c_code local_scope
-          c_name = @entry.c_name
-          c_name += "()" if @entry.type.ruby_method?
-          
-          c_name
+          if @entry.type.ruby_method?
+            @name.c_code(local_scope)
+          else
+            @entry.c_name
+          end
         end
       end # class Name
 
@@ -259,9 +279,25 @@ module Rubex
           @method_name, @invoker, @arg_list = method_name, invoker, arg_list
         end
 
+        # Analyse a method call. If the method that is being called is defined
+        #   in a class in a Rubex file, it can easily be interpreted as a Ruby
+        #   method. However, in case it is not, a new symtab entry will be created
+        #   which will mark the method as 'extern' so that future calls to that
+        #   same method can be simply pulled from the symtab.
+        # local_scope is the local method scope.
         def analyse_statement local_scope
           entry = local_scope.find(@method_name)
-          if entry && entry.extern? # a symtab entry for a predeclared extern func
+          if !entry
+            local_scope.add_ruby_method(name: @method_name, 
+              c_name: @method_name, extern: true, scope: :outer)
+            entry = local_scope.find(@method_name)
+            entry.type.arg_list = @arg_list
+          end
+
+          # a symtab entry for a predeclared extern C func.
+          # FIXME: C functions should have the type CFunction like RubyMethod.
+          #   Currently their type is set to their return type.
+          if entry && entry.extern? 
             @type = entry.type
           else
             @type = Rubex::DataType::RubyObject.new
@@ -295,20 +331,7 @@ module Rubex
           end
           str << ", NULL" if @arg_list.empty?
           str << ")"
-          str = optimize_method_call(str, local_scope) if @type.object?
           str
-        end
-
-        def optimize_method_call str, local_scope
-          optimized = ""
-          # Guess that the Ruby object is a string. Check if yes, and optimize
-          #   the call to size with RSTRING_LEN.
-          if ['size', 'length'].include? @method_name
-            optimized << "RB_TYPE_P(#{@invoker.c_code(local_scope)}, T_STRING) ? "
-            optimized << "RSTRING_LEN(#{@invoker.c_code(local_scope)}) : "
-            optimized << str
-          end
-          optimized
         end
       end
 
@@ -320,16 +343,25 @@ module Rubex
           @expr, @command, @arg_list = expr, command, arg_list
         end
 
+        # Analyse the command call. If the @command is found in the symbol table,
+        #   it is either a struct member or a method call. If not found, it is
+        #   assumed to be a Ruby method call and passed on the MethodCall node
+        #   where it is interpreted likewise. The upside is that Rubex can call
+        #   arbitrary Ruby methods that are defined in external Ruby scripts and
+        #   not visible to Rubex at compile time. The downside is that errors with
+        #   such methods will be visible to the programmer only during runtime.
         def analyse_statement local_scope
           @arg_list.each do |arg|
             arg.analyse_statement local_scope
           end
-          if @expr.nil?
+          # Case for implicit 'self' when a method in the class itself is being called.
+          if @expr.nil? 
             entry = local_scope.find(@command)
             if entry && !entry.extern?
               @expr = Expression::Name.new "self"
             end
           end
+          # if command is extern @expr will be nil.
           @expr.analyse_statement(local_scope) unless @expr.nil?
           analyse_command_type local_scope
         end
@@ -338,8 +370,7 @@ module Rubex
           # Interpreted as a method call
           if @command.is_a? Rubex::AST::Expression::MethodCall
             @command.c_code(local_scope)
-          else
-            # Interpreted as referencing the contents of a struct
+          else # interpreted as referencing the contents of a struct
             "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
           end
         end

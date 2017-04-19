@@ -364,7 +364,8 @@ module Rubex
             @lhs = local_scope[@lhs]
           else
             # If LHS is not found in the symtab assume that its a Ruby object being assigned.
-            local_scope.add_ruby_obj @lhs, @rhs
+            local_scope.add_ruby_obj(name: @lhs, c_name: Rubex::VAR_PREFIX + @lhs,
+              value: @rhs)
             @lhs = local_scope[@lhs]
             @ruby_obj_init = true
           end
@@ -610,7 +611,7 @@ module Rubex
 
         def initialize expr, location
           super(location)
-          @expr = expr         
+          @expr = expr
         end
 
         def analyse_statement local_scope

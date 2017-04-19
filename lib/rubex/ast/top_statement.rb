@@ -73,6 +73,7 @@ module Rubex
           @scope.outer_scope = outer_scope
           @scope.type = @entry.type
           @scope.declare_args @args
+          @scope.add_ruby_obj name: "self", c_name: Rubex::ARG_PREFIX + "self"
 
           @statements.each do |stat|
             stat.analyse_statement @scope

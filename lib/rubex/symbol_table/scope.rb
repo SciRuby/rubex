@@ -73,8 +73,7 @@ module Rubex
         @cfunction_entries << entry
       end
 
-      def add_ruby_obj name, value
-        c_name = Rubex::VAR_PREFIX + name
+      def add_ruby_obj name: , c_name:, value: nil
         entry = Rubex::SymbolTable::Entry.new(
           name, c_name, Rubex::DataType::RubyObject.new, value)
         @entries[name] = entry
@@ -97,11 +96,23 @@ module Rubex
         @ruby_class_entries << entry
       end
 
-      def add_ruby_method name:, c_name:
+      # name: name of the method
+      # c_name: c_name of the method
+      # extern: whether it is defined within the Rubex script or in a scope
+      #   outside the Rubex script.
+      # scope: Which scope to add the method to. nil means the calling scope,
+      #   :outer means that the method will added to a scope one level above
+      #   the current scope.
+      def add_ruby_method name:, c_name:, extern: false, scope: nil
         type = Rubex::DataType::RubyMethod.new name, c_name
         entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
-        @entries[name] = entry
-        @ruby_method_entries << entry
+        entry.extern = extern
+        if scope == :outer
+          @outer_scope.entries[name] = entry
+        else
+          @entries[name] = entry
+          @ruby_method_entries << entry
+        end
       end
 
       def [] entry

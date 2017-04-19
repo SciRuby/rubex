@@ -15,6 +15,7 @@ def expr_stat
 
   test_string_return
   test_with_args(a)
+  shizz
   4 + 5 * 6 - 333 + (3455)
   a * 5 + 3
 

@@ -492,7 +492,7 @@ module Rubex
       include Helpers
 
       attr_reader :name, :c_name, :type
-      attr_accessor :scope
+      attr_accessor :scope, :arg_list
 
       def initialize name, c_name
         @name, @c_name, @scope = name, c_name, scope
