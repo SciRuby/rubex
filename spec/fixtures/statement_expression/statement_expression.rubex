@@ -7,7 +7,7 @@ def test_string_return
 end
 
 def test_with_args(int a)
-  print "hello"
+  print "hello", a
 end
 
 def expr_stat
@@ -15,7 +15,7 @@ def expr_stat
 
   test_string_return
   test_with_args(a)
-  shizz
+  foo
   4 + 5 * 6 - 333 + (3455)
   a * 5 + 3
 

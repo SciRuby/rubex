@@ -10,6 +10,8 @@ module Rubex
   POINTER_PREFIX = RUBEX_PREFIX + "ptr_"
   TYPE_PREFIX   = RUBEX_PREFIX + "t_"
 
+  ACTUAL_ARGS_SUFFIX = "_actual_args"
+
   TYPE_MAPPINGS = {
     'char'                   => Rubex::DataType::Char,
     'i8'                     => Rubex::DataType::Int8,

@@ -150,7 +150,8 @@ module Rubex
         end
 
         def create_symbol_table_entry local_scope
-          local_scope.add_carray @name, @dimension, @array_list, @type
+          local_scope.add_carray(name: @name, c_name: Rubex::ARRAY_PREFIX + @name,
+            dimension: @dimension, type: @type, value: @array_list)
         end
       end # class CArrayDecl
 

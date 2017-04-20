@@ -56,24 +56,25 @@ module Rubex
         # Ruby name of the method.
         attr_reader :name
         # Method arguments.
-        attr_reader :args
+        attr_reader :arg_list
         # The statments/expressions contained within the method.
         attr_reader :statements
         # Symbol Table entry.
         attr_reader :entry
 
-        def initialize name, args, statements
-          @name, @args, @statements = name, args, statements
+        def initialize name, arg_list, statements
+          @name, @arg_list, @statements = name, arg_list, statements
         end
 
         def analyse_statements outer_scope
           @scope = Rubex::SymbolTable::Scope::Local.new
           @entry = outer_scope.find @name
           @entry.type.scope = @scope
+          @entry.type.arg_list = @arg_list
           @scope.outer_scope = outer_scope
           @scope.type = @entry.type
-          @scope.declare_args @args
-          @scope.add_ruby_obj name: "self", c_name: Rubex::ARG_PREFIX + "self"
+          @scope.declare_args @arg_list
+          @scope.self_name = Rubex::ARG_PREFIX + "self"
 
           @statements.each do |stat|
             stat.analyse_statement @scope
@@ -97,7 +98,7 @@ module Rubex
 
         def == other
           self.class == other.class && @name == other.name &&
-          @c_name == other.c_name && @args == other.args &&
+          @c_name == other.c_name && @arg_list == other.arg_list &&
           @statements == other.statements && @entry == other.entry &&
           @type == other.type
         end
@@ -185,7 +186,12 @@ module Rubex
           scope.carray_entries.select { |s|
             s.type.dimension.is_a? Rubex::AST::Expression::Literal
           }. each do |arr|
-            code.declare_carray arr, @scope
+            type = arr.type.type.to_s
+            c_name = arr.c_name
+            dimension = arr.type.dimension.c_code(@scope)
+            value = arr.value.map { |a| a.c_code(@scope) } if arr.value
+            code.declare_carray(type: type, c_name: c_name, dimension: dimension,
+              value: value)
           end
         end
 
@@ -218,7 +224,12 @@ module Rubex
           @scope.carray_entries.select { |s|
             !s.type.dimension.is_a?(Rubex::AST::Expression::Literal)
           }. each do |arr|
-            code.declare_carray arr, @scope
+            type = arr.type.type.to_s
+            c_name = arr.c_name
+            dimension = arr.type.dimension.c_code(@scope)
+            value = arr.value.map { |a| a.c_code(@scope) } if arr.value
+            code.declare_carray(type: type, c_name: c_name, dimension: dimension,
+              value: value)
           end
         end
 

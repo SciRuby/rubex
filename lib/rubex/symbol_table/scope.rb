@@ -13,6 +13,7 @@ module Rubex
       attr_accessor :type_entries
       attr_accessor :ruby_class_entries
       attr_accessor :ruby_method_entries
+      attr_accessor :self_name
 
       def initialize outer_scope=nil
         @outer_scope = outer_scope
@@ -27,6 +28,7 @@ module Rubex
         @type_entries = []
         @ruby_class_entries = []
         @ruby_method_entries = []
+        @self_name = ""
       end
 
       def check_entry name
@@ -80,9 +82,8 @@ module Rubex
         @ruby_obj_entries << entry
       end
 
-      def add_carray name, dimension, carray_list, type
-        c_name = Rubex::ARRAY_PREFIX + name
-        value = carray_list
+      # Add a C array to the current scope.
+      def add_carray name: ,c_name: ,dimension: ,type: ,value: nil
         type = Rubex::DataType::CArray.new dimension, type
         entry = Rubex::SymbolTable::Entry.new name, c_name, type, value
         @entries[name] = entry

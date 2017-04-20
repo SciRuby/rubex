@@ -109,12 +109,14 @@ module Rubex
         code.write_func_declaration "void", name, "void"
         code.write_func_definition_header "void", name, "void"
         code.block do
-          @statements.each do |klass|
-            entry = @scope.find klass.name
-            klass_scope = entry.type.scope
-            klass_scope.ruby_method_entries.each do |meth|
-              code.define_instance_method klass: entry.c_name, 
-                method_name: meth.name, method_c_name: meth.c_name
+          @statements.each do |top_stmt|
+            if top_stmt.is_a? TopStatement::Klass
+              entry = @scope.find top_stmt.name
+              klass_scope = entry.type.scope
+              klass_scope.ruby_method_entries.each do |meth|
+                code.define_instance_method klass: entry.c_name, 
+                  method_name: meth.name, method_c_name: meth.c_name
+              end
             end
           end
         end

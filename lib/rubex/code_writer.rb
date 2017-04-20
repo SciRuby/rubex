@@ -30,13 +30,9 @@ module Rubex
       new_line
     end
 
-    def declare_carray arr, local_scope
-      stmt = "#{arr.type.type.to_s} #{arr.c_name}["
-      stmt << arr.type.dimension.c_code(local_scope)
-      stmt << "]"
-      unless arr.value.nil?
-        stmt << " = {" + arr.value.map { |a| a.c_code(local_scope) }.join(',') + "}"
-      end
+    def declare_carray type:, c_name:, dimension:, value: nil
+      stmt = "#{type} #{c_name}[#{dimension}]"
+      stmt << " = {" + value.join(',') + "}" if value
       stmt << ";"
       self << stmt
       nl
@@ -48,9 +44,11 @@ module Rubex
       new_line
     end
 
-    def << s
-      @code << " "*@indent
-      @code << s
+    def << str
+      str.each_line do |s|
+        @code << " "*@indent
+        @code << s
+      end
     end
 
     def new_line

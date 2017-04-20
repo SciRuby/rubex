@@ -224,6 +224,18 @@ module Rubex
         end # class Nil
       end # module Literal
 
+      class Self
+        include Rubex::AST::Expression
+
+        def c_code local_scope
+          local_scope.self_name
+        end
+
+        def type
+          Rubex::DataType::RubyObject.new
+        end
+      end
+
       # Singular name node with no sub expressions.
       class Name
         include Rubex::AST::Expression
@@ -250,8 +262,7 @@ module Rubex
           # If the entry is a RubyMethod, it should be interpreted as a command
           # call. So, make the @name a CommandCall Node.
           if @entry.type.ruby_method?
-            @name = Rubex::AST::Expression::CommandCall.new(
-              Name.new("self"), @name, [])
+            @name = Rubex::AST::Expression::CommandCall.new(Self.new, @name, [])
             @name.analyse_statement local_scope
           end
 
@@ -302,14 +313,23 @@ module Rubex
           else
             @type = Rubex::DataType::RubyObject.new
           end
+
+          if entry.type.ruby_method? && @arg_list.size > 0
+            @arg_list_var = entry.c_name + Rubex::ACTUAL_ARGS_SUFFIX
+
+            args_size = entry.type.arg_list&.size || 0
+            local_scope.add_carray(name: @arg_list_var, c_name: @arg_list_var,
+              dimension: Literal::Int.new("#{args_size}"), 
+              type: Rubex::DataType::RubyObject.new)
+          end
         end
 
         def c_code local_scope
           entry = local_scope.find(@method_name)
-          if entry
-            return code_for_c_method_call(local_scope, entry)
-          else
+          if entry.type.ruby_method?
             return code_for_ruby_method_call(local_scope)
+          else
+            return code_for_c_method_call(local_scope, entry)
           end
         end
 
@@ -322,18 +342,41 @@ module Rubex
         end
 
         def code_for_ruby_method_call local_scope
-          str = "rb_funcall("
-          str << "#{@invoker.c_code(local_scope)}, "
-          str << "rb_intern(\"#{@method_name}\"), "
-          str << "#{@arg_list.size}"
-          @arg_list.each do |arg|
-            str << " ,#{arg.c_code(local_scope)}"
+          entry = local_scope.find @method_name
+          str = ""
+          if entry.extern?
+            str << "rb_funcall(#{@invoker.c_code(local_scope)}, "
+            str << "rb_intern(\"#{@method_name}\"), "
+            str << "#{@arg_list.size}"
+            @arg_list.each do |arg|
+              str << " ,#{arg.c_code(local_scope)}"
+            end
+            str << ", NULL" if @arg_list.empty?
+            str << ")"
+          else
+            str << populate_method_args_into_value_array(local_scope)
+            str << actual_ruby_method_call(local_scope, entry)
           end
-          str << ", NULL" if @arg_list.empty?
-          str << ")"
+
           str
         end
-      end
+
+        def actual_ruby_method_call local_scope, entry
+          str = "#{entry.c_name}(#{@arg_list.size}, #{@arg_list_var || "NULL"},"
+          str << "#{local_scope.self_name})"
+        end
+
+        def populate_method_args_into_value_array local_scope
+          str = ""
+          @arg_list.each_with_index do |arg, idx|
+            str = "#{@arg_list_var}[#{idx}] = "
+            str << "#{arg.type.to_ruby_object(arg.c_code(local_scope))}"
+            str << ";\n"
+          end
+
+          str
+        end
+      end # class MethodCall
 
       class CommandCall
         include Rubex::AST::Expression
@@ -357,9 +400,7 @@ module Rubex
           # Case for implicit 'self' when a method in the class itself is being called.
           if @expr.nil? 
             entry = local_scope.find(@command)
-            if entry && !entry.extern?
-              @expr = Expression::Name.new "self"
-            end
+            @expr = Expression::Self.new if entry && !entry.extern?
           end
           # if command is extern @expr will be nil.
           @expr.analyse_statement(local_scope) unless @expr.nil?
