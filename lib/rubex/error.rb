@@ -4,4 +4,6 @@ module Rubex
   class ArrayLengthMismatchError < StandardError; end
 
   class TypeMismatchError < StandardError; end
+
+  class SyntaxError < StandardError; end
 end

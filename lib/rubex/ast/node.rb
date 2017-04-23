@@ -32,13 +32,15 @@ module Rubex
           s.is_a?(Rubex::AST::TopStatement::RubyMethodDef)
         end
         
-        @statements.delete_if do |s|
-          s.is_a?(Rubex::AST::TopStatement::RubyMethodDef)
-        end
+        unless ruby_methods.empty?      
+          @statements.delete_if do |s|
+            s.is_a?(Rubex::AST::TopStatement::RubyMethodDef)
+          end
 
-        @statements << Rubex::AST::TopStatement::Klass.new(
-          'Object', @scope, ruby_methods
-        )
+          @statements << Rubex::AST::TopStatement::Klass.new(
+            'Object', 'Object', ruby_methods
+          )
+        end
       end
 
       def generate_preamble code
@@ -48,7 +50,22 @@ module Rubex
           code << "#include #{name}\n"
         end
         declare_types code
+        write_function_declarations code
         code.nl
+      end
+
+      def write_function_declarations code
+        @statements.each do |stat|
+          if stat.is_a? Rubex::AST::TopStatement::Klass
+            statements = stat.statements
+            statements.each do |meth|
+              if meth.is_a? Rubex::AST::TopStatement::RubyMethodDef
+                code.write_func_declaration(meth.entry.type.type.to_s,
+                  meth.entry.c_name)
+              end
+            end
+          end
+        end
       end
 
       def declare_types code
@@ -73,8 +90,17 @@ module Rubex
         @statements.each do |stat|
           if stat.is_a? Rubex::AST::TopStatement::Klass
             name = stat.name
+            ancestor_scope =
+            if stat.ancestor != 'Object'
+              @scope.find(stat.ancestor).type.scope
+            else
+              @scope
+            end
             c_name = c_name_for_class stat.name
-            @scope.add_ruby_class name: name, c_name: c_name, scope: @scope
+            klass_scope = Rubex::SymbolTable::Scope::Klass.new name, ancestor_scope
+
+            @scope.add_ruby_class(name: name, c_name: c_name, scope: klass_scope,
+              ancestor: ancestor_scope)
           end
         end
       end
@@ -109,6 +135,25 @@ module Rubex
         code.write_func_declaration "void", name, "void"
         code.write_func_definition_header "void", name, "void"
         code.block do
+          @statements.each do |top_stmt|
+            if top_stmt.is_a?(TopStatement::Klass) && top_stmt.name != 'Object'
+              entry = @scope.find top_stmt.name
+              code.declare_variable type: "VALUE", c_name: entry.c_name
+            end
+          end
+          code.nl
+
+          @statements.each do |top_stmt|
+            if top_stmt.is_a?(TopStatement::Klass) && top_stmt.name != 'Object'
+              entry = top_stmt.entry
+              ancestor_entry = @scope.find top_stmt.ancestor.name
+              c_name = ancestor_entry ? ancestor_entry.c_name : 'rb_cObject'
+              rhs = "rb_define_class(\"#{entry.name}\", #{c_name})"
+              code.init_variable lhs: entry.c_name, rhs: rhs
+            end
+          end
+          code.nl
+
           @statements.each do |top_stmt|
             if top_stmt.is_a? TopStatement::Klass
               entry = @scope.find top_stmt.name

@@ -25,8 +25,8 @@ module Rubex
       new_line
     end
 
-    def declare_variable var
-      @code << " "*@indent + "#{var.type.to_s} #{var.c_name};"
+    def declare_variable type:, c_name:
+      @code << " "*@indent + "#{type} #{c_name};"
       new_line
     end
 

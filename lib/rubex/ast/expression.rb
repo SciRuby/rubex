@@ -314,7 +314,7 @@ module Rubex
             @type = Rubex::DataType::RubyObject.new
           end
 
-          if entry.type.ruby_method? && @arg_list.size > 0
+          if entry.type.ruby_method? && !entry.extern? && @arg_list.size > 0 
             @arg_list_var = entry.c_name + Rubex::ACTUAL_ARGS_SUFFIX
 
             args_size = entry.type.arg_list&.size || 0
@@ -349,7 +349,7 @@ module Rubex
             str << "rb_intern(\"#{@method_name}\"), "
             str << "#{@arg_list.size}"
             @arg_list.each do |arg|
-              str << " ,#{arg.c_code(local_scope)}"
+              str << " ,#{arg.type.to_ruby_object(arg.c_code(local_scope))}"
             end
             str << ", NULL" if @arg_list.empty?
             str << ")"

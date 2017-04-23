@@ -46,7 +46,7 @@ rule
 
   top_stmts:
     {}
-  | top_stmt {}
+  | top_stmt { result = [val[0]] }
   | top_stmts terms top_stmt { result = [*val[0], val[2]] }
 
   top_stmt:
@@ -55,7 +55,8 @@ rule
 
   klass:
     kCLASS tIDENTIFIER opt_inheritance eol top_stmts terms kEND
-      {
+      { 
+        raise Rubex::SyntaxError unless val[1][0].match(/[A-Z]/)
         result = TopStatement::Klass.new val[1], val[2], val[4]
       }
 

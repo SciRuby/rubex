@@ -89,7 +89,6 @@ module Rubex
         end
 
         def generate_code code
-          code.write_func_declaration @entry.type.type.to_s, @entry.c_name
           code.write_func_definition_header @entry.type.type.to_s, @entry.c_name
           code.block do
             generate_function_definition code
@@ -160,7 +159,7 @@ module Rubex
 
         def declare_ruby_objects code, scope
           scope.ruby_obj_entries.each do |var|
-            code.declare_variable var
+            code.declare_variable type: var.type.to_s, c_name: var.c_name
           end
         end
 
@@ -172,13 +171,13 @@ module Rubex
 
         def declare_args code
           @scope.arg_entries.each do |arg|
-            code.declare_variable arg
+            code.declare_variable type: arg.type.to_s, c_name: arg.c_name
           end
         end
 
         def declare_vars code, scope
           scope.var_entries.each do |var|
-            code.declare_variable var
+            code.declare_variable type: var.type.to_s, c_name: var.c_name
           end
         end
 
@@ -251,21 +250,20 @@ module Rubex
 
         attr_reader :statements
 
+        attr_reader :entry
+
         # Name of the class. Ancestor can be Scope::Klass or String object 
         #   depending on whether invoker is another higher level scope or
         #   the parser. Statements are the statements inside the class.
         def initialize name, ancestor, statements
           @name, @ancestor, @statements = name, ancestor, statements
+          @ancestor = 'Object' if @ancestor.nil?
         end
 
         def analyse_statements local_scope
-          set_scope_for_ancestor(local_scope) if @ancestor.is_a?(String)
-          # In Ruby, Object is the top level scope, and the first ancestor of
-          #   Object is also Object. In order to maintain consistency, we decide
-          #   to have only one scope called 'Object' that exists for an entire
-          #   Rubex project.
-          @scope = @name == 'Object' ? @ancestor : 
-            Rubex::SymbolTable::Scope::Klass.new(@name, @ancestor)
+          @entry = local_scope.find(@name)
+          @scope = @entry.type.scope
+          @ancestor = @entry.type.ancestor
           add_statement_symbols_to_symbol_table
           @statements.each do |stat|
             stat.analyse_statements @scope
@@ -286,17 +284,11 @@ module Rubex
 
       private
 
-        def set_scope_for_ancestor local_scope
-          entry = local_scope.find @ancestor
-          @ancestor = entry.type.scope
-        end
-
         def add_statement_symbols_to_symbol_table
           @statements.each do |stat|
             if stat.is_a? Rubex::AST::TopStatement::RubyMethodDef
-              class_c_name = @scope.find(@name).c_name
               name = stat.name
-              c_name = Rubex::RUBY_FUNC_PREFIX + class_c_name + "_" +
+              c_name = Rubex::RUBY_FUNC_PREFIX + @name + "_" +
                 name.gsub("?", "_qmark").gsub("!", "_bang")
               @scope.add_ruby_method name: name, c_name: c_name
             end

@@ -90,8 +90,9 @@ module Rubex
         @carray_entries << entry
       end
 
-      def add_ruby_class name: , c_name:, scope:
-        type = Rubex::DataType::RubyClass.new scope
+      # Add a Ruby class to the current scope.
+      def add_ruby_class name: , c_name:, scope:, ancestor:
+        type = Rubex::DataType::RubyClass.new name, c_name, scope, ancestor
         entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
         @entries[name] = entry
         @ruby_class_entries << entry

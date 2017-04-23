@@ -479,10 +479,10 @@ module Rubex
     class RubyClass
       include Helpers
 
-      attr_reader :scope
+      attr_reader :name, :c_name, :scope, :ancestor
 
-      def initialize scope
-        @scope = scope
+      def initialize name, c_name, scope, ancestor
+        @name, @c_name, @scope, @ancestor = name, c_name, scope, ancestor
       end
 
       def ruby_class?; true; end
