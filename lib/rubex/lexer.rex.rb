@@ -9,6 +9,7 @@ class Rubex::Lexer
   require 'strscan'
 
   DEF           = /def/
+  CDEF          = /cdef/
   RETURN        = /return/
   PRINT         = /print/
   IF            = /if/

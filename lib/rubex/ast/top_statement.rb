@@ -52,7 +52,7 @@ module Rubex
         end # class CFunctionDecl
       end # class CBindings
 
-      class RubyMethodDef
+      class MethodDef
         # Ruby name of the method.
         attr_reader :name
         # Method arguments.
@@ -61,6 +61,8 @@ module Rubex
         attr_reader :statements
         # Symbol Table entry.
         attr_reader :entry
+        # Instance of Scope::Local for this method.
+        attr_reader :scope
 
         def initialize name, arg_list, statements
           @name, @arg_list, @statements = name, arg_list, statements
@@ -73,8 +75,14 @@ module Rubex
           @entry.type.arg_list = @arg_list
           @scope.outer_scope = outer_scope
           @scope.type = @entry.type
-          @scope.declare_args @arg_list
           @scope.self_name = Rubex::ARG_PREFIX + "self"
+          @scope.declare_args @arg_list
+        end
+      end
+
+      class RubyMethodDef < MethodDef
+        def analyse_statements outer_scope
+          super(outer_scope)
 
           @statements.each do |stat|
             stat.analyse_statement @scope
@@ -239,6 +247,25 @@ module Rubex
           end
         end
       end # class RubyMethodDef
+
+      class CMethodDef < MethodDef
+        attr_reader :type
+
+        def initialize return_type, name, arg_list, statements
+          super(name, arg_list, statements)
+          @type = type
+          # self is a compulsory implicit argument for C methods.
+          @arg_list << Expression::Self.new
+        end
+
+        def analyse_statements outer_scope
+          
+        end
+
+        def generate_code code, local_scope
+          
+        end
+      end # class CFunctionDef
 
       class Klass
         # Stores the scope of the class. Rubex::SymbolTable::Scope::Klass.
