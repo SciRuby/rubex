@@ -120,7 +120,7 @@ rule
       }
 
   c_method:
-    kCDEF dtype tIDENTIFIER f_opt_arglist compstmt kEND
+    kCDEF dtype_or_ptr tIDENTIFIER f_opt_arglist compstmt kEND
       {
         result = TopStatement::CMethodDef.new(val[1], val[2], val[3], val[4])
       }

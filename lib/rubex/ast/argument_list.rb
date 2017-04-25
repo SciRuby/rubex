@@ -16,6 +16,10 @@ module Rubex
         @args << arg
       end
 
+      def << arg
+        push arg
+      end
+
       def == other
         self.class == other.class && @args == other.args
       end

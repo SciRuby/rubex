@@ -32,8 +32,11 @@ module Rubex
             @args.map! do |a|
               determine_dtype a
             end
-            @type = determine_dtype @type
-            local_scope.declare_cfunction self
+            c_name = @extern ? name : Rubex::C_FUNC_PREFIX + name
+            type = determine_dtype @type
+            @type = Rubex::DataType::CMethod.new(@name, c_name, @args, type, nil)
+            local_scope.add_c_method(name: @name, c_name: c_name, 
+              extern: @extern,)
           end
 
         private
@@ -251,7 +254,7 @@ module Rubex
       class CMethodDef < MethodDef
         attr_reader :type
 
-        def initialize return_type, name, arg_list, statements
+        def initialize type, name, arg_list, statements
           super(name, arg_list, statements)
           @type = type
           # self is a compulsory implicit argument for C methods.
@@ -265,7 +268,7 @@ module Rubex
         def generate_code code, local_scope
           
         end
-      end # class CFunctionDef
+      end # class CMethodDef
 
       class Klass
         # Stores the scope of the class. Rubex::SymbolTable::Scope::Klass.
@@ -313,13 +316,31 @@ module Rubex
 
         def add_statement_symbols_to_symbol_table
           @statements.each do |stat|
+            name = stat.name
             if stat.is_a? Rubex::AST::TopStatement::RubyMethodDef
-              name = stat.name
               c_name = Rubex::RUBY_FUNC_PREFIX + @name + "_" +
                 name.gsub("?", "_qmark").gsub("!", "_bang")
               @scope.add_ruby_method name: name, c_name: c_name
+            elsif stat.is_a? Rubex::AST::TopStatement::CMethodDef
+              c_name = Rubex::C_FUNC_PREFIX + @name + name
+              type = Rubex::DataType::CMethod.new(
+                name, c_name, stat.arg_list, determine_dtype(stat.type))
+              @scope.add_c_method(name: name, c_name: c_name, extern: false,
+                type: type)
             end
           end
+        end
+
+        def determine_dtype dtype_or_ptr
+          if dtype_or_ptr[-1] == "*"
+            Rubex::DataType::CPtr.new simple_dtype(dtype_or_ptr[0...-1])
+          else
+            simple_dtype(dtype_or_ptr)
+          end
+        end
+
+        def simple_dtype dtype
+          Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new
         end
       end # class Klass
     end # module TopStatement

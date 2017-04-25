@@ -13,7 +13,7 @@ module Rubex
         :char?, :object?, :bool?, :carray?,
         :cptr?, :nil_type?, :struct_or_union?,
         :alias_type?, :string?, :cstr?, :ruby_class?,
-        :ruby_method?
+        :ruby_method?, :c_method?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -435,16 +435,6 @@ module Rubex
       def to_s; "#{@c_name}"; end
     end
 
-    class CFunction
-      include Helpers
-      attr_reader :name, :args, :type
-      attr_accessor :c_name
-
-      def initialize name, args, type
-        @name, @args, @type = name, args, type
-      end
-    end
-
     class TypeDef
       include Helpers
       attr_reader :type, :old_name, :new_name
@@ -495,11 +485,23 @@ module Rubex
       attr_accessor :scope, :arg_list
 
       def initialize name, c_name
-        @name, @c_name, @scope = name, c_name, scope
+        @name, @c_name, = name, c_name
         @type = RubyObject.new
       end
 
       def ruby_method?; true; end
+    end
+
+    class CMethod
+      include Helpers
+      attr_reader :name, :args, :type, :c_name
+      attr_accessor :scope
+
+      def initialize name, c_name, args, type
+        @name, @c_name, @args, @type = name, c_name, args, type
+      end
+
+      def c_method?; true; end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64

@@ -9,7 +9,7 @@ module Rubex
       attr_accessor :ruby_obj_entries
       attr_accessor :carray_entries
       attr_accessor :sue_entries
-      attr_accessor :cfunction_entries
+      attr_accessor :c_method_entries
       attr_accessor :type_entries
       attr_accessor :ruby_class_entries
       attr_accessor :ruby_method_entries
@@ -24,7 +24,7 @@ module Rubex
         @ruby_obj_entries = []
         @carray_entries = []
         @sue_entries = []
-        @cfunction_entries = []
+        @c_method_entries = []
         @type_entries = []
         @ruby_class_entries = []
         @ruby_method_entries = []
@@ -62,19 +62,6 @@ module Rubex
         @type_entries << entry
       end
 
-      def declare_cfunction function
-        name = function.name
-        if function.extern
-          c_name = name
-        else
-          c_name = Rubex::C_FUNC_PREFIX + name
-        end
-        entry = Rubex::SymbolTable::Entry.new(name, c_name, function.type, nil)
-        entry.extern = function.extern
-        @entries[name] = entry
-        @cfunction_entries << entry
-      end
-
       def add_ruby_obj name: , c_name:, value: nil
         entry = Rubex::SymbolTable::Entry.new(
           name, c_name, Rubex::DataType::RubyObject.new, value)
@@ -96,6 +83,13 @@ module Rubex
         entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
         @entries[name] = entry
         @ruby_class_entries << entry
+      end
+
+      def add_c_method name:, c_name:, type:, extern: false
+        entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
+        entry.extern = extern
+        @entries[name] = entry
+        @c_method_entries << entry
       end
 
       # name: name of the method
