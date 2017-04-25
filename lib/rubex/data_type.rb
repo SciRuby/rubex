@@ -494,11 +494,13 @@ module Rubex
 
     class CMethod
       include Helpers
-      attr_reader :name, :args, :type, :c_name
-      attr_accessor :scope
+      attr_reader :name, :type, :c_name
+      attr_accessor :scope, :arg_list
 
+      # FIXME: all attributes should be initialized upon class creation to maintain
+      # sanity and consistency.
       def initialize name, c_name, args, type
-        @name, @c_name, @args, @type = name, c_name, args, type
+        @name, @c_name, @type = name, c_name, type
       end
 
       def c_method?; true; end

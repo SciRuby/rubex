@@ -624,7 +624,7 @@ module Rubex
           code << @expr.c_code(local_scope) + ";"
           code.nl
         end
-      end
+      end # class Expression
     end # module Statement
   end # module AST
 end # module Rubex

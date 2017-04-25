@@ -28,17 +28,17 @@ module Rubex
      private
 
       def add_top_level_ruby_methods_to_object_class_scope
-        ruby_methods = @statements.select do |s| 
-          s.is_a?(Rubex::AST::TopStatement::RubyMethodDef)
+        top_methods = @statements.select do |s| 
+          s.is_a?(Rubex::AST::TopStatement::MethodDef)
         end
         
-        unless ruby_methods.empty?      
+        unless methods.empty?      
           @statements.delete_if do |s|
-            s.is_a?(Rubex::AST::TopStatement::RubyMethodDef)
+            s.is_a?(Rubex::AST::TopStatement::MethodDef)
           end
 
           @statements << Rubex::AST::TopStatement::Klass.new(
-            'Object', 'Object', ruby_methods
+            'Object', 'Object', top_methods
           )
         end
       end

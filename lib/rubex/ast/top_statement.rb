@@ -79,13 +79,11 @@ module Rubex
           @scope.outer_scope = outer_scope
           @scope.type = @entry.type
           @scope.self_name = Rubex::ARG_PREFIX + "self"
-          @scope.declare_args @arg_list
-        end
-      end
-
-      class RubyMethodDef < MethodDef
-        def analyse_statements outer_scope
-          super(outer_scope)
+          @arg_list.each do |arg|
+            type = Rubex::TYPE_MAPPINGS[arg.type].new
+            @scope.add_arg(name: arg.name, c_name: Rubex::ARG_PREFIX + arg.name,
+              type: type, value: arg.value)
+          end
 
           @statements.each do |stat|
             stat.analyse_statement @scope
@@ -97,6 +95,12 @@ module Rubex
             stat.respond_to?(:rescan_declarations) and
             stat.rescan_declarations(@scope)
           end
+        end
+      end
+
+      class RubyMethodDef < MethodDef
+        def analyse_statements outer_scope
+          super(outer_scope)
         end
 
         def generate_code code
@@ -258,14 +262,14 @@ module Rubex
           super(name, arg_list, statements)
           @type = type
           # self is a compulsory implicit argument for C methods.
-          @arg_list << Expression::Self.new
+          @arg_list << CBaseType.new('object', 'self', nil)
         end
 
-        def analyse_statements outer_scope
-          
+        def analyse_statements outer_scope, extern: false
+          super(outer_scope)
         end
 
-        def generate_code code, local_scope
+        def generate_code code
           
         end
       end # class CMethodDef

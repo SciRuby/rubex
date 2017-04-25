@@ -4,7 +4,7 @@ end
 
 class CFunctions
   def pure_ruby_method
-    a = 55
+    int a = 55
     b = 5.43
     int c = first_c_function(a, b)
     d = this_is_it

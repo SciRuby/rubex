@@ -161,17 +161,11 @@ module Rubex
         include Rubex::SymbolTable::Scope
 
         # args - Rubex::AST::ArgumentList. Creates sym. table entries for args.
-        def declare_args args
-          args.each do |arg|
-            c_name = Rubex::ARG_PREFIX + arg.name
-            type = Rubex::TYPE_MAPPINGS[arg.type].new
-            entry = Rubex::SymbolTable::Entry.new arg.name, c_name, type, arg.value
-
-            name = arg.name
-            check_entry name
-            @entries[name] = entry
-            @arg_entries << entry
-          end
+        def add_arg name:, c_name:, type:, value:
+          entry = Rubex::SymbolTable::Entry.new name, c_name, type, value
+          check_entry name
+          @entries[name] = entry
+          @arg_entries << entry
         end
       end # class Local
 
