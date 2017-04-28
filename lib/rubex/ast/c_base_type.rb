@@ -13,6 +13,10 @@ module Rubex
         self.name == other.name   &&
         self.value == other.value
       end
+
+      def analyse_statement local_scope
+        @type = Rubex::Helpers.determine_dtype @type
+      end
     end
   end
 end

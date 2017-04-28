@@ -9,14 +9,23 @@ module Rubex
       @indent = 0
     end
 
-    def write_func_declaration return_type, c_name, args=""
-      write_func_prototype return_type, c_name, args
+    # type - Return type of the method.
+    # c_name - C Name.
+    # args - Array of Arrays containing data type and variable name.
+    def write_func_declaration type, c_name, args=[]
+      write_func_prototype type, c_name, args
       @code << ";"
       new_line
     end
 
-    def write_func_definition_header return_type, c_name, args=""
-      write_func_prototype return_type, c_name, args
+    def write_c_method_header type: , c_name: , args: []
+      write_func_prototype type, c_name, args
+    end
+
+    def write_ruby_method_header type, c_name
+      args = [["int", "argc"], ["VALUE*", "argv"], 
+        ["VALUE", "#{Rubex::ARG_PREFIX + "self"}"]]
+      write_func_prototype type, c_name, args
     end
 
     def write_location location
@@ -100,11 +109,7 @@ module Rubex
     def write_func_prototype return_type, c_name, args
       @code << "#{return_type} #{c_name} "
       @code << "("
-      if args.empty?
-        @code << "int argc, VALUE* argv, VALUE #{Rubex::ARG_PREFIX}self"
-      else
-        @code << args
-      end
+      @code << args.map { |type_arg| type_arg.join(" ") }.join(",")
       @code << ")"
     end
   end

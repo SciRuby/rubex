@@ -32,7 +32,7 @@ module Rubex
           s.is_a?(Rubex::AST::TopStatement::MethodDef)
         end
         
-        unless methods.empty?      
+        unless top_methods.empty?      
           @statements.delete_if do |s|
             s.is_a?(Rubex::AST::TopStatement::MethodDef)
           end
@@ -132,8 +132,8 @@ module Rubex
       def generate_init_method target_name, code
         name = "Init_#{target_name}"
         code.new_line
-        code.write_func_declaration "void", name, "void"
-        code.write_func_definition_header "void", name, "void"
+        code.write_func_declaration "void", name, []
+        code.write_c_method_header type: "void", c_name: name, args: []
         code.block do
           @statements.each do |top_stmt|
             if top_stmt.is_a?(TopStatement::Klass) && top_stmt.name != 'Object'

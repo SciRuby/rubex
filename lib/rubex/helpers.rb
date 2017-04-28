@@ -5,6 +5,18 @@ module Rubex
         return left.dup if left == right
         return (left < right ? right.dup : left.dup)
       end
+
+      def determine_dtype dtype_or_ptr
+        if dtype_or_ptr[-1] == "*"
+          Rubex::DataType::CPtr.new simple_dtype(dtype_or_ptr[0...-1])
+        else
+          simple_dtype(dtype_or_ptr)
+        end
+      end
+
+      def simple_dtype dtype
+        Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new
+      end
     end
 
     module NodeTypeMethods

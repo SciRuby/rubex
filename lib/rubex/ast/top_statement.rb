@@ -80,13 +80,21 @@ module Rubex
           @scope.type = @entry.type
           @scope.self_name = Rubex::ARG_PREFIX + "self"
           @arg_list.each do |arg|
-            type = Rubex::TYPE_MAPPINGS[arg.type].new
+            arg.analyse_statement @scope
             @scope.add_arg(name: arg.name, c_name: Rubex::ARG_PREFIX + arg.name,
-              type: type, value: arg.value)
+              type: arg.type, value: arg.value)
           end
 
           @statements.each do |stat|
             stat.analyse_statement @scope
+          end
+        end
+
+        # Option c_function - When set to true, certain code that is not required
+        #   for Ruby methods will be generated too.
+        def generate_code code, c_method: false
+          code.block do
+            generate_function_definition code, c_method: c_method
           end
         end
 
@@ -96,37 +104,16 @@ module Rubex
             stat.rescan_declarations(@scope)
           end
         end
-      end
-
-      class RubyMethodDef < MethodDef
-        def analyse_statements outer_scope
-          super(outer_scope)
-        end
-
-        def generate_code code
-          code.write_func_definition_header @entry.type.type.to_s, @entry.c_name
-          code.block do
-            generate_function_definition code
-          end
-        end
-
-        def == other
-          self.class == other.class && @name == other.name &&
-          @c_name == other.c_name && @arg_list == other.arg_list &&
-          @statements == other.statements && @entry == other.entry &&
-          @type == other.type
-        end
 
       private
-
-        def generate_function_definition code
+        def generate_function_definition code, c_method:
           declare_types code
-          declare_args code
+          declare_args code unless c_method
           declare_vars code, @scope
           declare_carrays code, @scope
           declare_ruby_objects code, @scope
-          generate_arg_checking code
-          init_args code
+          generate_arg_checking code unless c_method
+          init_args code unless c_method
           init_vars code
           declare_carrays_using_init_var_value code
           generate_statements code
@@ -253,6 +240,20 @@ module Rubex
             code << %Q{rb_raise(rb_eArgError, "Need #{@scope.arg_entries.size} args, not %d", argc);\n}
           end
         end
+      end
+
+      class RubyMethodDef < MethodDef
+        def generate_code code
+          code.write_ruby_method_header @entry.type.type.to_s, @entry.c_name
+          super
+        end
+
+        def == other
+          self.class == other.class && @name == other.name &&
+          @c_name == other.c_name && @arg_list == other.arg_list &&
+          @statements == other.statements && @entry == other.entry &&
+          @type == other.type
+        end
       end # class RubyMethodDef
 
       class CMethodDef < MethodDef
@@ -270,7 +271,17 @@ module Rubex
         end
 
         def generate_code code
-          
+          code.write_c_method_header(type: @entry.type.type.to_s, 
+            c_name: @entry.c_name, args: create_arg_arrays)
+          super code, c_method: true
+        end
+
+      private
+        def create_arg_arrays
+          @scope.arg_entries.inject([]) do |array, arg|
+            array << [arg.type.to_s, arg.c_name]
+            array
+          end
         end
       end # class CMethodDef
 
@@ -321,12 +332,14 @@ module Rubex
         def add_statement_symbols_to_symbol_table
           @statements.each do |stat|
             name = stat.name
+            puts ">>> #{name}"
             if stat.is_a? Rubex::AST::TopStatement::RubyMethodDef
               c_name = Rubex::RUBY_FUNC_PREFIX + @name + "_" +
                 name.gsub("?", "_qmark").gsub("!", "_bang")
               @scope.add_ruby_method name: name, c_name: c_name
             elsif stat.is_a? Rubex::AST::TopStatement::CMethodDef
-              c_name = Rubex::C_FUNC_PREFIX + @name + name
+              puts "hello"
+              c_name = Rubex::C_FUNC_PREFIX + @name + "_" + name
               type = Rubex::DataType::CMethod.new(
                 name, c_name, stat.arg_list, determine_dtype(stat.type))
               @scope.add_c_method(name: name, c_name: c_name, extern: false,

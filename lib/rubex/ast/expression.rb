@@ -308,8 +308,8 @@ module Rubex
           # a symtab entry for a predeclared extern C func.
           # FIXME: C functions should have the type CFunction like RubyMethod.
           #   Currently their type is set to their return type.
-          if entry && entry.extern? 
-            @type = entry.type
+          if entry && entry.type.c_method?
+            @type = entry.type.type
           else
             @type = Rubex::DataType::RubyObject.new
           end
@@ -336,7 +336,9 @@ module Rubex
       private
         def code_for_c_method_call local_scope, entry
           str = "#{entry.c_name}("
-          str << @arg_list.map { |a| a.c_code(local_scope) }.join(",")
+          str << @arg_list.map { |a| a.c_code(local_scope) }
+            .push(local_scope.self_name)
+            .join(",")
           str << ")"
           str
         end
