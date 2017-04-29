@@ -30,27 +30,13 @@ module Rubex
           def analyse_statement local_scope, extern: false
             @extern = extern
             @args.map! do |a|
-              determine_dtype a
+              Helpers.determine_dtype a
             end
             c_name = @extern ? name : Rubex::C_FUNC_PREFIX + name
-            type = determine_dtype @type
-            @type = Rubex::DataType::CMethod.new(@name, c_name, @args, type, nil)
-            local_scope.add_c_method(name: @name, c_name: c_name, 
-              extern: @extern,)
-          end
-
-        private
-
-          def determine_dtype dtype_or_ptr
-            if dtype_or_ptr[-1] == "*"
-              Rubex::DataType::CPtr.new simple_dtype(dtype_or_ptr[0...-1])
-            else
-              simple_dtype(dtype_or_ptr)
-            end
-          end
-
-          def simple_dtype dtype
-            Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new
+            type = Helpers.determine_dtype @type
+            @type = Rubex::DataType::CMethod.new(@name, c_name, @args, type)
+            local_scope.add_c_method(name: @name, c_name: c_name, type: @type,
+              extern: @extern)
           end
         end # class CFunctionDecl
       end # class CBindings
@@ -332,23 +318,11 @@ module Rubex
             elsif stat.is_a? Rubex::AST::TopStatement::CMethodDef
               c_name = Rubex::C_FUNC_PREFIX + @name + "_" + name
               type = Rubex::DataType::CMethod.new(
-                name, c_name, stat.arg_list, determine_dtype(stat.type))
+                name, c_name, stat.arg_list, Helpers.determine_dtype(stat.type))
               @scope.add_c_method(name: name, c_name: c_name, extern: false,
                 type: type)
             end
           end
-        end
-
-        def determine_dtype dtype_or_ptr
-          if dtype_or_ptr[-1] == "*"
-            Rubex::DataType::CPtr.new simple_dtype(dtype_or_ptr[0...-1])
-          else
-            simple_dtype(dtype_or_ptr)
-          end
-        end
-
-        def simple_dtype dtype
-          Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new
         end
       end # class Klass
     end # module TopStatement

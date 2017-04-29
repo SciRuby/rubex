@@ -312,8 +312,10 @@ module Rubex
           #   Currently their type is set to their return type.
           if entry && entry.type.c_method?
             @type = entry.type.type
-            # all C functions have compulsory last arg as self.
-            @arg_list << Expression::Self.new
+            # All C functions have compulsory last arg as self. This does not
+            #   apply to extern functions as they are usually not made for accepting
+            #   a VALUE last arg.
+            @arg_list << Expression::Self.new if !entry.extern?
           else
             @type = Rubex::DataType::RubyObject.new
           end

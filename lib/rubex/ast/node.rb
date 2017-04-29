@@ -7,13 +7,9 @@ module Rubex
         @statements = statements.flatten
       end
 
-      def add_child child
-        @statements.concat child
-      end
-
       def process_statements target_name, code
         @scope = Rubex::SymbolTable::Scope::Klass.new 'Object', nil
-        add_top_level_ruby_methods_to_object_class_scope
+        add_top_level_methods_to_object_class_scope
         analyse_statements
         rescan_declarations @scope
         generate_preamble code
@@ -27,19 +23,19 @@ module Rubex
 
      private
 
-      def add_top_level_ruby_methods_to_object_class_scope
-        top_methods = @statements.select do |s| 
-          s.is_a?(Rubex::AST::TopStatement::MethodDef)
-        end
+      def add_top_level_methods_to_object_class_scope
+        top_methods = @statements.grep(Rubex::AST::TopStatement::MethodDef)
         
         unless top_methods.empty?      
           @statements.delete_if do |s|
             s.is_a?(Rubex::AST::TopStatement::MethodDef)
           end
 
-          @statements.unshift Rubex::AST::TopStatement::Klass.new(
-            'Object', @scope, top_methods
-          )
+          idx = @statements.rindex { |s| 
+            s.is_a? Rubex::AST::TopStatement::CBindings }
+          object_klass = Rubex::AST::TopStatement::Klass.new(
+            'Object', @scope, top_methods)
+          @statements.insert(idx ? idx + 1 : 0, object_klass)
         end
       end
 
