@@ -17,6 +17,13 @@ module Rubex
       def simple_dtype dtype
         Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new
       end
+
+      def create_arg_arrays scope
+        scope.arg_entries.inject([]) do |array, arg|
+          array << [arg.type.to_s, arg.c_name]
+          array
+        end
+      end
     end
 
     module NodeTypeMethods

@@ -261,12 +261,14 @@ module Rubex
           end
           # If the entry is a RubyMethod, it should be interpreted as a command
           # call. So, make the @name a CommandCall Node.
-          if @entry.type.ruby_method?
-            @name = Rubex::AST::Expression::CommandCall.new(Self.new, @name, [])
+          if @entry.type.ruby_method? || @entry.type.c_method?
+            @name = Rubex::AST::Expression::CommandCall.new(
+              Expression::Self.new, @name, [])
             @name.analyse_statement local_scope
           end
 
-          if @entry.type.alias_type? || @entry.type.ruby_method?
+          if @entry.type.alias_type? || @entry.type.ruby_method? || 
+              @entry.type.c_method?
             @type = @entry.type.type
           else
             @type = @entry.type
@@ -274,7 +276,7 @@ module Rubex
         end
 
         def c_code local_scope
-          if @entry.type.ruby_method?
+          if @entry.type.ruby_method? || @entry.type.c_method?
             @name.c_code(local_scope)
           else
             @entry.c_name
@@ -310,6 +312,8 @@ module Rubex
           #   Currently their type is set to their return type.
           if entry && entry.type.c_method?
             @type = entry.type.type
+            # all C functions have compulsory last arg as self.
+            @arg_list << Expression::Self.new
           else
             @type = Rubex::DataType::RubyObject.new
           end
@@ -336,9 +340,7 @@ module Rubex
       private
         def code_for_c_method_call local_scope, entry
           str = "#{entry.c_name}("
-          str << @arg_list.map { |a| a.c_code(local_scope) }
-            .push(local_scope.self_name)
-            .join(",")
+          str << @arg_list.map { |a| a.c_code(local_scope) }.join(",")
           str << ")"
           str
         end

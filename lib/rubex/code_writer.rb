@@ -12,8 +12,13 @@ module Rubex
     # type - Return type of the method.
     # c_name - C Name.
     # args - Array of Arrays containing data type and variable name.
-    def write_func_declaration type, c_name, args=[]
+    def write_func_declaration type:, c_name:, args: []
       write_func_prototype type, c_name, args
+      @code << ";"
+      new_line
+    end
+
+    def colon
       @code << ";"
       new_line
     end
@@ -22,7 +27,7 @@ module Rubex
       write_func_prototype type, c_name, args
     end
 
-    def write_ruby_method_header type, c_name
+    def write_ruby_method_header type: , c_name:
       args = [["int", "argc"], ["VALUE*", "argv"], 
         ["VALUE", "#{Rubex::ARG_PREFIX + "self"}"]]
       write_func_prototype type, c_name, args

@@ -37,8 +37,8 @@ module Rubex
             s.is_a?(Rubex::AST::TopStatement::MethodDef)
           end
 
-          @statements << Rubex::AST::TopStatement::Klass.new(
-            'Object', 'Object', top_methods
+          @statements.unshift Rubex::AST::TopStatement::Klass.new(
+            'Object', @scope, top_methods
           )
         end
       end
@@ -55,15 +55,19 @@ module Rubex
       end
 
       def write_function_declarations code
-        @statements.each do |stat|
-          if stat.is_a? Rubex::AST::TopStatement::Klass
-            statements = stat.statements
-            statements.each do |meth|
-              if meth.is_a? Rubex::AST::TopStatement::RubyMethodDef
-                code.write_func_declaration(meth.entry.type.type.to_s,
-                  meth.entry.c_name)
-              end
-            end
+        @statements.grep(Rubex::AST::TopStatement::Klass).each do |klass|
+          klass.statements.grep(Rubex::AST::TopStatement::RubyMethodDef).each do |meth|
+            code.write_ruby_method_header(
+              type: meth.entry.type.type.to_s, c_name: meth.entry.c_name)
+            code.colon
+          end
+
+          klass.statements.grep(Rubex::AST::TopStatement::CMethodDef).each do |meth|
+            code.write_c_method_header(
+              type: meth.entry.type.type.to_s, 
+              c_name: meth.entry.c_name, 
+              args: Helpers.create_arg_arrays(meth.entry.type.scope))
+            code.colon
           end
         end
       end
@@ -90,14 +94,20 @@ module Rubex
         @statements.each do |stat|
           if stat.is_a? Rubex::AST::TopStatement::Klass
             name = stat.name
-            ancestor_scope =
-            if stat.ancestor != 'Object'
-              @scope.find(stat.ancestor).type.scope
+            # The top level scope in Ruby is Object. The Object class's immediate
+            # ancestor is also Object. Hence, it is important to set the class
+            # scope and ancestor scope of Object as Object, and make sure that
+            # the same scope object is used for 'Object' class every single time
+            # throughout the compilation process.
+            if stat.name != 'Object'
+              ancestor_scope = @scope.find(stat.ancestor)&.type&.scope || @scope
+              klass_scope = Rubex::SymbolTable::Scope::Klass.new(
+                name, ancestor_scope)
             else
-              @scope
+              ancestor_scope = @scope
+              klass_scope = @scope
             end
             c_name = c_name_for_class stat.name
-            klass_scope = Rubex::SymbolTable::Scope::Klass.new name, ancestor_scope
 
             @scope.add_ruby_class(name: name, c_name: c_name, scope: klass_scope,
               ancestor: ancestor_scope)
@@ -132,7 +142,7 @@ module Rubex
       def generate_init_method target_name, code
         name = "Init_#{target_name}"
         code.new_line
-        code.write_func_declaration "void", name, []
+        code.write_func_declaration type: "void", c_name: name, args: []
         code.write_c_method_header type: "void", c_name: name, args: []
         code.block do
           @statements.each do |top_stmt|

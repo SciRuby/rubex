@@ -155,7 +155,7 @@ module Rubex
           @name = name
           @include_files = []
         end
-      end
+      end # class Klass
 
       class Local
         include Rubex::SymbolTable::Scope

@@ -14,21 +14,20 @@ describe Rubex do
       end
     end
 
-    context ".compile", focus: true do
+    context ".compile" do
       it "compiles to valid C file" do
         t,c,e = Rubex.compile(@path + '.rubex', test: true)
-        puts c
       end
     end
 
-    context "Black Box testing" do
+    context "Black Box testing", focus: true  do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.so"
 
           c = CFunctions.new
-          expect(c.pure_ruby_method).to eq(0)
-          expect(c.first_c_function(1,2)).to raise_error { NoMethodError }
+          expect(c.pure_ruby_method).to eq(46)
+          expect { c.first_c_function(1,2) }.to raise_error(NoMethodError)
         end
       end
     end

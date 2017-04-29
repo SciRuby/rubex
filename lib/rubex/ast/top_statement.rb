@@ -244,7 +244,8 @@ module Rubex
 
       class RubyMethodDef < MethodDef
         def generate_code code
-          code.write_ruby_method_header @entry.type.type.to_s, @entry.c_name
+          code.write_ruby_method_header(type: @entry.type.type.to_s,
+            c_name: @entry.c_name)
           super
         end
 
@@ -272,16 +273,8 @@ module Rubex
 
         def generate_code code
           code.write_c_method_header(type: @entry.type.type.to_s, 
-            c_name: @entry.c_name, args: create_arg_arrays)
+            c_name: @entry.c_name, args: Helpers.create_arg_arrays(@scope))
           super code, c_method: true
-        end
-
-      private
-        def create_arg_arrays
-          @scope.arg_entries.inject([]) do |array, arg|
-            array << [arg.type.to_s, arg.c_name]
-            array
-          end
         end
       end # class CMethodDef
 
@@ -332,13 +325,11 @@ module Rubex
         def add_statement_symbols_to_symbol_table
           @statements.each do |stat|
             name = stat.name
-            puts ">>> #{name}"
             if stat.is_a? Rubex::AST::TopStatement::RubyMethodDef
               c_name = Rubex::RUBY_FUNC_PREFIX + @name + "_" +
                 name.gsub("?", "_qmark").gsub("!", "_bang")
               @scope.add_ruby_method name: name, c_name: c_name
             elsif stat.is_a? Rubex::AST::TopStatement::CMethodDef
-              puts "hello"
               c_name = Rubex::C_FUNC_PREFIX + @name + "_" + name
               type = Rubex::DataType::CMethod.new(
                 name, c_name, stat.arg_list, determine_dtype(stat.type))
