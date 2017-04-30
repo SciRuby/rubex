@@ -8,6 +8,7 @@
 class Rubex::Lexer
   require 'strscan'
 
+  SELF          = /self/
   DEF           = /def/
   CDEF          = /cdef/
   RETURN        = /return/

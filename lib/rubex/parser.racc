@@ -2,7 +2,7 @@ class Rubex::Parser
 token
   kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE   kTHEN  kSTATIC_ARRAY kFOR kWHILE
   kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS        kLIB kCLASS
-  kCDEF
+  kCDEF     kSELF
 
   kDTYPE_UINT  kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32   kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64
@@ -114,10 +114,15 @@ rule
   | c_method { result = val[0] }
 
   ruby_method:
-    kDEF f_name f_opt_arglist compstmt kEND
+    kDEF opt_singleton f_name f_opt_arglist compstmt kEND
       {
-        result = TopStatement::RubyMethodDef.new(val[1], val[2], val[3])
+        result = TopStatement::RubyMethodDef.new(
+          val[2], val[3], val[4], singleton: val[1])
       }
+
+  opt_singleton:
+    { result = false }
+  | kSELF tDOT { result = true }
 
   c_method:
     kCDEF dtype_or_ptr tIDENTIFIER f_opt_arglist compstmt kEND
@@ -479,6 +484,8 @@ def check_for_keyword token
     return [:kDEF, match]
   elsif match == "cdef"
     return [:kCDEF, match]
+  elsif match == "self"
+    return [:kSELF, match]
   elsif match == "do"
     return [:kDO, match]
   elsif match == "end"

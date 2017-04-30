@@ -2,7 +2,7 @@ class Bhau
   def self.say_what(string)
     int i = 0
 
-    while i < 10
+    while i < 10 do
       print string
       i += 1
     end

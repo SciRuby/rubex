@@ -229,6 +229,13 @@ module Rubex
       end
 
       class RubyMethodDef < MethodDef
+        attr_reader :singleton
+
+        def initialize name, arg_list, statements, singleton: false
+          super(name, arg_list, statements)
+          @singleton = singleton
+        end
+
         def generate_code code
           code.write_ruby_method_header(type: @entry.type.type.to_s,
             c_name: @entry.c_name)
