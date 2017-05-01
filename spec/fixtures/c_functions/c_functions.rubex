@@ -1,4 +1,4 @@
-cdef object this_is_it
+cfunc object this_is_it
   return "this is it."
 end
 
@@ -12,7 +12,7 @@ class CFunctions
     return a + c
   end
 
-  cdef int first_c_function(int a, float b)
+  cfunc int first_c_function(int a, float b)
     int c = a + 5
     int d = (c * b + 3)/5
 

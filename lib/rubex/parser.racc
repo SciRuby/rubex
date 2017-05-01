@@ -2,7 +2,7 @@ class Rubex::Parser
 token
   kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE   kTHEN  kSTATIC_ARRAY kFOR kWHILE
   kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS        kLIB kCLASS
-  kCDEF     kSELF
+  kCFUNC     kSELF
 
   kDTYPE_UINT  kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32   kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64
@@ -125,7 +125,7 @@ rule
   | kSELF tDOT { result = true }
 
   c_method:
-    kCDEF dtype_or_ptr tIDENTIFIER f_opt_arglist compstmt kEND
+    kCFUNC dtype_or_ptr tIDENTIFIER f_opt_arglist compstmt kEND
       {
         result = TopStatement::CMethodDef.new(val[1], val[2], val[3], val[4])
       }
@@ -482,8 +482,8 @@ def check_for_keyword token
   match = token[1]
   if match == "def"
     return [:kDEF, match]
-  elsif match == "cdef"
-    return [:kCDEF, match]
+  elsif match == "cfunc"
+    return [:kCFUNC, match]
   elsif match == "self"
     return [:kSELF, match]
   elsif match == "do"

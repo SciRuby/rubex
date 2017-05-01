@@ -16,7 +16,7 @@ class CallByReference
     return a.a
   end
 
-  cdef void c_function(attribs *a, int b)
+  cfunc void c_function(attribs *a, int b)
     a[0].a = b
   end
 end

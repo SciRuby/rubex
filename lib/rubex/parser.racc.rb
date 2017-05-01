@@ -51,8 +51,8 @@ def check_for_keyword token
   match = token[1]
   if match == "def"
     return [:kDEF, match]
-  elsif match == "cdef"
-    return [:kCDEF, match]
+  elsif match == "cfunc"
+    return [:kCFUNC, match]
   elsif match == "self"
     return [:kSELF, match]
   elsif match == "do"
@@ -804,7 +804,7 @@ racc_token_table = {
   :kALIAS => 20,
   :kLIB => 21,
   :kCLASS => 22,
-  :kCDEF => 23,
+  :kCFUNC => 23,
   :kSELF => 24,
   :kDTYPE_UINT => 25,
   :kDTYPE_LINT => 26,
@@ -906,7 +906,7 @@ Racc_token_to_s_table = [
   "kALIAS",
   "kLIB",
   "kCLASS",
-  "kCDEF",
+  "kCFUNC",
   "kSELF",
   "kDTYPE_UINT",
   "kDTYPE_LINT",

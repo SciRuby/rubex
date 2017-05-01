@@ -6,7 +6,7 @@ macros
 
   SELF            /self/
   DEF             /def/
-  CDEF            /cdef/
+  CFUNC            /cfunc/
   RETURN          /return/
   PRINT           /print/
   IF              /if/
