@@ -27,21 +27,83 @@ Installing the gem will also install the `rubex` binary. You can now write a Rub
 rubex file_name.rubex
 ```
 
-This will produce the translated C code, an `extconf.rb` file and a `Makefile`. You can now run the `extconf.rb` file with:
+This will produce the translated C code and an `extconf.rb` file inside a directory called `file_name`. CD into the directory, and run the `extconf.rb` file with:
 ```
 ruby extconf.rb
 ```
 
-Which will produce a `.so` file called `file_name.so`, which can then be used in any Ruby script.
+This will produce a `Makefile`. Run `make` to compile the generated C file and generate a `.so` shared object file that can be used in any Ruby script.
+
+# Sample Programs
+
+A sample Rubex program that computes the first `n` fibonnaci numbers and prints each of them would look like this:
+``` ruby
+class Fibonnaci
+  def compute(int n)
+    int i = 1
+    int prev = 1
+    int current = 1
+    int temp
+
+    print 1, "\n"
+    print 1, "\n"
+
+    while i < n do
+      temp = current
+      current = current + prev
+      prev = temp
+      print current, "\n"
+
+      i += 1
+    end
+  end
+end
+```
+
+Notice that the only difference between Rubex and this program is that we have defined the `compute` method to receive a number of type `int`. The variables `i`, `prev`, `current` and `temp` are defined as `int` using a syntax very similar to C.
+
+You can now run the above program using a script like this:
+``` ruby
+require_relative 'fibo.so'
+
+Fibonnaci.new.compute(10)
+```
+
+This will print the first 10 fibonnaci numbers on your terminal.
+
+Let us now dive deeper into the Rubex syntax.
 
 # Syntax
 
-A sample Rubex program that computes the 
+## Interfacing with external C libraries
 
+One of the primary uses of Rubex is to make it extremely simple to interface Ruby with external C libraries. For example, say you want to interface the `sin()` and `cos()` functions from the `math.h` C header file.
 
-All code that you write should be a
+You use the `lib` keyword of Rubex and do that easily like this:
+``` ruby
+lib "<math.h>" do
+  double sin(double)
+  double cos(double)
+end
 
+class Trigonometry
+  def math_sin(double n)
+    return sin(n)
+  end
 
+  def math_cos(double n)
+    return cos(n)
+  end
+end
+```
+
+And you're done!
+
+You can simply call these functions through a Ruby script that uses the `math_sin` and/or `math_cos` methods inside the `Trigonometry` class.
+
+## Data Types
+
+Rubex supports most primitive C data types out of the box. Following are the ones supported and their respective Rubex keywords:
 
 |rubex keyword         | C type | Description  |
 |:---                  |:---    |:---          |
@@ -65,3 +127,40 @@ All code that you write should be a
 |long f64/long double  |long double|Long double >= 96 bits. |
 |object                |VALUE        |Ruby object |
 
+## C functions
+
+Rubex supports two kinds of functions:
+* Ruby instance methods
+* Ruby class methods
+* C functions
+
+Out of these Ruby instance and class methods are callable from external Ruby scripts, but C functions are callable ONLY FROM THE RUBEX CODE.
+
+C functions can be scoped inside classes/modules like normal Ruby methods and will be accessible to both Ruby instance and class methods only inside the Rubex program. These functions are not individually accessible through an external Ruby script.
+
+C functions can be defined using the `cfunc` keyword. Keep in mind that you will also need to specify the return data type of the function since it will ultimately be compiled to simple C function that returns a value of a particular type.
+
+For example:
+``` ruby
+class Foo
+  cfunc int baz(float d)
+    int a = d / 5
+
+    return a
+  end
+
+  def bar(float d)
+    int c = baz(d)
+
+    return c
+  end
+end
+```
+
+### Implicit type conversions
+
+Rubex will implicitly convert most primitive C types like `char`, `int` and `float` to their equivalent Ruby types and vice versa. However, types conversions for user defined types like structs and unions are not supported.
+
+# Roadmap for v0.1
+
+See the [wiki](https://github.com/v0dro/rubex/wiki/Rubex-v0.1-goals) for a roadmap of Rubex for v0.1

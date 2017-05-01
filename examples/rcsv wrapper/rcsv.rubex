@@ -177,11 +177,11 @@ class Rcsv
     csv_fini(cp, &end_of_field_callback, &end_of_line_callback, meta)
   end
 
-  cdef void end_of_field_callback(void* field, size_t field_size, void* data)
+  cfunc void end_of_field_callback(void* field, size_t field_size, void* data)
     
   end
 
-  cdef void end_of_line_callback(int last_char, void* data)
+  cfunc void end_of_line_callback(int last_char, void* data)
 
   end
 
@@ -189,7 +189,7 @@ class Rcsv
   # attributes within the structs? - by referencing with the [] operator.
   #
   #
-  cdef void free_all_memory(csv_parser *p_cp, rcsv_metadata *p_meta)
+  cfunc void free_all_memory(csv_parser *p_cp, rcsv_metadata *p_meta)
     csv_parser cp = p_cp[0]
     rcsv_metadata meta = p_meta[0]
 
@@ -198,7 +198,7 @@ class Rcsv
     end
   end
 
-  cdef void setup_rcsv_metadata_defaults(rcsv_metadata *p_meta)
+  cfunc void setup_rcsv_metadata_defaults(rcsv_metadata *p_meta)
     rcsv_metadata meta = p_meta[0]
 
     meta.row_as_hash = 0
