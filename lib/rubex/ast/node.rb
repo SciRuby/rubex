@@ -165,8 +165,13 @@ module Rubex
               entry = @scope.find top_stmt.name
               klass_scope = entry.type.scope
               klass_scope.ruby_method_entries.each do |meth|
-                code.define_instance_method klass: entry.c_name, 
-                  method_name: meth.name, method_c_name: meth.c_name
+                if meth.singleton?
+                  code.write_singleton_method klass: entry.c_name,
+                    method_name: meth.name, method_c_name: meth.c_name
+                else
+                  code.write_instance_method klass: entry.c_name, 
+                    method_name: meth.name, method_c_name: meth.c_name
+                end
               end
             end
           end

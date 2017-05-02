@@ -52,6 +52,8 @@ module Rubex
       def to_s; "VALUE"; end
 
       def object?; true; end
+
+      def p_formatter; "%s"; end
     end
 
     class Char

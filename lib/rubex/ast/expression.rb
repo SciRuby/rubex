@@ -245,6 +245,12 @@ module Rubex
           @name = name
         end
 
+        # Analyse a Name node. This can either be a variable name or a method call
+        #   without parenthesis. Code in this method that creates a CommandCall
+        #   node primarily exists because in Ruby methods without arguments can 
+        #   be called without parentheses. These names can potentially be Ruby
+        #   methods that are not visible to Rubex, but are present in the Ruby
+        #   run time.
         def analyse_statement local_scope
           @entry = local_scope.find @name
 
@@ -302,9 +308,13 @@ module Rubex
           entry = local_scope.find(@method_name)
           if !entry
             local_scope.add_ruby_method(name: @method_name, 
-              c_name: @method_name, extern: true, scope: :outer)
+              c_name: @method_name, extern: true)
             entry = local_scope.find(@method_name)
             entry.type.arg_list = @arg_list
+          end
+
+          if method_not_within_scope local_scope
+            raise Rubex::NoMethodError, "Cannot call #{@name} from this method."
           end
 
           # a symtab entry for a predeclared extern C func.
@@ -340,6 +350,27 @@ module Rubex
         end
 
       private
+        # Checks if method being called is of the same type of the caller. For
+        # example, only instance methods can call instance methods and only 
+        # class methods can call class methods. C functions are accessible from
+        # both instance methods and class methods.
+        #
+        # Since there is no way to determine whether methods outside the scope
+        # of the compiled Rubex file are singletons or not, Rubex will assume
+        # that they belong to the correct scope and will compile a call to those
+        # methods anyway. Error, if any, will be caught only at runtime.
+        def method_not_within_scope local_scope
+          entry = local_scope.find @method_name
+          caller_entry = local_scope.find local_scope.name
+          if ( caller_entry.singleton? &&  entry.singleton?) || 
+             (!caller_entry.singleton? && !entry.singleton?) ||
+             entry.c_method?
+            false
+          else
+            true
+          end
+        end
+
         def code_for_c_method_call local_scope, entry
           str = "#{entry.c_name}("
           str << @arg_list.map { |a| a.c_code(local_scope) }.join(",")

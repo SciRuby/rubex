@@ -11,6 +11,8 @@ module Rubex
       attr_accessor :value
       # Is an extern entry
       attr_accessor :extern
+      # Is a Ruby singleton method
+      attr_accessor :singleton
 
       def initialize name, c_name, type, value
         @name, @c_name, @type, @value = name, c_name, type, value
@@ -21,6 +23,8 @@ module Rubex
       end
 
       def extern?; @extern; end
+
+      def singleton?; @singleton; end
     end
   end
 end

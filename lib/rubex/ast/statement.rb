@@ -264,7 +264,7 @@ module Rubex
           str = "printf("
           str << "\"#{prepare_format_string}\""
           @expressions.each do |expr|
-            str << ", #{expr.c_code(local_scope)}"
+            str << ", #{inspected_expr(expr, local_scope)}"
           end
           str << ");"
 
@@ -273,6 +273,15 @@ module Rubex
         end
 
       private
+
+        def inspected_expr expr, local_scope
+          obj = expr.c_code(local_scope)
+          if expr.type.object?
+            "RSTRING_PTR(rb_funcall(#{obj}, rb_intern(\"inspect\"), 0, NULL))"
+          else
+            obj
+          end  
+        end
 
         def prepare_format_string
           format_string = ""

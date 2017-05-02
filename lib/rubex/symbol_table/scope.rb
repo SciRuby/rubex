@@ -96,19 +96,12 @@ module Rubex
       # c_name: c_name of the method
       # extern: whether it is defined within the Rubex script or in a scope
       #   outside the Rubex script.
-      # scope: Which scope to add the method to. nil means the calling scope,
-      #   :outer means that the method will added to a scope one level above
-      #   the current scope.
-      def add_ruby_method name:, c_name:, extern: false, scope: nil
+      def add_ruby_method name:, c_name:, extern: false
         type = Rubex::DataType::RubyMethod.new name, c_name
         entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
         entry.extern = extern
-        if scope == :outer
-          @outer_scope.entries[name] = entry
-        else
-          @entries[name] = entry
-          @ruby_method_entries << entry
-        end
+        @entries[name] = entry
+        @ruby_method_entries << entry unless extern
       end
 
       def [] entry
@@ -160,6 +153,13 @@ module Rubex
       class Local
         include Rubex::SymbolTable::Scope
 
+        attr_reader :name
+
+        def initialize name, outer_scope
+          super(outer_scope)
+          @name = name
+        end
+
         # args - Rubex::AST::ArgumentList. Creates sym. table entries for args.
         def add_arg name:, c_name:, type:, value:
           entry = Rubex::SymbolTable::Entry.new name, c_name, type, value
@@ -171,6 +171,7 @@ module Rubex
 
       class StructOrUnion
         include Rubex::SymbolTable::Scope
+        # FIXME: Change scope structure to identify struct scopes by name too.
       end # class StructOrUnion
     end
   end

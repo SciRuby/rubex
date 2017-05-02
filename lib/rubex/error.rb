@@ -6,4 +6,6 @@ module Rubex
   class TypeMismatchError < StandardError; end
 
   class SyntaxError < StandardError; end
+
+  class NoMethodError < StandardError; end
 end

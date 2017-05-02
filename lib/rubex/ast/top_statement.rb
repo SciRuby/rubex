@@ -58,11 +58,10 @@ module Rubex
         end
 
         def analyse_statements outer_scope
-          @scope = Rubex::SymbolTable::Scope::Local.new
+          @scope = Rubex::SymbolTable::Scope::Local.new @name, outer_scope
           @entry = outer_scope.find @name
           @entry.type.scope = @scope
           @entry.type.arg_list = @arg_list
-          @scope.outer_scope = outer_scope
           @scope.type = @entry.type
           @scope.self_name = Rubex::ARG_PREFIX + "self"
           @arg_list.each do |arg|
@@ -234,6 +233,11 @@ module Rubex
         def initialize name, arg_list, statements, singleton: false
           super(name, arg_list, statements)
           @singleton = singleton
+        end
+
+        def analyse_statements local_scope
+          super
+          @entry.singleton = @singleton
         end
 
         def generate_code code

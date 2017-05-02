@@ -79,8 +79,14 @@ module Rubex
       @indent -= 2
     end
 
-    def define_instance_method klass: , method_name: , method_c_name:
+    def write_instance_method klass: , method_name: , method_c_name:
       @code << " "*@indent + "rb_define_method(" + klass + " ,\"" +
+        method_name + "\", " + method_c_name + ", -1);"
+      new_line
+    end
+
+    def write_singleton_method klass:, method_name:, method_c_name:
+      @code << " "*@indent + "rb_define_singleton_method(" + klass + " ,\"" +
         method_name + "\", " + method_c_name + ", -1);"
       new_line
     end
