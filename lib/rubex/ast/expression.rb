@@ -117,7 +117,7 @@ module Rubex
         end
       end # class Unary
 
-      class ArrayRef
+      class ElementRef
         include Rubex::AST::Expression
         attr_reader :name, :pos, :type
 
@@ -139,7 +139,7 @@ module Rubex
         def c_code local_scope
           "#{@name.c_code(local_scope)}[#{@pos.c_code(local_scope)}]"
         end
-      end # class ArrayRef
+      end # class ElementRef
 
       module Literal
         include Rubex::AST::Expression
@@ -467,7 +467,7 @@ module Rubex
               raise "Entry #{@command.name} does not exist in #{@expr}."
             end
 
-            if @command.is_a? Rubex::AST::Expression::ArrayRef
+            if @command.is_a? Rubex::AST::Expression::ElementRef
               @command.analyse_statement local_scope, scope
             end
           else

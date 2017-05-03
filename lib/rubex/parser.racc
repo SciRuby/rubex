@@ -411,7 +411,7 @@ rule
   array_ref:
     tIDENTIFIER tLSQUARE expr tRSQUARE
       {
-        result = Expression::ArrayRef.new val[0], val[2]
+        result = Expression::ElementRef.new val[0], val[2]
       }
 
   dtype:
@@ -560,7 +560,7 @@ def op_assign val
 end
 
 def node_variable dtype, di
-  if di[:name].is_a? Expression::ArrayRef
+  if di[:name].is_a? Expression::ElementRef
     var = Statement::CArrayDecl.new(dtype, di[:name], di[:value], location)
   elsif di[:pointer]
     if di[:pointer] == '*'

@@ -164,3 +164,7 @@ Rubex will implicitly convert most primitive C types like `char`, `int` and `flo
 # Roadmap for v0.1
 
 See the [wiki](https://github.com/v0dro/rubex/wiki/Rubex-v0.1-goals) for a roadmap of Rubex for v0.1
+
+# Acknowledgements
+
+My sincere thanks to the Ruby Association (Japan) for providing the initial funding for this project through the Ruby Association Grant 2016.

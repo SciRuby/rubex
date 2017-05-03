@@ -129,7 +129,7 @@ def op_assign val
 end
 
 def node_variable dtype, di
-  if di[:name].is_a? Expression::ArrayRef
+  if di[:name].is_a? Expression::ElementRef
     var = Statement::CArrayDecl.new(dtype, di[:name], di[:value], location)
   elsif di[:pointer]
     if di[:pointer] == '*'
@@ -2027,7 +2027,7 @@ module_eval(<<'.,.,', 'parser.racc', 408)
 
 module_eval(<<'.,.,', 'parser.racc', 413)
   def _reduce_142(val, _values, result)
-            result = Expression::ArrayRef.new val[0], val[2]
+            result = Expression::ElementRef.new val[0], val[2]
       
     result
   end
