@@ -6,6 +6,11 @@ class InitRubyClass
     f = StringIO.new("Hello! This is a test")
     s = f.read
 
+    arr = Array.new(1,2,3)
+    arr.push(s)
+
+    st = String.try_convert("converted.")
+
     return s
   end
 end
