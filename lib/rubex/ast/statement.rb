@@ -368,6 +368,7 @@ module Rubex
           # LHS symbol has been declared.
           @rhs.analyse_statement(local_scope) if @rhs.is_a? Rubex::AST::Expression
 
+          # FIXME: @lhs is always going to be Expression. How to remove this conditional?
           if @lhs.is_a? Rubex::AST::Expression
             @lhs.analyse_statement(local_scope)
           elsif local_scope.has_entry? @lhs
@@ -383,6 +384,22 @@ module Rubex
 
         def generate_code code, local_scope
           super
+          if @lhs.is_a?(AST::Expression::ElementRef) && @lhs.type.object?
+            generate_code_for_ruby_element_assign code, local_scope
+          else
+            generate_code_for_c_element_assign code, local_scope
+          end
+        end
+
+        def generate_code_for_ruby_element_assign code, local_scope
+          args = [@lhs.pos,@rhs].map do |arg|
+            "#{arg.type.to_ruby_object(arg.c_code(local_scope))}"
+          end.join(",")
+          code << "rb_funcall(#{@lhs.entry.c_name}, rb_intern(\"[]=\"), 2, #{args});"
+          code.nl
+        end
+
+        def generate_code_for_c_element_assign code, local_scope
           str = "#{@lhs.c_code(local_scope)} = "
           if @ruby_obj_init
             if @rhs.is_a?(Rubex::AST::Expression::Literal::Char)
@@ -393,6 +410,7 @@ module Rubex
           else
             if @lhs.type.cptr?
               if @lhs.type.type.char? && @rhs.type.object?
+                # FIXME: This should happen only if object is declared as Ruby string.
                 str << "StringValueCStr(#{@rhs.c_code(local_scope)})"
               else
                 str << "#{@rhs.c_code(local_scope)}"

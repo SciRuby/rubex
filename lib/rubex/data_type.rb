@@ -365,7 +365,7 @@ module Rubex
       # Dimension of the array
       attr_reader :dimension
       # Type of elements stored in array
-      attr_reader :type
+      attr_reader :type # FIXME: Make this base_type to make it more explicit.
 
       def initialize dimension, type
         @dimension, @type = dimension, type

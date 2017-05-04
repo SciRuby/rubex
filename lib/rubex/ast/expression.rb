@@ -119,7 +119,7 @@ module Rubex
 
       class ElementRef
         include Rubex::AST::Expression
-        attr_reader :name, :pos, :type
+        attr_reader :entry, :pos, :type, :name
 
         def initialize name, pos
           @name, @pos = name, pos
@@ -128,16 +128,22 @@ module Rubex
         def analyse_statement local_scope, struct_scope=nil
           @pos.analyse_statement local_scope
           if struct_scope.nil?
-            @name = local_scope[@name]
+            @entry = local_scope.find @name
           else
-            @name = struct_scope[@name]
+            @entry = struct_scope[@name]
           end
 
-          @type = @name.type.type # assign actual type
+          @type = @entry.type.object? ? @entry.type : @entry.type.type
         end
 
         def c_code local_scope
-          "#{@name.c_code(local_scope)}[#{@pos.c_code(local_scope)}]"
+          pos_code = @pos.c_code(local_scope)
+          if @type.object?
+            pos_code = @pos.type.to_ruby_object(pos_code)
+            "rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, #{pos_code})"
+          else
+            "#{@entry.c_name}[#{pos_code}]"
+          end
         end
       end # class ElementRef
 
