@@ -14,20 +14,19 @@ describe Rubex do
       end
     end
 
-    context ".compile", focus: true do
+    context ".compile" do
       it "compiles to valid C file" do
         t,c,e = Rubex.compile(@path + '.rubex', test: true)
-        puts c
       end
     end
 
-    context "Black Box testing", focus: true do
+    context "Black Box testing" do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.so"
 
           expect(InitRubyClass.new.init_classes).to eq(
-            [1,2,3, "Hello! This is a test", "converted."]
+            [3,3, "Hello! This is a test", "converted."]
           )
         end
       end

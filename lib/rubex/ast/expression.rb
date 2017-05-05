@@ -260,7 +260,7 @@ module Rubex
           if @entry.c_name # built-in constant.
             @entry.c_name
           else
-            "rb_const_get(#{local_scope.self_name}, rb_intern(\"#{@entry.name}\"))"
+            "rb_const_get(rb_cObject, rb_intern(\"#{@entry.name}\"))"
           end
         end
       end # class RubyConstant
@@ -318,8 +318,8 @@ module Rubex
         end
 
         def c_code local_scope
-          if @entry.type.ruby_method? || @entry.type.c_method? || @entry.type.ruby_constant?
-            puts "hiii >>>> #{@name.inspect}"
+          if @entry.type.ruby_method? || @entry.type.c_method? ||
+              @entry.type.ruby_constant?
             @name.c_code(local_scope)
           else
             @entry.c_name
@@ -418,26 +418,19 @@ module Rubex
         def code_for_ruby_method_call local_scope
           entry = local_scope.find @method_name
           str = ""
-          # if @method_name == "new"
-          #   str << "rb_class_new_instance("
-          # else
-            if entry.extern?
-              str << "rb_funcall(#{@invoker.c_code(local_scope)}, "
-              str << "rb_intern(\"#{@method_name}\"), "
-              str << "#{@arg_list.size}"
-              @arg_list.each do |arg|
-                str << " ,#{arg.type.to_ruby_object(arg.c_code(local_scope))}"
-              end
-              str << ", NULL" if @arg_list.empty?
-              str << ")"
-            else
-              str << populate_method_args_into_value_array(local_scope)
-              str << actual_ruby_method_call(local_scope, entry)
+          if entry.extern?
+            str << "rb_funcall(#{@invoker.c_code(local_scope)}, "
+            str << "rb_intern(\"#{@method_name}\"), "
+            str << "#{@arg_list.size}"
+            @arg_list.each do |arg|
+              str << " ,#{arg.type.to_ruby_object(arg.c_code(local_scope))}"
             end
-          # end
-
-
-
+            str << ", NULL" if @arg_list.empty?
+            str << ")"
+          else
+            str << populate_method_args_into_value_array(local_scope)
+            str << actual_ruby_method_call(local_scope, entry)
+          end
           str
         end
 
