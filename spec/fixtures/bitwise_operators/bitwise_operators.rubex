@@ -1,0 +1,40 @@
+class BitWise
+  def wise_or
+    int a = 1
+    int b = 3
+
+    return a | b
+  end
+
+  def wise_and
+    int a = 1
+    float b = 5
+
+    return a & b
+  end
+
+  def wise_xor
+    int a = 4
+    int b = 4
+
+    return a ^ b
+  end
+
+  def wise_compli
+    int a = 4
+
+    return ~a
+  end
+
+  def wise_lshift
+    int a = 3
+
+    return a << 1
+  end
+
+  def wise_rshift
+    int a = 4
+
+    return a >> 1
+  end
+end
