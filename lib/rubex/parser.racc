@@ -397,7 +397,6 @@ rule
       name = Expression::Name.new val[0]
       result = [name, val[2]]
     }
-  # | tIDENTIFIER tDOT f_name
 
   command_opt_args:
     { result = [] }

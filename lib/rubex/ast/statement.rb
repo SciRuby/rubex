@@ -387,7 +387,7 @@ module Rubex
           if @lhs.is_a?(AST::Expression::ElementRef) && @lhs.type.object?
             generate_code_for_ruby_element_assign code, local_scope
           else
-            generate_code_for_c_element_assign code, local_scope
+            generate_code_for_element_assign code, local_scope
           end
         end
 
@@ -399,7 +399,7 @@ module Rubex
           code.nl
         end
 
-        def generate_code_for_c_element_assign code, local_scope
+        def generate_code_for_element_assign code, local_scope
           str = "#{@lhs.c_code(local_scope)} = "
           if @ruby_obj_init
             if @rhs.is_a?(Rubex::AST::Expression::Literal::Char)

@@ -13,7 +13,7 @@ module Rubex
         :char?, :object?, :bool?, :carray?,
         :cptr?, :nil_type?, :struct_or_union?,
         :alias_type?, :string?, :cstr?, :ruby_class?,
-        :ruby_method?, :c_method?
+        :ruby_method?, :c_method?, :ruby_constant?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -468,7 +468,22 @@ module Rubex
       end
     end
 
-    class RubyClass
+    class RubyConstant
+      include Helpers
+
+      attr_reader :name, :type
+
+      def initialize name
+        @name = name
+        # FIXME: make this flexible so that consts set to primitive types can be
+        #   easily converted to C types.
+        @type = RubyObject.new 
+      end
+
+      def ruby_constant?; true; end
+    end
+
+    class RubyClass < RubyConstant
       include Helpers
 
       attr_reader :name, :c_name, :scope, :ancestor

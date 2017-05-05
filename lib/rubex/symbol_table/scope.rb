@@ -13,6 +13,7 @@ module Rubex
       attr_accessor :type_entries
       attr_accessor :ruby_class_entries
       attr_accessor :ruby_method_entries
+      attr_accessor :ruby_constant_entries
       attr_accessor :self_name
 
       def initialize outer_scope=nil
@@ -28,6 +29,7 @@ module Rubex
         @type_entries = []
         @ruby_class_entries = []
         @ruby_method_entries = []
+        @ruby_constant_entries = []
         @self_name = ""
       end
 
@@ -40,11 +42,12 @@ module Rubex
       # vars - Rubex::AST::Statement::VarDecl/CPtrDecl
       def declare_var(name: "", c_name: "", type: nil, value: nil, extern: false)
         entry = Rubex::SymbolTable::Entry.new(name, c_name, type, value)
-
         entry.extern = extern
         check_entry name
         @entries[name] = entry
         @var_entries << entry
+
+        entry
       end
 
       def declare_sue var
@@ -54,12 +57,16 @@ module Rubex
         @entries[var.name] = entry
         @sue_entries << entry
         @type_entries << entry
+
+        entry
       end
 
       def declare_type type
         entry = Rubex::SymbolTable::Entry.new(nil, nil, type.type, nil)
         # @entries[type.name] = entry
         @type_entries << entry
+
+        entry
       end
 
       def add_ruby_obj name: , c_name:, value: nil
@@ -67,6 +74,8 @@ module Rubex
           name, c_name, Rubex::DataType::RubyObject.new, value)
         @entries[name] = entry
         @ruby_obj_entries << entry
+
+        entry
       end
 
       # Add a C array to the current scope.
@@ -75,6 +84,8 @@ module Rubex
         entry = Rubex::SymbolTable::Entry.new name, c_name, type, value
         @entries[name] = entry
         @carray_entries << entry
+
+        entry
       end
 
       # Add a Ruby class to the current scope.
@@ -83,6 +94,8 @@ module Rubex
         entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
         @entries[name] = entry
         @ruby_class_entries << entry
+
+        entry
       end
 
       def add_c_method name:, c_name:, type:, extern: false
@@ -90,6 +103,8 @@ module Rubex
         entry.extern = extern
         @entries[name] = entry
         @c_method_entries << entry
+
+        entry
       end
 
       # name: name of the method
@@ -102,6 +117,8 @@ module Rubex
         entry.extern = extern
         @entries[name] = entry
         @ruby_method_entries << entry unless extern
+
+        entry
       end
 
       def [] entry

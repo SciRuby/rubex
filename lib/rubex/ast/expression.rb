@@ -242,6 +242,29 @@ module Rubex
         end
       end
 
+      class RubyConstant
+        include Rubex::AST::Expression
+        attr_reader :name, :entry
+
+        def initialize name
+          @name = name
+        end
+
+        def analyse_statement local_scope
+          type = Rubex::DataType::RubyConstant.new @name
+          c_name = Rubex::DEFAULT_CLASS_MAPPINGS[@name]
+          @entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
+        end
+
+        def c_code local_scope
+          if @entry.c_name # built-in constant.
+            @entry.c_name
+          else
+            "rb_const_get(#{local_scope.self_name}, rb_intern(\"#{@entry.name}\"))"
+          end
+        end
+      end # class RubyConstant
+
       # Singular name node with no sub expressions.
       class Name
         include Rubex::AST::Expression
@@ -266,10 +289,17 @@ module Rubex
           #   as a pre-compilation step?
 
           # If entry is not present, assume its a Ruby method call to some method
-          #   outside of the current Rubex scope.
+          #   outside of the current Rubex scope or a Ruby constant.
           if !@entry
-            local_scope.add_ruby_method name: @name, c_name: @name, extern: true
-            @entry = local_scope.find @name
+            # Check if first letter is a capital to check for Ruby constant.
+            if @name[0].match /[A-Z]/
+              @name = Expression::RubyConstant.new @name
+              @name.analyse_statement local_scope
+              @entry = @name.entry
+            else # extern Ruby method
+              local_scope.add_ruby_method name: @name, c_name: @name, extern: true
+              @entry = local_scope.find @name
+            end
           end
           # If the entry is a RubyMethod, it should be interpreted as a command
           # call. So, make the @name a CommandCall Node.
@@ -288,7 +318,8 @@ module Rubex
         end
 
         def c_code local_scope
-          if @entry.type.ruby_method? || @entry.type.c_method?
+          if @entry.type.ruby_method? || @entry.type.c_method? || @entry.type.ruby_constant?
+            puts "hiii >>>> #{@name.inspect}"
             @name.c_code(local_scope)
           else
             @entry.c_name
@@ -387,19 +418,25 @@ module Rubex
         def code_for_ruby_method_call local_scope
           entry = local_scope.find @method_name
           str = ""
-          if entry.extern?
-            str << "rb_funcall(#{@invoker.c_code(local_scope)}, "
-            str << "rb_intern(\"#{@method_name}\"), "
-            str << "#{@arg_list.size}"
-            @arg_list.each do |arg|
-              str << " ,#{arg.type.to_ruby_object(arg.c_code(local_scope))}"
+          # if @method_name == "new"
+          #   str << "rb_class_new_instance("
+          # else
+            if entry.extern?
+              str << "rb_funcall(#{@invoker.c_code(local_scope)}, "
+              str << "rb_intern(\"#{@method_name}\"), "
+              str << "#{@arg_list.size}"
+              @arg_list.each do |arg|
+                str << " ,#{arg.type.to_ruby_object(arg.c_code(local_scope))}"
+              end
+              str << ", NULL" if @arg_list.empty?
+              str << ")"
+            else
+              str << populate_method_args_into_value_array(local_scope)
+              str << actual_ruby_method_call(local_scope, entry)
             end
-            str << ", NULL" if @arg_list.empty?
-            str << ")"
-          else
-            str << populate_method_args_into_value_array(local_scope)
-            str << actual_ruby_method_call(local_scope, entry)
-          end
+          # end
+
+
 
           str
         end
