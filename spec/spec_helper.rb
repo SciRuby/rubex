@@ -2,9 +2,12 @@ require 'rspec'
 require 'awesome_print'
 require 'pp'
 require 'pry'
+require 'pretty_backtrace'
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
+
+PrettyBacktrace.enable
 
 require 'rubex'
 

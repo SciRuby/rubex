@@ -8,7 +8,7 @@ Rubex is a language that makes writing CRuby C extensions as simple as writing R
 
 It allows you to mix Ruby data types and C data types in the same program.
 
-It DOES NOT aim to be a replacement for Ruby. It is complimentary to Ruby and is meant to give your Ruby.
+Rubex is complimentary to Ruby. It DOES NOT aim to be a replacement for Ruby.
 
 # Installation
 
