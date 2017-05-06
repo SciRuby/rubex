@@ -260,7 +260,7 @@ module Rubex
           if @entry.c_name # built-in constant.
             @entry.c_name
           else
-            "rb_const_get(rb_cObject, rb_intern(\"#{@entry.name}\"))"
+            "rb_const_get(CLASS_OF(#{local_scope.self_name}), rb_intern(\"#{@entry.name}\"))"
           end
         end
       end # class RubyConstant

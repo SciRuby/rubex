@@ -8,65 +8,76 @@
 class Rubex::Lexer
   require 'strscan'
 
-  SELF          = /self/
-  DEF           = /def/
-  CFUNC         = /cfunc/
-  RETURN        = /return/
-  PRINT         = /print/
-  IF            = /if/
-  ELSE          = /else/
-  ELSIF         = /elsif/
-  THEN          = /then/
-  STATIC_ARRAY  = /StaticArray/
-  FOR           = /for/
-  WHILE         = /while/
-  DO            = /do/
-  EACH          = /each/
-  TRUE          = /true/
-  FALSE         = /false/
-  NIL           = /nil/
-  STRUCT        = /struct/
-  UNION         = /union/
-  ALIAS         = /alias/
-  LIB           = /lib/
-  CLASS         = /class/
-  IDENTIFIER    = /[a-zA-Z_][a-zA-Z_0-9]*/
-  LPAREN        = /\(/
-  RPAREN        = /\)/
-  LSQUARE       = /\[/
-  RSQUARE       = /\]/
-  NL            = /\n/
-  COMMA         = /,/
-  SQUOTE        = /'/
-  DQUOTE        = /"/
-  SCOLON        = /;/
-  INTEGER       = /-?\d+/
-  FLOAT         = /-?\d+\.\d+/
-  DOT           = /\./
-  QMARK         = /\?/
-  OCTOTHORP     = /#/
-  EXPO          = /\*\*/
-  EXPOASSIGN    = /\*\*=/
-  STAR          = /\*/
-  STARASSIGN    = /\*=/
-  DIVIDE        = /\//
-  DIVIDEASSIGN  = /\/=/
-  PLUS          = /\+/
-  PLUSASSIGN    = /\+=/
-  MINUS         = /\-/
-  MINUSASSIGN   = /\-=/
-  MODULUS       = /%/
-  MODULUSASSIGN = /%=/
-  ASSIGN        = /=/
-  NEQ           = /!=/
-  EQ            = /==/
-  LT            = /</
-  LTEQ          = /<=/
-  GT            = />/
-  GTEQ          = />=/
-  ANDOP         = /&&/
-  OROP          = /\|\|/
-  BANG          = /!/
+  SELF              = /self/
+  DEF               = /def/
+  CFUNC             = /cfunc/
+  RETURN            = /return/
+  PRINT             = /print/
+  IF                = /if/
+  ELSE              = /else/
+  ELSIF             = /elsif/
+  THEN              = /then/
+  STATIC_ARRAY      = /StaticArray/
+  FOR               = /for/
+  WHILE             = /while/
+  DO                = /do/
+  EACH              = /each/
+  TRUE              = /true/
+  FALSE             = /false/
+  NIL               = /nil/
+  STRUCT            = /struct/
+  UNION             = /union/
+  ALIAS             = /alias/
+  LIB               = /lib/
+  CLASS             = /class/
+  IDENTIFIER        = /[a-zA-Z_][a-zA-Z_0-9]*/
+  LPAREN            = /\(/
+  RPAREN            = /\)/
+  LSQUARE           = /\[/
+  RSQUARE           = /\]/
+  NL                = /\n/
+  COMMA             = /,/
+  SQUOTE            = /'/
+  DQUOTE            = /"/
+  SCOLON            = /;/
+  INTEGER           = /-?\d+/
+  FLOAT             = /-?\d+\.\d+/
+  DOT               = /\./
+  QMARK             = /\?/
+  OCTOTHORP         = /#/
+  EXPO              = /\*\*/
+  EXPOASSIGN        = /\*\*=/
+  STAR              = /\*/
+  STARASSIGN        = /\*=/
+  DIVIDE            = /\//
+  DIVIDEASSIGN      = /\/=/
+  PLUS              = /\+/
+  PLUSASSIGN        = /\+=/
+  MINUS             = /\-/
+  MINUSASSIGN       = /\-=/
+  MODULUS           = /%/
+  MODULUSASSIGN     = /%=/
+  ASSIGN            = /=/
+  NEQ               = /!=/
+  EQ                = /==/
+  LT                = /</
+  LTEQ              = /<=/
+  GT                = />/
+  GTEQ              = />=/
+  ANDOP             = /&&/
+  OROP              = /\|\|/
+  BANG              = /!/
+  BIT_AND           = /&/
+  BIT_AND_ASSIGN    = /&=/
+  BIT_OR            = /\|/
+  BIT_OR_ASSIGN     = /\|=/
+  BIT_XOR           = /\^/
+  BIT_XOR_ASSIGN    = /\^=/
+  BIT_LSHIFT        = /<</
+  BIT_LSHIFT_ASSIGN = /<<=/
+  BIT_RSHIFT        = />>/
+  BIT_RSHIFT_ASSIGN = />>=/
+  BIT_NOT           = /~/
 
   class LexerError < StandardError ; end
   class ScanError < LexerError ; end
@@ -222,6 +233,32 @@ class Rubex::Lexer
             action { [:tASSIGN, text] }
           when text = ss.scan(/#{BANG}/) then
             action { [:tBANG, text] }
+          when text = ss.scan(/#{ANDOP}/) then
+            action { [:tANDOP, text] }
+          when text = ss.scan(/#{OROP}/) then
+            action { [:tOROP, text] }
+          when text = ss.scan(/#{BIT_AND_ASSIGN}/) then
+            action { [:tOP_ASSIGN, text] }  
+          when text = ss.scan(/#{BIT_OR_ASSIGN}/) then
+            action { [:tOP_ASSIGN  , text] }
+          when text = ss.scan(/#{BIT_XOR_ASSIGN}/) then
+            action { [:tOP_ASSIGN , text] }
+          when text = ss.scan(/#{BIT_LSHIFT_ASSIGN}/) then
+            action { [:tOP_ASSIGN, text] }
+          when text = ss.scan(/#{BIT_RSHIFT_ASSIGN}/) then
+            action { [:tOP_ASSIGN, text] }
+          when text = ss.scan(/#{BIT_AND}/) then
+            action { [:tBIT_AND      , text] } 
+          when text = ss.scan(/#{BIT_OR}/) then
+            action { [:tBIT_OR        , text] }  
+          when text = ss.scan(/#{BIT_XOR}/) then
+            action { [:tBIT_XOR       , text] }  
+          when text = ss.scan(/#{BIT_LSHIFT}/) then
+            action { [:tBIT_LSHIFT    , text] }  
+          when text = ss.scan(/#{BIT_RSHIFT}/) then
+            action { [:tBIT_RSHIFT      , text] }
+          when text = ss.scan(/#{BIT_NOT}/) then
+            action { [:tBIT_NOT, text] }
           when text = ss.scan(/#{LTEQ}/) then
             action { [:tLTEQ, text] }
           when text = ss.scan(/#{LT}/) then
@@ -230,10 +267,6 @@ class Rubex::Lexer
             action { [:tGTEQ, text] }
           when text = ss.scan(/#{GT}/) then
             action { [:tGT, text] }
-          when text = ss.scan(/#{ANDOP}/) then
-            action { [:tANDOP, text] }
-          when text = ss.scan(/#{OROP}/) then
-            action { [:tOROP, text] }
           when ss.skip(/^\n\s*$/) then
             # do nothing
           when ss.skip(/\s+/) then

@@ -220,5 +220,4 @@ class Rcsv
     meta.column_names = NULL
     meta.result = []
   end
-
 end

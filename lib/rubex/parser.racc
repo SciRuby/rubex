@@ -14,16 +14,21 @@ token
 
   tPLUS tMINUS tSTAR tDIVIDE tEXPO      tMODULUS tASSIGN tEQ tLT tLTEQ tGT
   tGTEQ tANDOP tOROP tBANG   tOP_ASSIGN tSTRING
+  
+  tBIT_AND tBIT_OR tBIT_XOR tBIT_LSHIFT tBIT_RSHIFT tBIT_NOT
 
   tINTEGER tFLOAT tSINGLE_CHAR
 
 prechigh
-  right tBANG
+  right tBANG tBIT_NOT
   right tEXPO
 
   right UMINUS
   left tSTAR tDIVIDE tMODULUS
   left tPLUS tMINUS
+  left tBIT_OR tBIT_XOR
+  left tBIT_AND
+  left tBIT_LSHIFT tBIT_RSHIFT
   left tLT tLTEQ tGT tGTEQ
   nonassoc tEQ tNEQ
   left tANDOP
@@ -343,14 +348,20 @@ rule
   | expr tOROP     expr { result = binary_op val }
 
   expr_value:
-    expr_value tPLUS     expr_value { result = binary_op val }
-  | expr_value tMINUS    expr_value { result = binary_op val }
-  | expr_value tSTAR     expr_value { result = binary_op val }
-  | expr_value tDIVIDE   expr_value { result = binary_op val }
-  | expr_value tEXPO     expr_value { result = binary_op val }
-  | expr_value tMODULUS  expr_value { result = binary_op val }
-  | tMINUS expr_value    =UMINUS    { result = unary_op val  }
-  | tLPAREN expr_value   tRPAREN    { result = val[1] }
+    expr_value tPLUS       expr_value { result = binary_op val }
+  | expr_value tMINUS      expr_value { result = binary_op val }
+  | expr_value tSTAR       expr_value { result = binary_op val }
+  | expr_value tDIVIDE     expr_value { result = binary_op val }
+  | expr_value tEXPO       expr_value { result = binary_op val }
+  | expr_value tMODULUS    expr_value { result = binary_op val }
+  | expr_value tBIT_AND    expr_value { result = binary_op val }
+  | expr_value tBIT_OR     expr_value { result = binary_op val }
+  | expr_value tBIT_XOR    expr_value { result = binary_op val }
+  | expr_value tBIT_LSHIFT expr_value { result = binary_op val }
+  | expr_value tBIT_RSHIFT expr_value { result = binary_op val }
+  | tMINUS     expr_value  =UMINUS    { result = unary_op val  }
+  | tBIT_NOT   expr_value             { result = unary_op val  } 
+  | tLPAREN    expr_value  tRPAREN    { result = val[1] }
   | atomic_value {}
 
   expr_cmp:

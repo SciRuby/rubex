@@ -67,6 +67,17 @@ macros
   ANDOP           /&&/
   OROP            /\|\|/
   BANG            /!/
+  BIT_AND         /&/
+  BIT_AND_ASSIGN  /&=/
+  BIT_OR          /\|/
+  BIT_OR_ASSIGN   /\|=/
+  BIT_XOR         /\^/
+  BIT_XOR_ASSIGN  /\^=/
+  BIT_LSHIFT      /<</
+  BIT_LSHIFT_ASSIGN /<<=/
+  BIT_RSHIFT        />>/
+  BIT_RSHIFT_ASSIGN />>=/
+  BIT_NOT           /~/
 
 rules
 
@@ -153,14 +164,26 @@ rules
   /#{ASSIGN}/           { [:tASSIGN, text] }
   /#{BANG}/             { [:tBANG, text] }
 
+  /#{ANDOP}/      { [:tANDOP, text] }
+  /#{OROP}/       { [:tOROP, text] }
+
+  /#{BIT_AND_ASSIGN}/     { [:tOP_ASSIGN, text] }  
+  /#{BIT_OR_ASSIGN}/      { [:tOP_ASSIGN  , text] }
+  /#{BIT_XOR_ASSIGN}/     { [:tOP_ASSIGN , text] }
+  /#{BIT_LSHIFT_ASSIGN}/  { [:tOP_ASSIGN, text] }
+  /#{BIT_RSHIFT_ASSIGN}/  { [:tOP_ASSIGN, text] }
+  /#{BIT_AND}/            { [:tBIT_AND      , text] } 
+  /#{BIT_OR}/             { [:tBIT_OR        , text] }  
+  /#{BIT_XOR}/            { [:tBIT_XOR       , text] }  
+  /#{BIT_LSHIFT}/         { [:tBIT_LSHIFT    , text] }  
+  /#{BIT_RSHIFT}/         { [:tBIT_RSHIFT      , text] }
+  /#{BIT_NOT}/            { [:tBIT_NOT, text] }
+
   /#{LTEQ}/       { [:tLTEQ, text] }
   /#{LT}/         { [:tLT, text] }
 
   /#{GTEQ}/       { [:tGTEQ, text] }
   /#{GT}/         { [:tGT, text] }
-
-  /#{ANDOP}/      { [:tANDOP, text] }
-  /#{OROP}/       { [:tOROP, text] }
 
   # whitespace
 

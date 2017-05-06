@@ -8,7 +8,7 @@ class BitWise
 
   def wise_and
     int a = 1
-    float b = 5
+    char b = 5
 
     return a & b
   end
