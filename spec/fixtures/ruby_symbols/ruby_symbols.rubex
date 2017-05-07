@@ -1,13 +1,11 @@
 class RubySymbols
   def symbol_support(a, b)
-    hash h = {}
+    h = Hash.new
     h[:first] = a
     h[:second] = b
 
-    other_hash = {
-      :third => 69
-    }
-    h[:third] = other_hash
+    other_arr = Array.new(2,3)
+    h[:third] = other_arr
 
     return h
   end
