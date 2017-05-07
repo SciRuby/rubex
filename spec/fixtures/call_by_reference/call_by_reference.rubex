@@ -4,19 +4,28 @@ struct attribs do
 end
 
 class CallByReference
-  def reference_call
+  def ref_call
     attribs a
     int b_flat = 460
+    int *i
     a.a = 56
     a.b = 65
     a.c = 23
 
     c_function(&a, b_flat)
+    add(a, i)
 
-    return a.a
+    return a.a + i[0]
   end
 
   cfunc void c_function(attribs *a, int b)
     a[0].a = b
+  end
+
+  cfunc int* add(attribs a, int *i)
+    a.c = a.a + a.b
+    i = &a.c
+
+    return i
   end
 end
