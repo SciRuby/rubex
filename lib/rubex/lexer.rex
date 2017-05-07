@@ -133,6 +133,7 @@ rules
   /#{UNION}\ /  { [:kUNION, text]  }
   /#{ALIAS}\ /  { [:kALIAS, text]  }
 
+  /:#{IDENTIFIER}/        { [:tSYMBOL, text] }
   /#{IDENTIFIER}/         { [:tIDENTIFIER, text] }
   /#{LPAREN}/             { [:tLPAREN, text] }
   /#{RPAREN}/             { [:tRPAREN, text] }

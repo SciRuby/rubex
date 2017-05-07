@@ -169,6 +169,22 @@ module Rubex
           self.class == other.class && @name == other.name
         end
 
+        class RubySymbol
+          include Rubex::AST::Expression::Literal
+
+          def initialize name
+            super(name[1..-1])
+          end
+
+          def type
+            Rubex::DataType::RubySymbol.new
+          end
+
+          def c_code local_scope
+            "ID2SYM(rb_intern(\"#{@name}\"))"
+          end
+        end
+
         class Double
           include Rubex::AST::Expression::Literal
 

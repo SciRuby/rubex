@@ -179,6 +179,8 @@ class Rubex::Lexer
             action { [:kUNION, text]  }
           when text = ss.scan(/#{ALIAS}\ /) then
             action { [:kALIAS, text]  }
+          when text = ss.scan(/:#{IDENTIFIER}/) then
+            action { [:tSYMBOL, text] }
           when text = ss.scan(/#{IDENTIFIER}/) then
             action { [:tIDENTIFIER, text] }
           when text = ss.scan(/#{LPAREN}/) then

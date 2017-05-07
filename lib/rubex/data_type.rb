@@ -56,6 +56,12 @@ module Rubex
       def p_formatter; "%s"; end
     end
 
+    class RubySymbol < RubyObject
+      include Helpers
+
+      def ruby_symbol?; true; end
+    end
+
     class Char
       include Helpers
       def to_s; "char";  end

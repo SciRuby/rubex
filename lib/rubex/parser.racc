@@ -10,7 +10,7 @@ token
   kDTYPE_ULLINT tCUSTOM_DTYPE
 
   tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON
-  EOF     tDOT    tQMARK   tSTART_LINE
+  EOF     tDOT    tQMARK   tSYMBOL
 
   tPLUS tMINUS tSTAR tDIVIDE tEXPO      tMODULUS tASSIGN tEQ tLT tLTEQ tGT
   tGTEQ tANDOP tOROP tBANG   tOP_ASSIGN tSTRING
@@ -317,6 +317,7 @@ rule
   | kTRUE        { result = Expression::Literal::True.new 'Qtrue' }
   | kFALSE       { result = Expression::Literal::False.new 'Qfalse' }
   | kNIL         { result = Expression::Literal::Nil.new 'Qnil' }
+  | tSYMBOL      { result = Expression::Literal::RubySymbol.new val[0] }
 
   f_name:
     tIDENTIFIER tQMARK { result = "#{val[0]}#{val[1]}" }
