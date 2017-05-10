@@ -1,5 +1,5 @@
 lib "<math.h>" do
-  double cos(double)
+  double cos(double a)
 
   struct exception do
     int type

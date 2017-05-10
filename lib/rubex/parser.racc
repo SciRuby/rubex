@@ -81,9 +81,9 @@ rule
   | c_declarations terms c_declaration { result = [*val[0], val[2]] }
 
   c_declaration:
-    dtype_or_ptr tIDENTIFIER tLPAREN dtype_list tRPAREN
+    dtype_or_ptr tIDENTIFIER tLPAREN opt_c_func_arg_list tRPAREN # C function decl
       {
-        result = TopStatement::CBindings::CFunctionDecl.new val[0], val[1], val[3]
+        result = Statement::CFunctionDecl.new val[0], val[1], val[3]
       }
   | kSTRUCT tIDENTIFIER kDO var_decl_stmts kEND
       {
@@ -91,9 +91,6 @@ rule
         result = Statement::CStructOrUnionDef.new val[0], val[1], val[3], location
       }
   | alias_stmt
-
-  dtype_or_ptr:
-    dtype opt_star { result = val.join }
 
   alias_stmt:
     kALIAS ident_or_custom_dtype tASSIGN aliased_type
@@ -109,10 +106,17 @@ rule
     dtype
   | kSTRUCT tIDENTIFIER { result = val.join }
 
-  dtype_list:
+  c_func_normal_arg:
+    dtype_or_ptr { result = val[0]  }
+  | dtype_or_ptr tIDENTIFIER { result = val[0] }
+
+  dtype_or_ptr:
+    dtype opt_star { result = val.join }
+
+  opt_c_func_arg_list:
     { result = [] }
-  | dtype_or_ptr { result = [val[0]] }
-  | dtype_list tCOMMA dtype_or_ptr { result = [*val[0], val[2]] }
+  | c_func_normal_arg { result = [val[0]] }
+  | opt_c_func_arg_list tCOMMA c_func_normal_arg { result = [*val[0], val[2]] }
 
   methods:
     ruby_method { result = val[0] }
@@ -132,7 +136,7 @@ rule
   c_method:
     kCFUNC dtype_or_ptr tIDENTIFIER f_opt_arglist compstmt kEND
       {
-        result = TopStatement::CMethodDef.new(val[1], val[2], val[3], val[4])
+        result = TopStatement::CFunctionDef.new(val[1], val[2], val[3], val[4])
       }
 
   compstmt:

@@ -652,6 +652,29 @@ module Rubex
           code.nl
         end
       end # class Expression
+
+      class CFunctionDecl
+        include Rubex::AST::Statement
+        attr_reader :entry
+
+        def initialize type, name, arg_list
+          @type, @name, @arg_list = type, name, arg_list
+        end
+
+        def analyse_statement local_scope, extern: false
+          @arg_list.map! { |a| Helpers.determine_dtype a }
+          c_name = extern ? @name : (Rubex::C_FUNC_PREFIX + @name)
+          type   = Rubex::DataType::CFunction.new(@name, c_name, @arg_list, 
+            Helpers.determine_dtype(@type))
+          @entry = local_scope.add_c_method(name: @name, c_name: c_name, type: type,
+            extern: extern)
+        end
+
+        def generate_code code, local_scope
+          super
+          code << "# C function #{@name} declared." if @entry.extern?
+        end
+      end # class CFunctionDecl
     end # module Statement
   end # module AST
 end # module Rubex

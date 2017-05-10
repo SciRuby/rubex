@@ -18,27 +18,6 @@ module Rubex
         def generate_code code
 
         end
-
-        class CFunctionDecl
-          include Rubex::AST::Statement
-          attr_reader :type, :name, :args, :extern
-
-          def initialize type, name, args
-            @type, @name, @args = type, name, args
-          end
-
-          def analyse_statement local_scope, extern: false
-            @extern = extern
-            @args.map! do |a|
-              Helpers.determine_dtype a
-            end
-            c_name = @extern ? name : Rubex::C_FUNC_PREFIX + name
-            type = Helpers.determine_dtype @type
-            @type = Rubex::DataType::CMethod.new(@name, c_name, @args, type)
-            local_scope.add_c_method(name: @name, c_name: c_name, type: @type,
-              extern: @extern)
-          end
-        end # class CFunctionDecl
       end # class CBindings
 
       class MethodDef
@@ -254,7 +233,7 @@ module Rubex
         end
       end # class RubyMethodDef
 
-      class CMethodDef < MethodDef
+      class CFunctionDef < MethodDef
         attr_reader :type
 
         def initialize type, name, arg_list, statements
@@ -273,7 +252,7 @@ module Rubex
             c_name: @entry.c_name, args: Helpers.create_arg_arrays(@scope))
           super code, c_method: true
         end
-      end # class CMethodDef
+      end # class CFunctionDef
 
       class Klass
         # Stores the scope of the class. Rubex::SymbolTable::Scope::Klass.
@@ -326,9 +305,9 @@ module Rubex
               c_name = Rubex::RUBY_FUNC_PREFIX + @name + "_" +
                 name.gsub("?", "_qmark").gsub("!", "_bang")
               @scope.add_ruby_method name: name, c_name: c_name
-            elsif stat.is_a? Rubex::AST::TopStatement::CMethodDef
+            elsif stat.is_a? Rubex::AST::TopStatement::CFunctionDef
               c_name = Rubex::C_FUNC_PREFIX + @name + "_" + name
-              type = Rubex::DataType::CMethod.new(
+              type = Rubex::DataType::CFunction.new(
                 name, c_name, stat.arg_list, Helpers.determine_dtype(stat.type))
               @scope.add_c_method(name: name, c_name: c_name, extern: false,
                 type: type)

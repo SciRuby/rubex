@@ -58,7 +58,7 @@ module Rubex
             code.colon
           end
 
-          klass.statements.grep(Rubex::AST::TopStatement::CMethodDef).each do |meth|
+          klass.statements.grep(Rubex::AST::TopStatement::CFunctionDef).each do |meth|
             code.write_c_method_header(
               type: meth.entry.type.type.to_s, 
               c_name: meth.entry.c_name, 
