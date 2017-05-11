@@ -9,7 +9,7 @@ module Rubex
 
       def process_statements target_name, code
         @scope = Rubex::SymbolTable::Scope::Klass.new 'Object', nil
-        add_top_level_methods_to_object_class_scope
+        add_top_statements_to_object_scope
         analyse_statements
         rescan_declarations @scope
         generate_preamble code
@@ -23,20 +23,28 @@ module Rubex
 
      private
 
-      def add_top_level_methods_to_object_class_scope
-        top_methods = @statements.grep(Rubex::AST::TopStatement::MethodDef)
-        
-        unless top_methods.empty?      
-          @statements.delete_if do |s|
-            s.is_a?(Rubex::AST::TopStatement::MethodDef)
-          end
+      def add_top_statements_to_object_scope
+        temp = []
+        combined_statements = []
+        @statements.each do |stmt|
+          if stmt.is_a?(TopStatement::Klass) || stmt.is_a?(TopStatement::CBindings)
+            if !temp.empty?
+              object_klass = TopStatement::Klass.new('Object', @scope, temp)
+              combined_statements << object_klass
+            end
 
-          idx = @statements.rindex { |s| 
-            s.is_a? Rubex::AST::TopStatement::CBindings }
-          object_klass = Rubex::AST::TopStatement::Klass.new(
-            'Object', @scope, top_methods)
-          @statements.insert(idx ? idx + 1 : 0, object_klass)
+            combined_statements << stmt
+            temp = []
+          else
+            temp << stmt
+          end
         end
+
+        if !temp.empty?
+          combined_statements << TopStatement::Klass.new('Object', @scope, temp)
+        end
+
+        @statements = combined_statements
       end
 
       def generate_preamble code

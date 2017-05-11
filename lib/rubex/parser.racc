@@ -58,6 +58,7 @@ rule
   top_stmt:
     methods {}
   | klass {}
+  | struct_or_union_def {}
 
   klass:
     kCLASS tIDENTIFIER opt_inheritance eol top_stmts terms kEND
@@ -85,12 +86,15 @@ rule
       {
         result = Statement::CFunctionDecl.new val[0], val[1], val[3]
       }
-  | kSTRUCT tIDENTIFIER kDO var_decl_stmts kEND
-      {
-        add_dtype_to_lexer val[1]
-        result = Statement::CStructOrUnionDef.new val[0], val[1], val[3], location
-      }
+  | struct_or_union_def
   | alias_stmt
+
+  struct_or_union_def:
+    kSTRUCT tIDENTIFIER kDO eol var_decl_stmts kEND 
+      { 
+        add_dtype_to_lexer val[1]
+        result = Statement::CStructOrUnionDef.new val[0], val[1], val[4], location
+      }
 
   alias_stmt:
     kALIAS ident_or_custom_dtype tASSIGN aliased_type
@@ -184,11 +188,7 @@ rule
         result = Statement::While.new val[1], val[3], location
       }
   | op_assign {}
-  | kSTRUCT tIDENTIFIER kDO eol var_decl_stmts kEND
-      { 
-        add_dtype_to_lexer val[1]
-        result = Statement::CStructOrUnionDef.new val[0], val[1], val[4], location
-      }
+  | struct_or_union_def
   | forward_declaration {}
   | alias_stmt
   | expr { result = Statement::Expression.new(val[0], location) }
