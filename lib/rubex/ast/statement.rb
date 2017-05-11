@@ -662,7 +662,7 @@ module Rubex
         end
 
         def analyse_statement local_scope, extern: false
-          @arg_list.map! { |a| Helpers.determine_dtype a }
+          @arg_list.map! { |a| a.analyse_statement(local_scope); a.type }
           c_name = extern ? @name : (Rubex::C_FUNC_PREFIX + @name)
           type   = Rubex::DataType::CFunction.new(@name, c_name, @arg_list, 
             Helpers.determine_dtype(@type))

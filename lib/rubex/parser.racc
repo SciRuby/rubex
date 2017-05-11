@@ -83,9 +83,9 @@ rule
   | c_declarations terms c_declaration { result = [*val[0], val[2]] }
 
   c_declaration:
-    dtype_or_ptr tIDENTIFIER tLPAREN opt_c_func_arg_list tRPAREN # C function decl
+    dtype_or_ptr tIDENTIFIER opt_c_func_arg_list # C function decl
       {
-        result = Statement::CFunctionDecl.new val[0], val[1], val[3]
+        result = Statement::CFunctionDecl.new val[0], val[1], val[2]
       }
   | struct_or_union_def
   | alias_stmt
@@ -112,20 +112,22 @@ rule
   | kSTRUCT tIDENTIFIER { result = val.join }
 
   c_func_normal_arg:
-    dtype_or_ptr { result = val[0]  }
-  | dtype_or_ptr tIDENTIFIER { result = val[0] }
+    dtype_or_ptr { result = CBaseType.new(val[0], nil) }
+  | dtype_or_ptr tIDENTIFIER { result = CBaseType.new(val[0], val[1]) }
+  | tIDENTIFIER { result = CBaseType.new('object', val[0]) }
 
-  dtype_or_ptr:
-    dtype opt_star { result = val.join }
+  c_func_args:
+    { result = [] }
+  | c_func_normal_arg { result = [val[0]] }
+  | c_func_args tCOMMA c_func_normal_arg { result = [*val[0], val[2]] }
 
   opt_c_func_arg_list:
     { result = [] }
-  | c_func_normal_arg { result = [val[0]] }
-  | opt_c_func_arg_list tCOMMA c_func_normal_arg { result = [*val[0], val[2]] }
+  | tLPAREN c_func_args tRPAREN { result = val[1] }
 
   methods:
     ruby_method { result = val[0] }
-  | c_method { result = val[0] }
+  | c_function { result = val[0] }
 
   ruby_method:
     kDEF opt_singleton f_name f_opt_arglist compstmt kEND
@@ -134,15 +136,15 @@ rule
           val[2], val[3], val[4], singleton: val[1])
       }
 
+  c_function:
+    kCFUNC dtype_or_ptr tIDENTIFIER opt_c_func_arg_list eol compstmt kEND
+      {
+        result = TopStatement::CFunctionDef.new(val[1], val[2], val[3], val[5])
+      }
+
   opt_singleton:
     { result = false }
   | kSELF tDOT { result = true }
-
-  c_method:
-    kCFUNC dtype_or_ptr tIDENTIFIER f_opt_arglist compstmt kEND
-      {
-        result = TopStatement::CFunctionDef.new(val[1], val[2], val[3], val[4])
-      }
 
   compstmt:
     stmts opt_terms { result = val[0] }
@@ -331,10 +333,7 @@ rule
 
   f_opt_arglist:
     { result = [] }
-  | f_arglist
-
-  f_arglist:
-    tLPAREN f_args tRPAREN eol { result = ArgumentList.new val[1] }
+  | tLPAREN f_args tRPAREN eol { result = ArgumentList.new val[1] }
 
   f_args:
     f_normal_arg { result = [val[0]] }
@@ -344,7 +343,7 @@ rule
       }
 
   f_normal_arg:
-    dtype tIDENTIFIER { result = CBaseType.new val[0], val[1] }
+    dtype_or_ptr tIDENTIFIER { result = CBaseType.new val[0], val[1] }
   | tIDENTIFIER { result = CBaseType.new 'object', val[0] }
 
   expr:
@@ -405,15 +404,13 @@ rule
       }
 
   method_or_attr:
-    tIDENTIFIER tDOT f_name
+    atomic_value tDOT f_name
       {
-        name = Expression::Name.new val[0]
-        result = [name, val[2]]
+        result = [val[0], val[2]]
       }
-  | tIDENTIFIER tDOT array_ref
+  | atomic_value tDOT array_ref
     {
-      name = Expression::Name.new val[0]
-      result = [name, val[2]]
+      result = [val[0], val[2]]
     }
 
   command_opt_args:
@@ -440,6 +437,9 @@ rule
       {
         result = val[0]
       }
+
+  dtype_or_ptr:
+    dtype opt_star { result = val.join }
 
   opt_terms:
     {}
