@@ -4,10 +4,10 @@ token
   kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS        kLIB kCLASS
   kCFUNC     kSELF
 
-  kDTYPE_UINT  kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16
-  kDTYPE_I32   kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64
-  kDTYPE_INT   kDTYPE_F32  kDTYPE_F64   kDTYPE_LF64 kDTYPE_ROBJ kDTYPE_ULINT
-  kDTYPE_ULLINT tCUSTOM_DTYPE
+  kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16
+  kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64
+  kDTYPE_INT    kDTYPE_F32  kDTYPE_F64   kDTYPE_LF64 kDTYPE_ROBJ kDTYPE_ULINT
+  kDTYPE_ULLINT kDTYPE_VOID tCUSTOM_DTYPE
 
   tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON
   EOF     tDOT    tQMARK   tSYMBOL
@@ -21,6 +21,7 @@ token
 
 prechigh
   right tBANG tBIT_NOT
+  right ADDRESS_OF
   right tEXPO
 
   right UMINUS
@@ -365,6 +366,7 @@ rule
   | expr_value tBIT_LSHIFT expr_value { result = binary_op val }
   | expr_value tBIT_RSHIFT expr_value { result = binary_op val }
   | tMINUS     expr_value  =UMINUS    { result = unary_op val  }
+  | tBIT_AND   expr_value  =ADDRESS_OF{ result = unary_op val }
   | tBIT_NOT   expr_value             { result = unary_op val  } 
   | tLPAREN    expr_value  tRPAREN    { result = val[1] }
   | atomic_value {}
@@ -433,7 +435,8 @@ rule
     kDTYPE_UINT  | kDTYPE_LINT | kDTYPE_LLINT | kDTYPE_CHAR   | kDTYPE_I8   |
     kDTYPE_I16   | kDTYPE_I32  | kDTYPE_I64   | kDTYPE_UI8    | kDTYPE_UI16 |
     kDTYPE_UI32  | kDTYPE_UI64 | kDTYPE_INT   | kDTYPE_F32    | kDTYPE_F64  |
-    kDTYPE_LF64  | kDTYPE_ROBJ | kDTYPE_ULINT | kDTYPE_ULLINT | tCUSTOM_DTYPE
+    kDTYPE_LF64  | kDTYPE_ROBJ | kDTYPE_ULINT | kDTYPE_ULLINT | kDTYPE_VOID | 
+    tCUSTOM_DTYPE
       {
         result = val[0]
       }
@@ -556,6 +559,8 @@ def check_for_primitive_dtype token
     return [:kDTYPE_F64, match]
   elsif match == "object"
     return[:kDTYPE_ROBJ, match]
+  elsif match == "void"
+    return[:kDTYPE_VOID, match]
   end
 
   token
