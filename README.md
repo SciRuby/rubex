@@ -77,6 +77,18 @@ Let us now dive deeper into the Rubex syntax.
 
 Most of the Rubex syntax looks exactly like Ruby - but with certain add-ons that allow it to easily compile to C. Read on for an overview.
 
+## Comments
+
+Similar to Ruby, comments in code can be made using `#`.
+
+Example:
+``` ruby
+# This is a comment.
+def funky(int j) # ...so is this.
+  return j
+end
+```
+
 ## The Basics
 
 The most basic that you can do in any language is to define and call methods and functions that do a specific job. For this purpose, Rubex supports three kinds of methods/functions:
@@ -190,6 +202,33 @@ Rubex supports most primitive C data types out of the box. Following are the one
 |f64/double            |double        |64 bit floating point              |
 |long f64/long double  |long double|Long double >= 96 bits. |
 |object                |VALUE        |Ruby object |
+
+### C pointers
+
+You can define pointers and pass them to functions just like you do in C. Pointers can be specified using the `*` operator and addresses of variables can be accessed using the `&` (address-of) operator.
+
+Keep in mind that Rubex does not support the `*` operator for deferencing a pointer. You will need to use the `[]` operator and access the value of pointer with `[0]` (since accessing the value of a pointer is analogous to accessing the value of an array in C).
+
+Here's an example of declaring an array and passing its address to a C function from a Ruby method:
+``` ruby
+class CPointersDemo
+  def foo
+    int *i
+    int j = 55
+
+    i = &j
+
+    return bar(i)
+  end
+
+  cfunc int bar(int *i)
+    int j = 5, sum
+    int sum = j + i[0]
+
+    return sum
+  end
+end
+```
 
 ### Implicit type conversions
 
