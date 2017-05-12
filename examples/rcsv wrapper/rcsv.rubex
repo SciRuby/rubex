@@ -103,14 +103,11 @@ class Rcsv
       meta.row_as_hash = 1
     end
 
-    col_sep = opts[:col_sep]
-    if col_sep
-      csv_set_delim(cp, col_sep)
-    end
+    csv_set_delim(cp, col_sep) if opts[:col_sep]
 
-    quote_char = opts[:quote_char]
+    csv_set_quote(cp, quote_char) if opts[:quote_char]
     if quote_char
-      csv_set_quote(cp, quote_char)
+      
     end
 
     offset_rows = opts[:offset_rows]

@@ -27,6 +27,7 @@ describe Rubex do
           require_relative "#{dir}/#{test_case}.so"
 
           expect(adder_if_else(2, 3, 4)).to eq(4)
+          expect(IfElseTest.new.ruby_obj_in_condition).to eq(20)
         end
       end
     end

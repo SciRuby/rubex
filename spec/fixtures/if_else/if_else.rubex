@@ -28,3 +28,25 @@ def adder_if_else(int a, i64 b, f64 c)
 
   return d
 end
+
+class IfElseTest
+  def ruby_obj_in_condition
+    int i = 0
+    a = nil
+    b = false
+
+    if a
+      i += 1
+    else
+      i += 10
+    end
+
+    if b
+      i += 1
+    else
+      i += 10
+    end
+
+    return i
+  end
+end

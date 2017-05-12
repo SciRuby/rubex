@@ -6,3 +6,21 @@ class StringCaller
     return string[0]
   end
 end
+
+class BinaryOperators
+  def double_eq(a, b)
+    if a == b
+      return true
+    else
+      return false
+    end
+  end
+
+  def lt(a, b)
+    if a < b
+      return true
+    else
+      return false
+    end
+  end
+end

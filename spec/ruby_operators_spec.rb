@@ -26,6 +26,13 @@ describe Rubex do
           require_relative "#{dir}/#{test_case}.so"
 
           expect(StringCaller.new.call_now("foo!")).to eq("f")
+
+          cls = BinaryOperators.new
+          expect(cls.lt("aa", "bb")).to eq(false)
+          expect(cls.lt("abc","abc")).to eq(false)
+
+          expect(cls.double_eq([1,2,3,4],[1,2,3,4])).to eq(true)
+          expect(cls.double_eq("foo", "bar")).to eq(false)
         end
       end
     end
