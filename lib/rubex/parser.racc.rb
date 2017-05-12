@@ -1873,7 +1873,7 @@ module_eval(<<'.,.,', 'parser.racc', 366)
 
 module_eval(<<'.,.,', 'parser.racc', 367)
   def _reduce_130(val, _values, result)
-     result = unary_op val 
+     result = unary_op val  
     result
   end
 .,.,

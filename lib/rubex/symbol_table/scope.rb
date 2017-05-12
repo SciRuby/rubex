@@ -15,6 +15,7 @@ module Rubex
       attr_accessor :ruby_method_entries
       attr_accessor :ruby_constant_entries
       attr_accessor :self_name
+      attr_reader   :klass_name, :name
 
       def initialize outer_scope=nil
         @outer_scope = outer_scope
@@ -31,6 +32,7 @@ module Rubex
         @ruby_method_entries = []
         @ruby_constant_entries = []
         @self_name = ""
+        @klass_name = ""
       end
 
       def check_entry name
@@ -50,11 +52,11 @@ module Rubex
         entry
       end
 
-      def declare_sue var
+      def declare_sue name:, c_name:, type:, extern:
         entry = Rubex::SymbolTable::Entry.new(
-          var.name, var.type.c_name, var.type, nil)
-        entry.extern = var.extern
-        @entries[var.name] = entry
+          name, c_name, type, nil)
+        entry.extern = extern
+        @entries[name] = entry
         @sue_entries << entry
         @type_entries << entry
 
@@ -156,13 +158,12 @@ module Rubex
     module Scope
       class Klass
         include Rubex::SymbolTable::Scope
-
-        attr_reader :name
         attr_accessor :include_files #TODO: this should probably not be here.
 
         def initialize name, outer_scope
           super(outer_scope)
           @name = name
+          @klass_name = @name
           @include_files = []
         end
       end # class Klass
@@ -170,11 +171,10 @@ module Rubex
       class Local
         include Rubex::SymbolTable::Scope
 
-        attr_reader :name
-
         def initialize name, outer_scope
           super(outer_scope)
           @name = name
+          @klass_name = outer_scope.klass_name
         end
 
         # args - Rubex::AST::ArgumentList. Creates sym. table entries for args.
@@ -189,6 +189,12 @@ module Rubex
       class StructOrUnion
         include Rubex::SymbolTable::Scope
         # FIXME: Change scope structure to identify struct scopes by name too.
+
+        def initialize name, outer_scope
+          super(outer_scope)
+          @klass_name = outer_scope.klass_name
+          @name = name
+        end
       end # class StructOrUnion
     end
   end

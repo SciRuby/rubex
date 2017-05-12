@@ -13,7 +13,7 @@ module Rubex
         :char?, :object?, :bool?, :carray?,
         :cptr?, :nil_type?, :struct_or_union?,
         :alias_type?, :string?, :cstr?, :ruby_class?,
-        :ruby_method?, :c_method?, :ruby_constant?
+        :ruby_method?, :c_method?, :ruby_constant?, :void?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -45,6 +45,14 @@ module Rubex
       include Helpers
 
       def bool?; true; end
+    end
+
+    class Void
+      include Helpers
+
+      def void?; true; end
+
+      def to_s; "void"; end
     end
 
     class RubyObject

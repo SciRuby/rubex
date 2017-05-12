@@ -1,6 +1,7 @@
 module Rubex
   module AST
     class Node
+      include Rubex::Helpers::Writers
       attr_reader :statements
 
       def initialize statements
@@ -10,7 +11,7 @@ module Rubex
       def process_statements target_name, code
         @scope = Rubex::SymbolTable::Scope::Klass.new 'Object', nil
         add_top_statements_to_object_scope
-        analyse_statements
+        analyse_statement
         rescan_declarations @scope
         generate_preamble code
         generate_code code
@@ -53,7 +54,7 @@ module Rubex
         @scope.include_files.each do |name|
           code << "#include #{name}\n"
         end
-        declare_types code
+        declare_types code, @scope
         write_function_declarations code
         code.nl
       end
@@ -76,21 +77,21 @@ module Rubex
         end
       end
 
-      def declare_types code
-        @scope.type_entries.each do |entry|
-          type = entry.type
+      # def declare_types code
+      #   @scope.type_entries.each do |entry|
+      #     type = entry.type
 
-          if type.alias_type?
-            code << "typedef #{type.type.to_s} #{type.to_s};"
-          end
-          code.nl
-        end
-      end
+      #     if type.alias_type?
+      #       code << "typedef #{type.type.to_s} #{type.to_s};"
+      #     end
+      #     code.nl
+      #   end
+      # end
 
-      def analyse_statements
+      def analyse_statement
         create_symtab_entries_for_top_statements
         @statements.each do |stat|
-          stat.analyse_statements @scope
+          stat.analyse_statement @scope
         end
       end
 
@@ -103,7 +104,7 @@ module Rubex
             # scope and ancestor scope of Object as Object, and make sure that
             # the same scope object is used for 'Object' class every single time
             # throughout the compilation process.
-            if stat.name != 'Object'
+            if name != 'Object'
               ancestor_scope = @scope.find(stat.ancestor)&.type&.scope || @scope
               klass_scope = Rubex::SymbolTable::Scope::Klass.new(
                 name, ancestor_scope)
@@ -111,7 +112,7 @@ module Rubex
               ancestor_scope = @scope
               klass_scope = @scope
             end
-            c_name = c_name_for_class stat.name
+            c_name = c_name_for_class name
 
             @scope.add_ruby_class(name: name, c_name: c_name, scope: klass_scope,
               ancestor: ancestor_scope)

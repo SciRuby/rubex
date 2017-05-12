@@ -8,7 +8,7 @@ module Rubex
           @lib, @declarations = lib, declarations
         end
 
-        def analyse_statements local_scope
+        def analyse_statement local_scope
           @declarations.each do |stat|
             stat.analyse_statement local_scope, extern: true
           end
@@ -21,6 +21,7 @@ module Rubex
       end # class CBindings
 
       class MethodDef
+        include Rubex::Helpers::Writers
         # Ruby name of the method.
         attr_reader :name
         # Method arguments.
@@ -36,7 +37,7 @@ module Rubex
           @name, @arg_list, @statements = name, arg_list, statements
         end
 
-        def analyse_statements outer_scope
+        def analyse_statement outer_scope
           @scope = Rubex::SymbolTable::Scope::Local.new @name, outer_scope
           @entry = outer_scope.find @name
           @entry.type.scope = @scope
@@ -71,7 +72,7 @@ module Rubex
 
       private
         def generate_function_definition code, c_method:
-          declare_types code
+          declare_types code, @scope
           declare_args code unless c_method
           declare_vars code, @scope
           declare_carrays code, @scope
@@ -83,80 +84,15 @@ module Rubex
           generate_statements code
         end
 
-
-        def declare_types code
-          @scope.type_entries.each do |entry|
-            type = entry.type
-
-            if type.alias_type?
-              code << "typedef #{type.old_name} #{type.new_name};"
-            elsif type.struct_or_union?
-              code << sue_header(entry)
-              code.block(sue_footer(entry)) do
-                declare_vars code, type.scope
-                declare_carrays code, type.scope
-                declare_ruby_objects code, type.scope
-              end
-            end
-            code.nl
-          end
-        end
-
-        def sue_header entry
-          type = entry.type
-          str = "#{type.kind} #{type.name}"
-          if !entry.extern
-            str.prepend "typedef "
-          end
-
-          str
-        end
-
-        def sue_footer entry
-          str =
-          if entry.extern
-            ";"
-          else
-            " #{entry.type.c_name};"
-          end
-
-          str
-        end
-
-        def declare_ruby_objects code, scope
-          scope.ruby_obj_entries.each do |var|
-            code.declare_variable type: var.type.to_s, c_name: var.c_name
-          end
-        end
-
-        def generate_statements code
-          @statements.each do |stat|
-            stat.generate_code code, @scope
-          end
-        end
-
         def declare_args code
           @scope.arg_entries.each do |arg|
             code.declare_variable type: arg.type.to_s, c_name: arg.c_name
           end
         end
 
-        def declare_vars code, scope
-          scope.var_entries.each do |var|
-            code.declare_variable type: var.type.to_s, c_name: var.c_name
-          end
-        end
-
-        def declare_carrays code, scope
-          scope.carray_entries.select { |s|
-            s.type.dimension.is_a? Rubex::AST::Expression::Literal
-          }. each do |arr|
-            type = arr.type.type.to_s
-            c_name = arr.c_name
-            dimension = arr.type.dimension.c_code(@scope)
-            value = arr.value.map { |a| a.c_code(@scope) } if arr.value
-            code.declare_carray(type: type, c_name: c_name, dimension: dimension,
-              value: value)
+        def generate_statements code
+          @statements.each do |stat|
+            stat.generate_code code, @scope
           end
         end
 
@@ -214,7 +150,7 @@ module Rubex
           @singleton = singleton
         end
 
-        def analyse_statements local_scope
+        def analyse_statement local_scope
           super
           @entry.singleton = @singleton
         end
@@ -243,7 +179,7 @@ module Rubex
           @arg_list << CBaseType.new('object', 'self', nil)
         end
 
-        def analyse_statements outer_scope, extern: false
+        def analyse_statement outer_scope, extern: false
           super(outer_scope)
         end
 
@@ -274,13 +210,13 @@ module Rubex
           @ancestor = 'Object' if @ancestor.nil?
         end
 
-        def analyse_statements local_scope
+        def analyse_statement local_scope
           @entry = local_scope.find(@name)
           @scope = @entry.type.scope
           @ancestor = @entry.type.ancestor
           add_statement_symbols_to_symbol_table
           @statements.each do |stat|
-            stat.analyse_statements @scope
+            stat.analyse_statement @scope
           end
         end
 

@@ -6,26 +6,25 @@ end
 class CallByReference
   def ref_call
     attribs a
-    int b_flat = 460
+    int b_flat = 1
     int *i
-    a.a = 56
-    a.b = 65
-    a.c = 23
+    a.a = 1
+    a.b = 1
 
-    c_function(&a, b_flat)
-    add(a, i)
+    i = &b_flat
+    c_function(&a, b_flat, i)
+    add(&a)
 
-    return a.a + i[0]
+    b_flat = a.c + i[0]
+
+    return b_flat
   end
 
-  cfunc void c_function(attribs *a, int b)
-    a[0].a = b
+  cfunc void c_function(attribs *a, int b, int *i)
+    a[0].a = b + i[0]
   end
 
-  cfunc int* add(attribs a, int *i)
-    a.c = a.a + a.b
-    i = &a.c
-
-    return i
+  cfunc void add(attribs *a)
+    a[0].c = a[0].a + a[0].b
   end
 end

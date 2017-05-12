@@ -157,7 +157,7 @@ module Rubex
 
       class CStructOrUnionDef
         include Rubex::AST::Statement
-        attr_reader :name, :c_name, :declarations, :type, :kind, :extern
+        attr_reader :name, :declarations, :type, :kind, :entry
 
         def initialize kind, name, declarations, location
           super(location)
@@ -171,24 +171,25 @@ module Rubex
         end
 
         def analyse_statement outer_scope, extern: false
-          local_scope = Rubex::SymbolTable::Scope::StructOrUnion.new outer_scope
-          @extern = extern
-          if @extern
-            @c_name = @kind.to_s + " " + @name
+          local_scope = Rubex::SymbolTable::Scope::StructOrUnion.new(
+            @name, outer_scope)
+          if extern
+            c_name = @kind.to_s + " " + @name
           else
-            @c_name = Rubex::TYPE_PREFIX + @name
+            c_name = Rubex::TYPE_PREFIX + local_scope.klass_name + "_" + @name
           end
-          @type = CStructOrUnion.new @kind, @name, c_name, local_scope
+          @type = Rubex::DataType::CStructOrUnion.new(@kind, @name, c_name, 
+            local_scope)
 
           @declarations.each do |decl|
-            decl.analyse_statement local_scope, extern: @extern
+            decl.analyse_statement local_scope, extern: extern
           end
           Rubex::CUSTOM_TYPES[@name] = @type
-          outer_scope.declare_sue self
-          # outer_scope.declare_type self
+          @entry = outer_scope.declare_sue(name: @name, c_name: c_name,
+            type: @type, extern: extern)
         end
 
-        def generate_code code, local_scope
+        def generate_code code, local_scope=nil
 
         end
 
@@ -217,7 +218,7 @@ module Rubex
         end
 
         def analyse_statement local_scope, extern: false
-          @c_name = Rubex::TYPE_PREFIX + @name
+          @c_name = Rubex::TYPE_PREFIX + local_scope.klass_name + "_" + @name
           @type = Rubex::DataType::TypeDef.new("#{@kind} #{@name}", @c_name, type)
           local_scope.declare_type self
         end
