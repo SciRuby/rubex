@@ -99,21 +99,12 @@ class Rcsv
     end
 
     buffer_size = opts[:buffer_size]
-    if opts[:row_as_hash]
-      meta.row_as_hash = 1
-    end
+    meta.row_as_hash = 1 if opts[:row_as_hash]
 
     csv_set_delim(cp, col_sep) if opts[:col_sep]
-
     csv_set_quote(cp, quote_char) if opts[:quote_char]
-    if quote_char
-      
-    end
 
-    offset_rows = opts[:offset_rows]
-    if offset_rows
-      meta.offset_rows = offset_rows
-    end
+    meta.offset_rows = opts[:offset_rows] if opts[:offset_rows]
 
     # TODO: figure how to handle malloc calls.
     # Specify character encoding
@@ -182,10 +173,6 @@ class Rcsv
 
   end
 
-  # If pointers have been passed into the function, how will the compiler know
-  # attributes within the structs? - by referencing with the [] operator.
-  #
-  #
   cfunc void free_all_memory(csv_parser *p_cp, rcsv_metadata *p_meta)
     csv_parser cp = p_cp[0]
     rcsv_metadata meta = p_meta[0]

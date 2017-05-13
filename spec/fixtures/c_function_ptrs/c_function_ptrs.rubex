@@ -1,0 +1,44 @@
+cfunc int foo1(int a)
+  return a + 1
+end
+
+cfunc int foo2(int a)
+  return a + 2
+end
+
+cfunc int baz1(int a, int b)
+  return a + b + 1
+end
+
+cfunc int baz2(int a, int b)
+  return a + b + 2
+end
+
+cfunc int bar(int (*func1)(int), int (*func2)(int, int), int a, int b)
+  int ans1
+  int ans2
+
+  ans1 = func_ptr1(a)
+  ans2 = func_ptr2(a, b)
+
+  return ans1 + ans2
+end
+
+class CFunctionPtrs
+  def test_c_function_pointers(switch)
+    int (func_ptr1*)(int)
+    int (func_ptr2*)(int, float)
+    int a = 1
+    int b = 1
+
+    if switch
+      func_ptr1 = foo1
+      func_ptr2 = baz1
+    else
+      func_ptr1 = foo2
+      func_ptr2 = baz2
+    end
+
+    return bar(func_ptr1, func_ptr2, a, b)
+  end
+end
