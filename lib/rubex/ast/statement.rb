@@ -429,7 +429,6 @@ module Rubex
       class IfBlock
         module Helper
           def analyse_statement local_scope
-            # binding.pry
             @expr.analyse_statement(local_scope)
             @statements.each do |stat|
               stat.analyse_statement local_scope
@@ -444,7 +443,9 @@ module Rubex
 
           def generate_code_for_statement stat, code, local_scope
             if stat != "else"
-              code << "#{stat} (#{@expr.c_code(local_scope)}) "
+              condition = @expr.c_code(local_scope)
+              expr_condition = @expr.type.object? ? "RTEST(#{condition})" : condition
+              code << "#{stat} (#{expr_condition}) "
             else
               code << "#{stat}"
             end
