@@ -10,7 +10,7 @@ module Rubex
         :int?, :int8?, :int16?, :int32?, :int64?,
         :uint?, :uint8?, :uint16?, :uint32?, :uint64?,
         :lint?, :ulint?, :llint?, :ullint?,
-        :char?, :object?, :bool?, :carray?,
+        :char?, :object?, :bool?, :carray?, :cbool?,
         :cptr?, :nil_type?, :struct_or_union?,
         :alias_type?, :string?, :cstr?, :ruby_class?,
         :ruby_method?, :c_method?, :ruby_constant?, :void?
@@ -41,10 +41,14 @@ module Rubex
       include Helpers
     end
 
-    class Boolean
+    class CBoolean
       include Helpers
 
-      def bool?; true; end
+      def cbool?; true; end
+
+      def to_ruby_object arg
+        Rubex::RUBEX_PREFIX + "INT2BOOL(" + arg + ")"
+      end
     end
 
     class Void
@@ -428,11 +432,17 @@ module Rubex
       end
     end
 
+    class Boolean < RubyObject
+      include Helpers
+
+      def bool?; true; end
+    end
+
     class TrueType < Boolean;  end
 
     class FalseType < Boolean;  end
 
-    class NilType
+    class NilType < RubyObject
       include Helpers
 
       def nil_type?; true; end

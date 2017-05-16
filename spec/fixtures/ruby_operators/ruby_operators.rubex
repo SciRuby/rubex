@@ -9,7 +9,8 @@ end
 
 class BinaryOperators
   def double_eq(a, b)
-    if a == b
+    int i = 1
+    if !(a == b && i == 1)
       return true
     else
       return false

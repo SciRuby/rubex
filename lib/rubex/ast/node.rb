@@ -54,9 +54,14 @@ module Rubex
         @scope.include_files.each do |name|
           code << "#include #{name}\n"
         end
+        write_usability_macros code
         declare_types code, @scope
         write_function_declarations code
         code.nl
+      end
+
+      def write_usability_macros code
+        code << Rubex::RUBEX_PREFIX + "INT2BOOL(arg) (arg ? Qtrue : Qfalse)"
       end
 
       def write_function_declarations code

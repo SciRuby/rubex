@@ -68,7 +68,11 @@ module Rubex
             analyse_return_type local_scope, tree.right
 
             if ['==', '<', '>', '<=', '>=', '||', '&&'].include? tree.operator
-              tree.type = Rubex::DataType::Boolean.new
+              if tree.left.type.object? || tree.right.type.object?
+                tree.type = Rubex::DataType::Boolean.new
+              else
+                tree.type = Rubex::DataType::CBoolean.new
+              end
             else
               if tree.left.type.bool? || tree.right.type.bool?
                 raise Rubex::TypeMismatchError, "Operation #{tree.operator} cannot"\
@@ -84,15 +88,25 @@ module Rubex
           if tree.respond_to? :left
             code << "( "
             recursive_generate_code local_scope, code, tree.left
-            unless tree.left.respond_to?(:left)
-              code << "#{tree.left.c_code(local_scope)}"
+
+            left = tree.left
+            right = tree.right
+            left_code = left.c_code(local_scope)
+            right_code = right.c_code(local_scope)
+
+            if left.type.object? || right.type.object?
+              if tree.respond_to?(:left) && tree.respond_to?(:right) #&&
+                # !left.respond_to?(:left) && !right.respond_to?(:right)
+                code << "rb_funcall(#{left.type.to_ruby_object(left_code)}"
+                code <<  ", rb_intern(\"#{tree.operator}\")"
+                code << ", 1, #{right.type.to_ruby_object(right_code)})"
+              end
+            else
+              code << "#{left_code}" unless left.respond_to?(:left)
+              code << " #{tree.operator} "
+              code << "#{right_code}" unless right.respond_to?(:right)
             end
 
-            code << " #{tree.operator} "
-
-            unless tree.right.respond_to?(:right)
-              code << "#{tree.right.c_code(local_scope)}"
-            end
             recursive_generate_code local_scope, code, tree.right
             code << " )"
           end
@@ -113,7 +127,12 @@ module Rubex
         end
 
         def c_code local_scope
-          "#{@operator} #{@expr.c_code(local_scope)}"
+          code = @expr.c_code(local_scope)
+          if @type.object?
+            "rb_funcall(#{@type.to_ruby_object(code)}, rb_intern(\"#{@operator}@\"), 0)"
+          else
+            "#{@operator} #{code}"
+          end
         end
       end # class Unary
 
