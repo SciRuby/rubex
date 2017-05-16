@@ -125,6 +125,8 @@ module Rubex
     "STDERR"           => "rb_stderr",
   }
 
+  C_MACRO_INT2BOOL = Rubex::RUBEX_PREFIX + "INT2BOOL"
+
   # Maps regexes to the type of the variable for conversion from literal
   # to the correct type of Ruby object.
   LITERAL_MAPPINGS = {

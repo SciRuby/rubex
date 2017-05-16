@@ -23,6 +23,11 @@ module Rubex
       new_line
     end
 
+    def c_macro macro
+      @code << "#define #{macro}"
+      new_line
+    end
+
     def write_c_method_header type: , c_name: , args: []
       write_func_prototype type, c_name, args
     end

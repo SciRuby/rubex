@@ -61,7 +61,7 @@ module Rubex
       end
 
       def write_usability_macros code
-        code << Rubex::RUBEX_PREFIX + "INT2BOOL(arg) (arg ? Qtrue : Qfalse)"
+        code.c_macro Rubex::RUBEX_PREFIX + "INT2BOOL(arg) (arg ? Qtrue : Qfalse)"
       end
 
       def write_function_declarations code

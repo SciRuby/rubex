@@ -30,7 +30,25 @@ module Rubex
 
         def c_code local_scope
           code = ""
-          recursive_generate_code(local_scope, code, self)
+          code << "( "
+          left_code = @left.c_code(local_scope)
+          right_code = @right.c_code(local_scope)
+          if @left.type.object? || @right.type.object?
+            left_ruby_code = @left.type.to_ruby_object(left_code)
+            right_ruby_code = @right.type.to_ruby_object(right_code)
+
+            if ["&&", "||"].include?(@operator)
+              code << Rubex::C_MACRO_INT2BOOL + 
+                "(RTEST(#{left_ruby_code}) #{@operator} RTEST(#{right_ruby_code}))"
+            else
+              code << "rb_funcall(#{left_ruby_code}, rb_intern(\"#{@operator}\") "
+              code << ", 1, #{right_ruby_code})"
+            end
+          else
+            code << "#{left_code} #{@operator} #{right_code}"
+          end
+          code << " )"
+
           code
         end
 
@@ -83,34 +101,6 @@ module Rubex
             end
           end
         end
-
-        def recursive_generate_code local_scope, code, tree
-          if tree.respond_to? :left
-            code << "( "
-            recursive_generate_code local_scope, code, tree.left
-
-            left = tree.left
-            right = tree.right
-            left_code = left.c_code(local_scope)
-            right_code = right.c_code(local_scope)
-
-            if left.type.object? || right.type.object?
-              if tree.respond_to?(:left) && tree.respond_to?(:right) #&&
-                # !left.respond_to?(:left) && !right.respond_to?(:right)
-                code << "rb_funcall(#{left.type.to_ruby_object(left_code)}"
-                code <<  ", rb_intern(\"#{tree.operator}\")"
-                code << ", 1, #{right.type.to_ruby_object(right_code)})"
-              end
-            else
-              code << "#{left_code}" unless left.respond_to?(:left)
-              code << " #{tree.operator} "
-              code << "#{right_code}" unless right.respond_to?(:right)
-            end
-
-            recursive_generate_code local_scope, code, tree.right
-            code << " )"
-          end
-        end
       end # class Binary
 
       class Unary
@@ -129,7 +119,7 @@ module Rubex
         def c_code local_scope
           code = @expr.c_code(local_scope)
           if @type.object?
-            "rb_funcall(#{@type.to_ruby_object(code)}, rb_intern(\"#{@operator}@\"), 0)"
+            "rb_funcall(#{@type.to_ruby_object(code)}, rb_intern(\"#{@operator}\"), 0)"
           else
             "#{@operator} #{code}"
           end

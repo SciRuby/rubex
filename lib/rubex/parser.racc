@@ -347,12 +347,12 @@ rule
   | tIDENTIFIER { result = CBaseType.new 'object', val[0] }
 
   expr:
-    expr_value {}
-  | expr_cmp {}  
-  | expr tANDOP    expr { result = binary_op val }
-  | expr tOROP     expr { result = binary_op val }
-  | tBANG expr          { result = unary_op val }
-  | tLPAREN    expr  tRPAREN    { result = val[1] }
+    expr_value                   {}
+  | expr_cmp                     {}  
+  | expr    tANDOP    expr       { result = binary_op val }
+  | expr    tOROP     expr       { result = binary_op val }
+  | tBANG   expr                 { result = unary_op val }
+  | tLPAREN expr      tRPAREN    { result = val[1] }
 
   expr_value:
     expr_value tPLUS       expr_value { result = binary_op val }
@@ -380,8 +380,6 @@ rule
   | expr_value tGT       expr_value { result = binary_op val }
   | expr_value tGTEQ     expr_value { result = binary_op val }
   | tLPAREN    expr_cmp  tRPAREN    { result = val[1] }
-
-  # | tBANG expr_cmp                  { result = unary_op val }
 
   atomic_value:
     array_ref {}

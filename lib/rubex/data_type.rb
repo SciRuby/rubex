@@ -47,7 +47,7 @@ module Rubex
       def cbool?; true; end
 
       def to_ruby_object arg
-        Rubex::RUBEX_PREFIX + "INT2BOOL(" + arg + ")"
+        Rubex::C_MACRO_INT2BOOL + "(" + arg + ")"
       end
     end
 
