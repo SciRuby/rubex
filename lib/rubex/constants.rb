@@ -93,7 +93,7 @@ module Rubex
     "Interrupt" => "rb_eInterrupt",
     "Signal" => "rb_eSignal",
     "Fatal" => "rb_eFatal",
-    "ArgError" => "rb_eArgError",
+    "ArgumentError" => "rb_eArgError",
     "EOFError" => "rb_eEOFError",
     "IndexError" => "rb_eIndexError",
     "StopIteration" => "rb_eStopIteration",

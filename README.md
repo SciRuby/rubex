@@ -177,6 +177,27 @@ And you're done!
 
 You can simply call these functions through a Ruby script that uses the `math_sin` and/or `math_cos` methods inside the `Trigonometry` class.
 
+## Literals
+
+Rubex accepts number and string literals. If you do not specify the data type of a variable when assigning it to a literal, it will be automatically be converted to a Ruby object.
+
+For example:
+``` ruby
+def literals_demo
+  # Assigns int i as 44.
+  int i = 44
+
+  # The variable j will be assigned a Ruby Integer object with value 44.
+  j = 44
+
+  # The string will be implicitly converted to a Ruby String object.
+  string = "This is a Ruby string."
+
+  # This will stay on as a C string of type char*.
+  char* c_str = "This is a C string."
+end
+```
+
 ## Data Types
 
 Rubex supports most primitive C data types out of the box. Following are the ones supported and their respective Rubex keywords:
@@ -230,9 +251,71 @@ class CPointersDemo
 end
 ```
 
+## Statements and Expressions
+
+All expressions that are supported in Ruby are supported in Rubex. You can also intermingle C and Ruby types in the same expression, subject to some restrictions.
+
 ### Implicit type conversions
 
 Rubex will implicitly convert most primitive C types like `char`, `int` and `float` to their equivalent Ruby types and vice versa. However, types conversions for user defined types like structs and unions are not supported.
+
+### The print statement
+
+The `print` statement makes it easy to print something to the console using C's `printf` function underneath. If it is passed a Ruby object instead of a C data type, the `#inspect` method will be called on the object and the resultant string will be printed. `print` can accept multiple comma-separated arguments and will concatenate them into a single string.
+``` ruby
+def print_demo(a, b)
+  int i = 5
+
+  print "Obj a is : ", a, ".", " b is: ", b, "... and i is: ", i 
+end
+```
+
+### Conditional statement (if-elsif-else)
+
+Similar to Ruby, conditionals in Rubex can be written as follows:
+``` ruby
+def foo(a)
+  int i = 3
+
+  return true if a == i
+  return false
+end
+```
+
+In the above case, since `a` is a Ruby object and `i` is an `int`, `i` will be implicitly converted into a Ruby `Integer` and the comparison with the `==` operator will take place as though the two variables are Ruby objects (`.send(:==)`).
+
+If the expression in an `if` statements consists only of C variables, the values `0` and `NULL` (null pointer) are treated as 'falsey' and everything else is truthy (exactly like C).
+
+However, in case you intermingle Ruby and C types, Rubex will use the convention used in Ruby, i.e. `nil` (NilClass) and `false` (FalseClass) are 'falsey' whereas everything else (including zero) is 'truthy'. `0` and `NULL` will NOT be treated as 'falsey' in this scenario.
+
+### Loops
+
+Rubex supports `while` and `for` loops that look exactly like their Ruby counterparts, but are internally translated to C for speed.
+
+A `while` loop can be defined like so:
+``` ruby
+def while_loop_demo
+  int i = 0
+
+  while i < 10 do
+    print i, "\n"
+    i += 1
+  end
+end
+```
+
+Rubex has its own syntax for `for` loops that is slightly different than the Ruby syntax. These loops are translated directly to efficient C code:
+``` ruby
+def for_loop_demo
+  int i, j
+  j = 1
+  for 0 < i <= 10 do
+    j += i
+  end
+
+  return j
+end
+```
 
 # Roadmap for v0.1
 
@@ -240,4 +323,5 @@ See the [wiki](https://github.com/v0dro/rubex/wiki/Rubex-v0.1-goals) for a roadm
 
 # Acknowledgements
 
-My sincere thanks to the Ruby Association (Japan) for providing the initial funding for this project through the Ruby Association Grant 2016.
+* The Ruby Association (Japan) for providing the initial funding for this project through the Ruby Association Grant 2016.
+* Koichi Sasada (@ko1) for his support and mentorship throughout this project.
