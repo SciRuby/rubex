@@ -26,8 +26,9 @@ end
 
 class CFunctionPtrs
   def test_c_function_pointers(switch)
-    int (func_ptr1*)(int)
-    int (func_ptr2*)(int, float)
+    alias goswim = int (*arnab)(int, float)
+    int (*func_ptr1)(int)
+    goswim func_ptr2
     int a = 1
     int b = 1
 
