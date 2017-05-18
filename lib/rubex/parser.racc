@@ -269,36 +269,38 @@ rule
     kELSE compstmt { result = Statement::IfBlock::Else.new val[1], location }
 
   var_decl_or_init:
-    dtype opt_star decl_or_init
-      {
-        val[2][0][:pointer] = val[1]
-        result = {
-          dtype: val[0],
-          decl_or_init: val[2]
-        }
-      }
+    dtype decls_or_inits
+
+  decls_or_inits:
+    decls_or_inits tCOMMA var_init { result = [*val[0], val[2]] }
+  | decls_or_inits tCOMMA normal_decl { result = [*val[0], val[2]] }
+  | normal_decl { result = [val[0]] }
+  | var_init { result = [val[0]] }
+
+  normal_decl:
+    # possible function pointer declaration
+    opt_star aa_actual_normal_decl
+
+  aa_actual_normal_decl:
+   tLPAREN opt_star actual_normal_decl tRPAREN opt_c_func_arg_list 
+      {  }
+  | actual_normal_decl opt_c_func_arg_list { }
+
+  actual_normal_decl:
+    tIDENTIFIER  { }
+  | array_ref  {  }
+
+  var_init:
+    normal_decl tASSIGN expr_or_array
+
+  expr_or_array:
+    expr {  }
+  | tLSQUARE array_list tRSQUARE {}
 
   opt_star:
     { result = nil }
   | tSTAR { }
   | opt_star tSTAR { result = val.join }
-
-  decl_or_init:
-    decl_or_init tCOMMA var_init { result = [*val[0], val[2]] }
-  | decl_or_init tCOMMA normal_decl { result = [*val[0], val[2]] }
-  | normal_decl { result = [val[0]] }
-  | var_init { result = [val[0]] }
-
-  normal_decl:
-    tIDENTIFIER  { result = { name: val[0] } }
-  | array_ref  { result = { name: val[0] } }
-
-  var_init:
-    normal_init
-  | array_ref tASSIGN tLSQUARE array_list tRSQUARE
-    {
-      result = { name: val[0], value: val[3] }
-    }
 
   array_list:
     {}
