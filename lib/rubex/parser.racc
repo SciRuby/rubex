@@ -83,23 +83,43 @@ rule
   | c_declarations terms c_declaration { result = [*val[0], val[2]] }
 
   c_declaration:
-    dtype_or_ptr tIDENTIFIER opt_c_func_arg_list # C function decl
-      {
-        result = Statement::CFunctionDecl.new val[0], val[1], val[2]
-      }
+    c_function_declaration
   | struct_or_union_def
   | alias_stmt
 
-  struct_or_union_def:
-    kSTRUCT tIDENTIFIER kDO eol var_decl_stmts kEND 
+  c_function_declaration:
+    dtype_or_ptr tIDENTIFIER opt_c_func_arg_list
       { 
+        result = Statement::CFunctionDecl.new val[0], val[1], val[2]
+      }
+
+  struct_or_union_def:
+    kSTRUCT tIDENTIFIER kDO eol su_var_decl_stmts kEND 
+      { #TODO: Take the hash from var_decls and create nodes.
         add_dtype_to_lexer val[1]
         result = Statement::CStructOrUnionDef.new val[0], val[1], val[4], location
       }
 
+  su_var_decl_stmts:
+    su_var_decl_stmt { result = [val[0]] } 
+  | su_var_decl_stmts terms su_var_decl_stmt { result = [*val[0], val[2]] }
+
+  su_var_decl_stmt:
+    dtype var_decl_stmts
+      {
+        result = {
+          dtype: val[0],
+          variables: val[1]
+        }
+      }
+
+  var_decl_stmts:
+    var_decl_stmts tCOMMA normal_decl { result = [*val[0], val[2]] }
+  | normal_decl { result = [val[0]] }
+  
   alias_stmt:
     kALIAS ident_or_custom_dtype tASSIGN aliased_type
-      {
+      { # TODO: take hash from aliased_type and turn into nodes.
         add_dtype_to_lexer val[1]
         result = Statement::Alias.new val[1], val[3], location
       }
@@ -108,22 +128,22 @@ rule
     tIDENTIFIER | tCUSTOM_DTYPE {}
 
   aliased_type:
-    dtype
+    dtype opt_star { result = val.join }
   | kSTRUCT tIDENTIFIER { result = val.join }
+  | dtype opt_star tLPAREN opt_star opt_identifier tRPAREN opt_c_func_arg_list
+      {
+        result = {
+          dtype: val[0],
+          return_ptr_level: val[1],
+          ptr_level: val[3],
+          arg_list: val[6]
+        }
+      }
 
-  c_func_normal_arg:
-    dtype_or_ptr { result = CBaseType.new(val[0], nil) }
-  | dtype_or_ptr tIDENTIFIER { result = CBaseType.new(val[0], val[1]) }
-  | tIDENTIFIER { result = CBaseType.new('object', val[0]) }
+  opt_identifier:
+    { result = nil }
+  | tIDENTIFIER {}
 
-  c_func_args:
-    { result = [] }
-  | c_func_normal_arg { result = [val[0]] }
-  | c_func_args tCOMMA c_func_normal_arg { result = [*val[0], val[2]] }
-
-  opt_c_func_arg_list:
-    { result = [] }
-  | tLPAREN c_func_args tRPAREN { result = val[1] }
 
   methods:
     ruby_method { result = val[0] }
@@ -138,9 +158,24 @@ rule
 
   c_function:
     kCFUNC dtype_or_ptr tIDENTIFIER opt_c_func_arg_list eol compstmt kEND
-      {
+      { #FIXME: raise error if any of the arguments does not have a name and is
+        # only dtype.
         result = TopStatement::CFunctionDef.new(val[1], val[2], val[3], val[5])
       }
+
+  c_func_normal_arg:
+    dtype { result = CBaseType.new(val[0], nil) }
+  | dtype normal_decl { result = CBaseType.new(val[0], val[1]) }
+  | normal_decl { result = CBaseType.new('object', val[0]) }
+
+  c_func_args:
+    { result = [] }
+  | c_func_normal_arg { result = [val[0]] }
+  | c_func_args tCOMMA c_func_normal_arg { result = [*val[0], val[2]] }
+
+  opt_c_func_arg_list:
+    { result = nil }
+  | tLPAREN c_func_args tRPAREN { result = val[1] }
 
   opt_singleton:
     { result = false }
@@ -158,13 +193,7 @@ rule
   stmt:
     var_decl_or_init
       {
-        variables = []
-        dtype = val[0][:dtype]
-        val[0][:decl_or_init].each do |di|
-          variables << node_variable(dtype, di)
-        end
 
-        result = variables
       }
   | kRETURN expr { result = Statement::Return.new val[1], location }
   | kPRINT command_arg_list { result = Statement::Print.new val[1], location }
@@ -204,39 +233,6 @@ rule
       result = Statement::ForwardDecl.new val[0], val[1], location
     }
 
-  var_decl_stmts:
-    var_decls terms
-      {
-        declarations = []
-        val[0]&.each do |data|
-          dtype = data[:dtype]
-          data[:decl].each do |d|
-            declarations << node_variable(dtype, d)
-          end
-        end
-
-        result = declarations
-      }
-
-  var_decls:
-    {}
-  | var_decl { result = [val[0]] }
-  | var_decls terms var_decl { result = [*val[0], val[2]]}
-
-  var_decl:
-    dtype opt_star var_names
-    {
-      val[2].each { |d| d[:pointer] = val[1] }
-      result = {
-        dtype: val[0],
-        decl:  val[2]
-      }
-    }
-
-  var_names:
-    normal_decl { result = [val[0]] }
-  | var_names tCOMMA normal_decl { result = [*val[0], val[2]] }
-
   op_assign:
     atomic_value tOP_ASSIGN expr
       {
@@ -270,6 +266,12 @@ rule
 
   var_decl_or_init:
     dtype decls_or_inits
+      {
+        result = {
+          dtype: val[0],
+          variables: val[1]
+        }
+      }
 
   decls_or_inits:
     decls_or_inits tCOMMA var_init { result = [*val[0], val[2]] }
@@ -279,27 +281,53 @@ rule
 
   normal_decl:
     # possible function pointer declaration
-    opt_star aa_actual_normal_decl
+    opt_star tLPAREN opt_star actual_normal_decl tRPAREN opt_c_func_arg_list 
+      {
+        result = {}
 
-  aa_actual_normal_decl:
-   tLPAREN opt_star actual_normal_decl tRPAREN opt_c_func_arg_list 
-      {  }
-  | actual_normal_decl opt_c_func_arg_list { }
+        if val[5] # function (pointer) decl
+          result[:ptr_level] = val[2]
+          result[:ident] = {
+            :return_ptr_level => val[0],
+            :name             => val[3],
+            :arg_list         => val[5]
+          }
+        else
+          result[:ptr_level] = val[0].join val[2]
+          result[:ident]    = val[3]
+        end
+      }
+  | opt_star actual_normal_decl opt_c_func_arg_list
+      {
+        result = {}
 
-  actual_normal_decl:
-    tIDENTIFIER  { }
-  | array_ref  {  }
+        if val[2]
+          result[:ptr_level] = val[0]
+          result[:ident] = val[1]
+        else
+          result[:ptr_level] = val[0]
+          result[:ident] = {
+            :name => val[1],
+            :arg_list => val[2]
+          }
+        end
+      }
+
+  actual_normal_decl: tIDENTIFIER | array_ref
 
   var_init:
     normal_decl tASSIGN expr_or_array
+      {
+        result = val[0]
+        result[:value] = val[2]
+      }
 
   expr_or_array:
-    expr {  }
-  | tLSQUARE array_list tRSQUARE {}
+    expr
+  | tLSQUARE array_list tRSQUARE { result = val[1] }
 
   opt_star:
     { result = nil }
-  | tSTAR { }
   | opt_star tSTAR { result = val.join }
 
   array_list:

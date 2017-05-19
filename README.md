@@ -40,10 +40,7 @@ A sample Rubex program that computes the first `n` fibonnaci numbers and prints 
 ``` ruby
 class Fibonnaci
   def compute(int n)
-    int i = 1
-    int prev = 1
-    int current = 1
-    int temp
+    int i = 1, prev = 1, current = 1, temp
 
     print 1, "\n"
     print 1, "\n"
