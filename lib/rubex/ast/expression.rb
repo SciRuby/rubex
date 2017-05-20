@@ -253,6 +253,15 @@ module Rubex
             Rubex::DataType::NilType.new
           end
         end # class Nil
+
+        class CNull
+          include Rubex::AST::Expression::Literal
+
+          def type
+            # Rubex treats NULL's dtype as void*
+            Rubex::DataType::CPtr.new(Rubex::DataType::Void.new)
+          end
+        end # class CNull
       end # module Literal
 
       class Self

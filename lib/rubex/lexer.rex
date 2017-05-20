@@ -6,7 +6,7 @@ macros
 
   SELF            /self/
   DEF             /def/
-  CFUNC            /cfunc/
+  CFUNC           /cfunc/
   RETURN          /return/
   PRINT           /print/
   IF              /if/
@@ -26,6 +26,7 @@ macros
   ALIAS           /alias/
   LIB             /lib/
   CLASS           /class/
+  NULL            /NULL/
 
   IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN          /\(/
@@ -112,6 +113,7 @@ rules
   /#{NIL}/    { [:kNIL, text]    }
   /#{LIB}/    { [:kLIB, text]    }
   /#{CLASS}/  { [:kCLASS, text]  }
+  /#{NULL}/   { [:kNULL, text] }
 
   # Method hacks
 

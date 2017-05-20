@@ -2,7 +2,7 @@ class Rubex::Parser
 token
   kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE   kTHEN  kSTATIC_ARRAY kFOR kWHILE
   kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS        kLIB kCLASS
-  kCFUNC     kSELF
+  kCFUNC     kSELF  kNULL
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64
@@ -97,7 +97,8 @@ rule
     kSTRUCT tIDENTIFIER kDO eol su_var_decl_stmts kEND 
       { #TODO: Take the hash from var_decls and create nodes.
         add_dtype_to_lexer val[1]
-        result = Statement::CStructOrUnionDef.new val[0], val[1], val[4], location
+        result = Statement::CStructOrUnionDef.new(val[0], val[1], val[4],
+          location)
       }
 
   su_var_decl_stmts:
@@ -107,10 +108,7 @@ rule
   su_var_decl_stmt:
     dtype var_decl_stmts
       {
-        result = {
-          dtype: val[0],
-          variables: val[1]
-        }
+        result = variable_decl_nodes val
       }
 
   var_decl_stmts:
@@ -134,9 +132,12 @@ rule
       {
         result = {
           dtype: val[0],
-          return_ptr_level: val[1],
           ptr_level: val[3],
-          arg_list: val[6]
+          ident:{
+            return_ptr_level: val[1], 
+            arg_list: val[6],
+            name: val[4]
+          }
         }
       }
 
@@ -158,15 +159,19 @@ rule
 
   c_function:
     kCFUNC dtype_or_ptr tIDENTIFIER opt_c_func_arg_list eol compstmt kEND
-      { #FIXME: raise error if any of the arguments does not have a name and is
-        # only dtype.
+      { 
+        val[3].each do |arg|
+          if !arg[:variables]
+            raise Rubex::SyntaxError, "All function arguments must have var names."
+          end
+        end
         result = TopStatement::CFunctionDef.new(val[1], val[2], val[3], val[5])
       }
 
   c_func_normal_arg:
-    dtype { result = CBaseType.new(val[0], nil) }
-  | dtype normal_decl { result = CBaseType.new(val[0], val[1]) }
-  | normal_decl { result = CBaseType.new('object', val[0]) }
+    dtype             { result = { dtype: val[0]  , variables: nil    } }
+  | dtype normal_decl { result = { dtype: val[0]  , variables: [val[1]] } }
+  | normal_decl       { result = { dtype: 'object', variables: [val[0]] } }
 
   c_func_args:
     { result = [] }
@@ -175,7 +180,7 @@ rule
 
   opt_c_func_arg_list:
     { result = nil }
-  | tLPAREN c_func_args tRPAREN { result = val[1] }
+  | tLPAREN c_func_args tRPAREN { result = Statement::ArgumentList.new(val[1]) }
 
   opt_singleton:
     { result = false }
@@ -191,10 +196,7 @@ rule
 
 
   stmt:
-    var_decl_or_init
-      {
-
-      }
+    var_decl_or_init { result = variable_decl_nodes val }
   | kRETURN expr { result = Statement::Return.new val[1], location }
   | kPRINT command_arg_list { result = Statement::Print.new val[1], location }
   | normal_init
@@ -355,6 +357,7 @@ rule
   | kFALSE       { result = Expression::Literal::False.new 'Qfalse' }
   | kNIL         { result = Expression::Literal::Nil.new 'Qnil' }
   | tSYMBOL      { result = Expression::Literal::RubySymbol.new val[0] }
+  | kNULL        { result = Expression::Literal::CNull.new val[0] }
 
   f_name:
     tIDENTIFIER tQMARK { result = "#{val[0]}#{val[1]}" }
@@ -363,7 +366,7 @@ rule
 
   f_opt_arglist:
     { result = [] }
-  | tLPAREN f_args tRPAREN eol { result = ArgumentList.new val[1] }
+  | tLPAREN f_args tRPAREN eol { result = Statement::ArgumentList.new val[1] }
 
   f_args:
     f_normal_arg { result = [val[0]] }
@@ -373,8 +376,8 @@ rule
       }
 
   f_normal_arg:
-    dtype_or_ptr tIDENTIFIER { result = CBaseType.new val[0], val[1] }
-  | tIDENTIFIER { result = CBaseType.new 'object', val[0] }
+    dtype_or_ptr tIDENTIFIER { result = { dtype: val[0]  , ident: val[1] } }
+  | tIDENTIFIER              { result = { dtype: 'object', ident: val[0] } }
 
   expr:
     expr_value                   {}
@@ -429,7 +432,7 @@ rule
   command_call:
     method_or_attr command_opt_args
       {
-        args = ArgumentList.new val[1]
+        args = Statement::ArgumentList.new val[1]
         result = Expression::CommandCall.new val[0][0], val[0][1], args
       }
 
@@ -609,18 +612,38 @@ def op_assign val
   Statement::Assign.new(val[0], binary_op([val[0], val[1][0], val[2]]), location)
 end
 
-def node_variable dtype, di
-  if di[:name].is_a? Expression::ElementRef
-    var = Statement::CArrayDecl.new(dtype, di[:name], di[:value], location)
-  elsif di[:pointer]
-    if di[:pointer] == '*'
-      var = Statement::CPtrDecl.new(dtype, di[:name], di[:value], location)
+def variable_decl_nodes val
+  variables = val[0]
+  type = variables[:dtype]
+
+  result = variables[:variables].map do |var|
+    ident = var[:ident]
+    ptr_level = var[:ptr_level]
+
+    statement =
+    if ident.is_a?(Hash) # only if function pointer
+      return_type = type + ident[:return_ptr_level].to_s
+      func_decl = Statement::CFunctionDecl.new(return_type, ident[:name],
+        ident[:arg_list])
+      ptr_level == "*" if ptr_level.empty?
+
+      Statement::CPtrDecl.new(func_decl, ident[:name], var[:value], ptr_level,
+        location)
+    else
+      if ptr_level
+        Statement::CPtrDecl.new(type, var[:ident], var[:value], ptr_level,
+          location)
+      elsif ident.is_a?(Expression::ElementRef)
+        Statement::CArrayDecl.new(type, var[:ident], var[:value], location)
+      else
+        Statement::VarDecl.new(type, var[:ident], var[:value], location)
+      end
     end
-  else
-    var = Statement::VarDecl.new(dtype, di[:name], di[:value], location)
+
+    statement
   end
 
-  var
+  result
 end
 
 def add_dtype_to_lexer dtype

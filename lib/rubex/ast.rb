@@ -1,6 +1,4 @@
 require 'rubex/ast/node'
-require 'rubex/ast/c_base_type'
-require 'rubex/ast/argument_list'
 require 'rubex/ast/statement'
 require 'rubex/ast/expression'
 require 'rubex/ast/top_statement'

@@ -21,6 +21,25 @@ module Rubex
         code.write_location @location
       end
 
+      class CBaseType
+        attr_reader :type, :name, :value
+
+        def initialize type, name, value=nil
+          @type, @name, @value = type, name, value
+        end
+
+        def == other
+          self.class == other.class &&
+          self.type == other.class  &&
+          self.name == other.name   &&
+          self.value == other.value
+        end
+
+        def analyse_statement local_scope
+          @type = Rubex::Helpers.determine_dtype @type
+        end
+      end # class CBaseType
+
       class VarDecl
         include Rubex::AST::Statement
         # The name with which this particular variable can be identified with
@@ -66,12 +85,11 @@ module Rubex
 
       class CPtrDecl
         include Rubex::AST::Statement
-        attr_reader :type, :name, :value
+        attr_reader :type, :name, :value, :ptr_level
 
-        def initialize dtype, name, value, location
+        def initialize type, name, value, ptr_level, location
           super(location)
-          @name, @value = name, value
-          @type = dtype
+          @name, @value, @ptr_level, @type = name, value, ptr_level, type
         end
 
         def analyse_statement local_scope, extern: false
@@ -674,9 +692,42 @@ module Rubex
 
         def generate_code code, local_scope
           super
-          code << "# C function #{@name} declared." if @entry.extern?
+          code << "/* C function #{@name} declared.*/" if @entry.extern?
         end
       end # class CFunctionDecl
+
+      class ArgumentList
+        include Enumerable
+        attr_reader :args
+
+        def each &block
+          @args.each(&block)
+        end
+
+        def initialize args
+          @args = args
+        end
+
+        def push arg
+          @args << arg
+        end
+
+        def << arg
+          push arg
+        end
+
+        def == other
+          self.class == other.class && @args == other.args
+        end
+
+        def size
+          @args.size
+        end
+
+        def empty?
+          @args.empty?
+        end
+      end # class ArgumentList
     end # module Statement
   end # module AST
 end # module Rubex
