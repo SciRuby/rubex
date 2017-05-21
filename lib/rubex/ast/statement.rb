@@ -85,7 +85,19 @@ module Rubex
 
       class CPtrDecl
         include Rubex::AST::Statement
-        attr_reader :type, :name, :value, :ptr_level
+
+        # Specifies the type of the pointer. Is a string in case of a normal pointer
+        # denoting the data type and pointer level (like `int` for a pointerto an
+        # integer). Can be a CFunctionDecl node in case the pointer is a
+        # function pointer.
+        attr_reader :type
+        # The name of the variable. Can either be a simple String or an
+        # Expression::ElementRef node.
+        attr_reader :name
+        # Init value of the pointer.
+        attr_reader :value
+        # Pointer level.
+        attr_reader :ptr_level
 
         def initialize type, name, value, ptr_level, location
           super(location)
@@ -696,8 +708,42 @@ module Rubex
         end
       end # class CFunctionDecl
 
+      class ArgDeclaration
+        include Rubex::AST::Statement
+      end
+
+      # This node is used for both formal and actual arguments of functions/methods.
       class ArgumentList
+        include Rubex::AST::Statement
         include Enumerable
+        # An Array of hashes containing the dtype and variable name of each
+        # argument supplied to a function. Each Hash inside the @args Array
+        # has elements arranged like: 
+        # { 
+        #   dtype: ,
+        #   variables: [{}]
+        # }
+        #
+        # The :variables field might be `nil` in case of a function declaration
+        # in which case it is not necessary to specify the name of the variable.
+        #
+        # The :variables key has an Array of Hashes that contains a single Hash:
+        #   {
+        #     ptr_level:,
+        #     value:,
+        #     ident: identity
+        #   }
+        #
+        #   identity can be a Hash in case of a function pointer argument, or
+        #   a simple String in case its an identifier, or an ElementRef if 
+        #   specifying an array of elements.
+        #
+        #   If Hash, it will look like this:
+        #   {    
+        #     name:,
+        #     return_ptr_level:,
+        #     arg_list:
+        #   }
         attr_reader :args
 
         def each &block
@@ -706,6 +752,19 @@ module Rubex
 
         def initialize args
           @args = args
+        end
+
+        def analyse_statement local_scope
+          @args.map! do |arg|
+            var = arg[:variables][0]
+            ident = var[:ident]
+            value = var[:value].analyse_statement(local_scope) if var[:value]
+            e =
+            if type.is_a?(String)
+              dtype = Helpers.determine_dtype arg[:dtype], var[:ptr_level]
+              local_scope.add_arg(name:, c_name:, type: dtype, value: value)
+            end
+          end
         end
 
         def push arg

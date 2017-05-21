@@ -176,7 +176,7 @@ module Rubex
           super(name, arg_list, statements)
           @type = type
           # self is a compulsory implicit argument for C methods.
-          @arg_list << CBaseType.new('object', 'self', nil)
+          @arg_list << Statement::CBaseType.new('object', 'self', nil)
         end
 
         def analyse_statement outer_scope, extern: false
