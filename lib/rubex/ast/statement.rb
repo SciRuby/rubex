@@ -689,15 +689,16 @@ module Rubex
         include Rubex::AST::Statement
         attr_reader :entry
 
-        def initialize type, name, arg_list
-          @type, @name, @arg_list = type, name, arg_list
+        def initialize type, return_ptr_level, name, arg_list
+          @type, @return_ptr_level, @name, @arg_list = type, return_ptr_level, 
+            name, arg_list
         end
 
         def analyse_statement local_scope, extern: false
-          @arg_list.map! { |a| a.analyse_statement(local_scope); a.type }
+          @arg_list.analyse_statement(local_scope)
           c_name = extern ? @name : (Rubex::C_FUNC_PREFIX + @name)
           type   = Rubex::DataType::CFunction.new(@name, c_name, @arg_list, 
-            Helpers.determine_dtype(@type))
+            Helpers.determine_dtype(@type, @return_ptr_level))
           @entry = local_scope.add_c_method(name: @name, c_name: c_name, type: type,
             extern: extern)
         end
@@ -710,40 +711,49 @@ module Rubex
 
       class ArgDeclaration
         include Rubex::AST::Statement
+        attr_reader :entry
+
+        # data_hash - a Hash containing data about the variable.
+        def initialize data_hash
+          @data_hash = data_hash
+        end
+
+        def analyse_statement local_scope
+          # FIXME: Support array of function pointers and array in arguments.
+          var       = @data_hash[:variables][0]
+          dtype     = @data_hash[:dtype]
+          ident     = var[:ident]
+          ptr_level = var[:ptr_level]
+          value     = var[:value]
+
+          if ident.is_a?(Hash) # function pointer
+            cfunc_return_type = Helpers.determine_dtype(dtype,
+              ident[:return_ptr_level])
+            arg_list = ident[:arg_list].analyse_statement(local_scope)
+            ptr_level = "*" if ptr_level.empty?
+
+            name   = ident[:name]
+            c_name = Rubex::ARG_PREFIX + name
+            type   = Helpers.determine_dtype(
+              DataType::CFunction.new(name, c_name, arg_list, cfunc_return_type),
+              ptr_level)
+          else
+            name   = ident
+            c_name = Rubex::ARG_PREFIX + name
+            type   = Helpers.determine_dtype(dtype, ptr_level)
+          end
+
+          @entry = local_scope.add_arg(name: name, c_name: c_name, type: type,
+            value: value)
+        end
       end
 
       # This node is used for both formal and actual arguments of functions/methods.
       class ArgumentList
         include Rubex::AST::Statement
         include Enumerable
-        # An Array of hashes containing the dtype and variable name of each
-        # argument supplied to a function. Each Hash inside the @args Array
-        # has elements arranged like: 
-        # { 
-        #   dtype: ,
-        #   variables: [{}]
-        # }
-        #
-        # The :variables field might be `nil` in case of a function declaration
-        # in which case it is not necessary to specify the name of the variable.
-        #
-        # The :variables key has an Array of Hashes that contains a single Hash:
-        #   {
-        #     ptr_level:,
-        #     value:,
-        #     ident: identity
-        #   }
-        #
-        #   identity can be a Hash in case of a function pointer argument, or
-        #   a simple String in case its an identifier, or an ElementRef if 
-        #   specifying an array of elements.
-        #
-        #   If Hash, it will look like this:
-        #   {    
-        #     name:,
-        #     return_ptr_level:,
-        #     arg_list:
-        #   }
+
+        # args - [ArgDeclaration]
         attr_reader :args
 
         def each &block
@@ -755,15 +765,8 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          @args.map! do |arg|
-            var = arg[:variables][0]
-            ident = var[:ident]
-            value = var[:value].analyse_statement(local_scope) if var[:value]
-            e =
-            if type.is_a?(String)
-              dtype = Helpers.determine_dtype arg[:dtype], var[:ptr_level]
-              local_scope.add_arg(name:, c_name:, type: dtype, value: value)
-            end
+          @args.each do |arg|
+            arg.analyse_statement(local_scope)
           end
         end
 

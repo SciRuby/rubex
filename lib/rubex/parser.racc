@@ -175,8 +175,11 @@ rule
 
   c_func_args:
     { result = [] }
-  | c_func_normal_arg { result = [val[0]] }
-  | c_func_args tCOMMA c_func_normal_arg { result = [*val[0], val[2]] }
+  | c_func_normal_arg { result = [Statement::ArgDeclaration.new(val[0])] }
+  | c_func_args tCOMMA c_func_normal_arg
+      { 
+        result = [*val[0], Statement::ArgDeclaration.new(val[2])] 
+      }
 
   opt_c_func_arg_list:
     { result = nil }
@@ -623,8 +626,8 @@ def variable_decl_nodes val
     statement =
     if ident.is_a?(Hash) # only if function pointer
       return_type = type + ident[:return_ptr_level].to_s
-      func_decl = Statement::CFunctionDecl.new(return_type, ident[:name],
-        ident[:arg_list])
+      func_decl = Statement::CFunctionDecl.new(return_type,
+        ident[:return_ptr_level], ident[:name], ident[:arg_list])
       ptr_level == "*" if ptr_level.empty?
 
       Statement::CPtrDecl.new(func_decl, ident[:name], var[:value], ptr_level,
@@ -653,3 +656,4 @@ end
 def set_location
   @location = @lexer.location
 end
+

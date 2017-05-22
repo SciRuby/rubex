@@ -26,3 +26,37 @@ Sometimes it can so happen that an expression can consist simply of a single var
 Now you might be thinking why expressions should also have a `analyse_statement` method, that's just for maintaining uniformity between exprs and stmts (maybe that should be just `analyse`?).
 
 When writing the `<=>` operator under Rubex::DataType classes, I have been forced to assume that `Int` is 32 bits long since I have not yet incorporated a way to figure out the number of bits used by a particular machine for representing an `int`. It will be changed later to make it machine-dependent.
+
+# Important data representations
+
+### Data format for holding parsed variables in declarations and arguments
+
+This consists of a hash that looks like this:
+```
+{ 
+  dtype: ,
+  variables: [{}]
+}
+```
+
+The `:variables` field might be `nil` in case of a function declaration in which case it is not necessary to specify the name of the variable.
+
+The `:variables` key maps to a value that is an Array of Hashes that contains a single Hash:
+```
+{
+  ptr_level:,
+  value:,
+  ident: identity
+}
+```
+
+`identity` can be a Hash in case of a function pointer argument, or a simple String in case its an identifier, or an `ElementRef` if specifying an array of elements.
+
+If Hash, it will look like this:
+```
+{    
+  name:,
+  return_ptr_level:,
+  arg_list:
+}
+```

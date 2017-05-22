@@ -6,16 +6,27 @@ module Rubex
         return (left < right ? right.dup : left.dup)
       end
 
-      def determine_dtype dtype_or_ptr
-        if dtype_or_ptr[-1] == "*"
-          Rubex::DataType::CPtr.new simple_dtype(dtype_or_ptr[0...-1])
+      def determine_dtype data, ptr_level
+        if ptr_level[-1] == "*"
+          base_type = Rubex::DataType::CPtr.new simple_dtype(data)
+          ptr_level = ptr_level.chop
+
+          ptr_level.each_char do |star|
+            base_type = Rubex::DataType::CPtr.new base_type
+          end
+
+          return base_type
         else
-          simple_dtype(dtype_or_ptr)
+          return simple_dtype(data)
         end
       end
 
       def simple_dtype dtype
-        Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new
+        if dtype.is_a?(Rubex::AST::DataType::CFunction)
+          dtype
+        else
+          Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new
+        end
       end
 
       def create_arg_arrays scope

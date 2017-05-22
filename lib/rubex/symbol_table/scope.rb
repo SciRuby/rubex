@@ -183,6 +183,8 @@ module Rubex
           check_entry name
           @entries[name] = entry
           @arg_entries << entry
+
+          entry
         end
       end # class Local
 

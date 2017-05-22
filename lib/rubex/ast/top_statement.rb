@@ -44,11 +44,7 @@ module Rubex
           @entry.type.arg_list = @arg_list
           @scope.type = @entry.type
           @scope.self_name = Rubex::ARG_PREFIX + "self"
-          @arg_list.each do |arg|
-            arg.analyse_statement @scope
-            @scope.add_arg(name: arg.name, c_name: Rubex::ARG_PREFIX + arg.name,
-              type: arg.type, value: arg.value)
-          end
+          @arg_list.analyse_statement(@scope)
 
           @statements.each do |stat|
             stat.analyse_statement @scope
@@ -176,7 +172,8 @@ module Rubex
           super(name, arg_list, statements)
           @type = type
           # self is a compulsory implicit argument for C methods.
-          @arg_list << Statement::CBaseType.new('object', 'self', nil)
+          @arg_list << Statement::ArgDeclaration.new(
+            { dtype: 'object', variables: [ {ident: 'self' }] })
         end
 
         def analyse_statement outer_scope, extern: false
