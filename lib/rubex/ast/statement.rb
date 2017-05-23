@@ -715,12 +715,13 @@ module Rubex
 
         def analyse_statement local_scope, inside_func_ptr: false
           # FIXME: Support array of function pointers and array in arguments.
+          ap @data_hash
           var       = @data_hash[:variables][0]
           dtype     = @data_hash[:dtype]
           ident     = var[:ident]
           ptr_level = var[:ptr_level]
           value     = var[:value]
-          ap @data_hash
+          # ap @data_hash
 
           if ident.is_a?(Hash) # function pointer
             cfunc_return_type = Helpers.determine_dtype(dtype,

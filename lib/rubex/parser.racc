@@ -378,15 +378,38 @@ rule
   | tLPAREN f_args tRPAREN eol { result = Statement::ArgumentList.new val[1] }
 
   f_args:
-    f_normal_arg { result = [val[0]] }
+    f_normal_arg 
+      { 
+        result = [Statement::ArgDeclaration.new(val[0])] 
+      }
   | f_args tCOMMA f_normal_arg
       {
-        result = [*val[0], val[2]]
+        result = [*val[0], Statement::ArgDeclaration.new(val[2])]
       }
 
   f_normal_arg:
-    dtype_or_ptr tIDENTIFIER { result = { dtype: val[0]  , ident: val[1] } }
-  | tIDENTIFIER              { result = { dtype: 'object', ident: val[0] } }
+    dtype tIDENTIFIER
+      { 
+        result = { 
+          dtype: val[0],
+          variables: [
+            {
+              ident: val[1]
+            }
+          ]
+        }
+      }
+  | tIDENTIFIER
+      {
+        result = { 
+          dtype: 'object',
+          variables: [
+            {
+              ident: val[0]
+            }
+          ]
+        }
+      }
 
   expr:
     expr_value                   {}
@@ -441,8 +464,7 @@ rule
   command_call:
     method_or_attr command_opt_args
       {
-        args = Statement::ArgumentList.new val[1]
-        result = Expression::CommandCall.new val[0][0], val[0][1], args
+        result = Expression::CommandCall.new val[0][0], val[0][1], val[1]
       }
 
   method_or_attr:
