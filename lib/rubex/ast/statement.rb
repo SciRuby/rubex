@@ -86,45 +86,40 @@ module Rubex
       class CPtrDecl
         include Rubex::AST::Statement
 
-        # Specifies the type of the pointer. Is a string in case of a normal pointer
-        # denoting the data type and pointer level (like `int` for a pointerto an
-        # integer). Can be a CFunctionDecl node in case the pointer is a
-        # function pointer.
-        attr_reader :type
-        # The name of the variable. Can either be a simple String or an
-        # Expression::ElementRef node.
-        attr_reader :name
-        # Init value of the pointer.
-        attr_reader :value
-        # Pointer level.
-        attr_reader :ptr_level
+        attr_reader :entry
 
+        # type - Specifies the type of the pointer. Is a string in case of a
+        # normal pointer denoting the data type and pointer level (like `int`
+        # for a pointerto an integer). Can be a Hash in case of func pointer
+        # declaration.
+        # name [String] - name of the variable.
         def initialize type, name, value, ptr_level, location
           super(location)
           @name, @value, @ptr_level, @type = name, value, ptr_level, type
         end
 
         def analyse_statement local_scope, extern: false
-          @type =
-          if Rubex::TYPE_MAPPINGS.has_key? @type
-            Rubex::TYPE_MAPPINGS[@type].new
-          elsif Rubex::CUSTOM_TYPES.has_key? @type
-            Rubex::CUSTOM_TYPES[@type]
-          else
-            raise "Cannot decipher type #{@type}"
-          end
           c_name = extern ? @name : Rubex::POINTER_PREFIX + @name
-          @type = CPtr.new @type
+          @type =
+          if @type.is_a?(Hash) # function ptr
+            ident = @type[:ident]
+            DataType::CFunction.new(@name, c_name, ident[:arg_list],
+              Helpers.determine_dtype(@type[:dtype], ident[:return_ptr_level]))
+          end
+          @type = Helpers.determine_dtype @type, @ptr_level
           @value.analyse_statement(local_scope) if @value
 
-          local_scope.declare_var name: @name, c_name: c_name, type: @type,
-            value: @value, extern: extern
+          @entry = local_scope.declare_var name: @name, c_name: c_name,
+            type: @type, value: @value, extern: extern
         end
 
+        # FIXME: This feels jugaadu. Try to scan all declarations before you
+        # scan individual statements.
         def rescan_declarations scope
-          if @type.type.is_a? String
-            @type = CPtr.new Rubex::CUSTOM_TYPES[@type.type]
-            scope[@name].type = @type
+          base_type = @entry.type.base_type
+          if base_type.is_a? String
+            type = Helpers.determine_dtype base_type, @ptr_level
+            scope[@name].type = type
           end
         end
 
@@ -718,35 +713,41 @@ module Rubex
           @data_hash = data_hash
         end
 
-        def analyse_statement local_scope
+        def analyse_statement local_scope, inside_func_ptr: false
           # FIXME: Support array of function pointers and array in arguments.
           var       = @data_hash[:variables][0]
           dtype     = @data_hash[:dtype]
           ident     = var[:ident]
           ptr_level = var[:ptr_level]
           value     = var[:value]
+          ap @data_hash
 
           if ident.is_a?(Hash) # function pointer
             cfunc_return_type = Helpers.determine_dtype(dtype,
               ident[:return_ptr_level])
-            arg_list = ident[:arg_list].analyse_statement(local_scope)
+            arg_list = ident[:arg_list].analyse_statement(local_scope,
+              inside_func_ptr: true)
             ptr_level = "*" if ptr_level.empty?
 
-            name   = ident[:name]
-            c_name = Rubex::ARG_PREFIX + name
+            if inside_func_ptr
+              name, c_name = nil, nil
+            else
+              name   = ident[:name]
+              c_name = Rubex::ARG_PREFIX + name
+            end
+
             type   = Helpers.determine_dtype(
               DataType::CFunction.new(name, c_name, arg_list, cfunc_return_type),
               ptr_level)
           else
-            name   = ident
-            c_name = Rubex::ARG_PREFIX + name
-            type   = Helpers.determine_dtype(dtype, ptr_level)
+            name, c_name = ident, Rubex::ARG_PREFIX + ident if !inside_func_ptr
+            type = Helpers.determine_dtype(dtype, ptr_level)
           end
 
           @entry = local_scope.add_arg(name: name, c_name: c_name, type: type,
-            value: value)
+            value: value) if !inside_func_ptr
         end
-      end
+      end # class ArgDeclaration
 
       # This node is used for both formal and actual arguments of functions/methods.
       class ArgumentList
@@ -764,9 +765,14 @@ module Rubex
           @args = args
         end
 
-        def analyse_statement local_scope
+        # func_ptr - switch that determines if this ArgList is part of the
+        # argument list of an argument that is a function pointer.
+        # For eg - 
+        #   cfunc int foo(int (*bar)(int, float)).
+        #                            ^^^ This is an arg list inside a function.
+        def analyse_statement local_scope, inside_func_ptr: false
           @args.each do |arg|
-            arg.analyse_statement(local_scope)
+            arg.analyse_statement(local_scope, inside_func_ptr: inside_func_ptr)
           end
         end
 

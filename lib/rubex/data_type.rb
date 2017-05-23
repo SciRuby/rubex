@@ -421,6 +421,11 @@ module Rubex
         str
       end
 
+      def base_type
+        return @type if !@type.is_a?(self.class)
+        return @type.base_type
+      end
+
       # from a Ruby function get a pointer to some value.
       def from_ruby_object arg
         return "StringValueCStr(#{arg})" if @type.char?

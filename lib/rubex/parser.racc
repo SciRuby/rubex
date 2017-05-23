@@ -158,18 +158,24 @@ rule
       }
 
   c_function:
-    kCFUNC dtype_or_ptr tIDENTIFIER opt_c_func_arg_list eol compstmt kEND
+    kCFUNC dtype opt_star tIDENTIFIER opt_c_func_arg_list eol compstmt kEND
       { 
-        val[3].each do |arg|
-          if !arg[:variables]
-            raise Rubex::SyntaxError, "All function arguments must have var names."
-          end
-        end
-        result = TopStatement::CFunctionDef.new(val[1], val[2], val[3], val[5])
+        result = TopStatement::CFunctionDef.new(val[1], val[2], val[3], 
+          val[4], val[6])
       }
 
   c_func_normal_arg:
-    dtype             { result = { dtype: val[0]  , variables: nil    } }
+    dtype opt_star    
+      {
+        result = {
+          dtype: val[0],
+          variables: [
+            {
+              ptr_level: val[1]
+            }
+          ]
+        } 
+      }
   | dtype normal_decl { result = { dtype: val[0]  , variables: [val[1]] } }
   | normal_decl       { result = { dtype: 'object', variables: [val[0]] } }
 
@@ -308,13 +314,13 @@ rule
 
         if val[2]
           result[:ptr_level] = val[0]
-          result[:ident] = val[1]
-        else
-          result[:ptr_level] = val[0]
           result[:ident] = {
             :name => val[1],
             :arg_list => val[2]
           }
+        else
+          result[:ptr_level] = val[0]
+          result[:ident] = val[1]
         end
       }
 
@@ -625,12 +631,8 @@ def variable_decl_nodes val
 
     statement =
     if ident.is_a?(Hash) # only if function pointer
-      return_type = type + ident[:return_ptr_level].to_s
-      func_decl = Statement::CFunctionDecl.new(return_type,
-        ident[:return_ptr_level], ident[:name], ident[:arg_list])
-      ptr_level == "*" if ptr_level.empty?
-
-      Statement::CPtrDecl.new(func_decl, ident[:name], var[:value], ptr_level,
+      dtype = { dtype: type, ident: ident }
+      Statement::CPtrDecl.new(dtype, ident[:name], var[:value], ptr_level,
         location)
     else
       if ptr_level

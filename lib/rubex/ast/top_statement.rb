@@ -166,11 +166,12 @@ module Rubex
       end # class RubyMethodDef
 
       class CFunctionDef < MethodDef
-        attr_reader :type
+        attr_reader :type, :return_ptr_level
 
-        def initialize type, name, arg_list, statements
+        def initialize type, return_ptr_level, name, arg_list, statements
           super(name, arg_list, statements)
           @type = type
+          @return_ptr_level = return_ptr_level
           # self is a compulsory implicit argument for C methods.
           @arg_list << Statement::ArgDeclaration.new(
             { dtype: 'object', variables: [ {ident: 'self' }] })
@@ -241,7 +242,8 @@ module Rubex
             elsif stat.is_a? Rubex::AST::TopStatement::CFunctionDef
               c_name = Rubex::C_FUNC_PREFIX + @name + "_" + name
               type = Rubex::DataType::CFunction.new(
-                name, c_name, stat.arg_list, Helpers.determine_dtype(stat.type))
+                name, c_name, stat.arg_list, 
+                Helpers.determine_dtype(stat.type, stat.return_ptr_level))
               @scope.add_c_method(name: name, c_name: c_name, extern: false,
                 type: type)
             end

@@ -7,9 +7,10 @@ module Rubex
       end
 
       def determine_dtype data, ptr_level
-        if ptr_level[-1] == "*"
+        if ptr_level && ptr_level[-1] == "*"
+          ptr_level = ptr_level.dup
           base_type = Rubex::DataType::CPtr.new simple_dtype(data)
-          ptr_level = ptr_level.chop
+          ptr_level.chop!
 
           ptr_level.each_char do |star|
             base_type = Rubex::DataType::CPtr.new base_type
@@ -22,7 +23,7 @@ module Rubex
       end
 
       def simple_dtype dtype
-        if dtype.is_a?(Rubex::AST::DataType::CFunction)
+        if dtype.is_a?(Rubex::DataType::CFunction)
           dtype
         else
           Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new
