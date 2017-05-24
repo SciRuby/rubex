@@ -103,6 +103,7 @@ module Rubex
           @type =
           if @type.is_a?(Hash) # function ptr
             ident = @type[:ident]
+            ident[:arg_list].analyse_statement(local_scope, inside_func_ptr: true)
             DataType::CFunction.new(@name, c_name, ident[:arg_list],
               Helpers.determine_dtype(@type[:dtype], ident[:return_ptr_level]))
           end
@@ -638,21 +639,29 @@ module Rubex
         end
 
         def analyse_statement local_scope, extern: false
-          original = @old_name.gsub("struct ", "").gsub("union ", "")
-          if !(Rubex::CUSTOM_TYPES.has_key?(original) ||
-               Rubex::TYPE_MAPPINGS.has_key?(original))
-            raise "Type #{original} has not been defined."
-          end
+          original  = @old_name[:dtype].gsub("struct ", "").gsub("union ", "")
+          var       = @old_name[:variables][0]
+          ident     = var[:ident]
+          ptr_level = var[:ptr_level]
+
           base_type =
-          if Rubex::TYPE_MAPPINGS.has_key? original
-            Rubex::TYPE_MAPPINGS[original].new
+          if ident.is_a?(Hash) # function pointer
+            cfunc_return_type = Helpers.determine_dtype(original,
+              ident[:return_ptr_level])
+            arg_list = ident[:arg_list].analyse_statement(local_scope,
+              inside_func_ptr: true)
+            ptr_level = "*" if ptr_level.empty?
+
+            Helpers.determine_dtype(
+              DataType::CFunction.new(nil, nil, arg_list, cfunc_return_type),
+              ptr_level)
           else
-            Rubex::CUSTOM_TYPES[original]
+            Helpers.determine_dtype(original, ptr_level)
           end
 
           @type = Rubex::DataType::TypeDef.new(base_type, @new_name, base_type)
           Rubex::CUSTOM_TYPES[@new_name] = @type
-          local_scope.declare_type self if original != @new_name
+          local_scope.declare_type(type: @type) if original != @new_name
         end
 
         def generate_code code, local_scope
@@ -715,13 +724,11 @@ module Rubex
 
         def analyse_statement local_scope, inside_func_ptr: false
           # FIXME: Support array of function pointers and array in arguments.
-          ap @data_hash
           var       = @data_hash[:variables][0]
           dtype     = @data_hash[:dtype]
           ident     = var[:ident]
           ptr_level = var[:ptr_level]
           value     = var[:value]
-          # ap @data_hash
 
           if ident.is_a?(Hash) # function pointer
             cfunc_return_type = Helpers.determine_dtype(dtype,
@@ -741,7 +748,9 @@ module Rubex
               DataType::CFunction.new(name, c_name, arg_list, cfunc_return_type),
               ptr_level)
           else
-            name, c_name = ident, Rubex::ARG_PREFIX + ident if !inside_func_ptr
+            if !inside_func_ptr
+              name, c_name = ident, Rubex::ARG_PREFIX + ident 
+            end
             type = Helpers.determine_dtype(dtype, ptr_level)
           end
 

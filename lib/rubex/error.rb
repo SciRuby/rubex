@@ -8,4 +8,6 @@ module Rubex
   class SyntaxError < StandardError; end
 
   class NoMethodError < StandardError; end
+
+  class TypeError < StandardError; end
 end

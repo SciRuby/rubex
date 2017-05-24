@@ -468,16 +468,16 @@ module Rubex
 
     class TypeDef
       include Helpers
-      attr_reader :type, :old_name, :new_name
+      attr_reader :type, :old_type, :alias_type
 
-      def initialize old_name, new_name, type
-        @old_name, @new_name, @type = old_name, new_name, type
+      def initialize old_type, alias_type, type
+        @old_type, @alias_type, @type = old_type, alias_type, type
       end
 
       def alias_type?; true; end
 
       def to_s
-        @new_name
+        @alias_type
       end
     end
 

@@ -126,25 +126,50 @@ rule
     tIDENTIFIER | tCUSTOM_DTYPE {}
 
   aliased_type:
-    dtype opt_star { result = val.join }
-  | kSTRUCT tIDENTIFIER { result = val.join }
+    dtype opt_star
+      { 
+        result =  {
+          dtype: val[0],
+          variables: [
+            {
+              ptr_level: val[1],
+              ident: nil
+            }
+          ]
+        }
+      }
+  | kSTRUCT tIDENTIFIER opt_star
+      { 
+        result = {
+          dtype: val[0].join(val[1]),
+          variables: [
+            {
+              ptr_level: val[2],
+              ident: nil
+            }
+          ]
+        }
+      }
   | dtype opt_star tLPAREN opt_star opt_identifier tRPAREN opt_c_func_arg_list
       {
         result = {
           dtype: val[0],
-          ptr_level: val[3],
-          ident:{
-            return_ptr_level: val[1], 
-            arg_list: val[6],
-            name: val[4]
-          }
+          variables: [
+            {
+              ptr_level: val[3],
+              ident:{
+                return_ptr_level: val[1],
+                arg_list: val[6],
+                name: val[4]
+              }              
+            }
+          ]
         }
       }
 
   opt_identifier:
     { result = nil }
   | tIDENTIFIER {}
-
 
   methods:
     ruby_method { result = val[0] }
@@ -165,7 +190,7 @@ rule
       }
 
   c_func_normal_arg:
-    dtype opt_star    
+    dtype opt_star
       {
         result = {
           dtype: val[0],

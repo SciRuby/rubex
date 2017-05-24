@@ -26,7 +26,11 @@ module Rubex
         if dtype.is_a?(Rubex::DataType::CFunction)
           dtype
         else
-          Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new
+          begin
+            Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new  
+          rescue
+            raise Rubex::TypeError, "Type #{dtype} not previously declared."
+          end          
         end
       end
 
