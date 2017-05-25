@@ -18,15 +18,15 @@ cfunc int bar(int (*func1)(int), int (*func2)(int, int), int a, int b)
   int ans1
   int ans2
 
-  ans1 = func_ptr1(a)
-  ans2 = func_ptr2(a, b)
+  ans1 = func1(a)
+  ans2 = func2(a, b)
 
   return ans1 + ans2
 end
 
 class CFunctionPtrs
   def test_c_function_pointers(switch)
-    alias goswim = int (*ernub)(int, float)
+    alias goswim = int (*ernub)(int, int)
     int (*func_ptr1)(int)
     goswim func_ptr2
     int a = 1

@@ -13,7 +13,7 @@ module Rubex
         :char?, :object?, :bool?, :carray?, :cbool?,
         :cptr?, :nil_type?, :struct_or_union?,
         :alias_type?, :string?, :cstr?, :ruby_class?,
-        :ruby_method?, :c_method?, :ruby_constant?, :void?
+        :ruby_method?, :c_function?, :ruby_constant?, :void?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -25,6 +25,8 @@ module Rubex
       def to_ruby_object(arg); arg;  end
 
       def from_ruby_object(arg); arg; end
+
+      def base_type; self; end
     end
 
     module IntHelpers
@@ -398,6 +400,10 @@ module Rubex
           @type <=> other
         end
       end
+
+      def base_type
+        @type
+      end
     end
 
     class CPtr
@@ -411,19 +417,43 @@ module Rubex
       def cptr?; true; end
 
       def to_s
-        t = @type
-        str = "*"
-        if t.cptr?
-          str << "*"
-          t = t.type
+        base_type = @type.base_type
+        if base_type.c_function?
+          ptr_level = ""
+          temp = @type
+          while !temp.c_function?
+            ptr_level << "*"
+            temp = @type.type
+          end
+
+          str = "#{base_type.type.to_s} (#{ptr_level} #{base_type.c_name.to_s})"
+          str << "(" + base_type.arg_list.map { |e| e.type.to_s }.join(',') + ")"
+        else
+          t = @type
+          str = "*"
+          if t.cptr?
+            str << "*"
+            t = t.type
+          end
+          str.prepend t.to_s
+          str
         end
-        str.prepend t.to_s
-        str
       end
 
       def base_type
         return @type if !@type.is_a?(self.class)
         return @type.base_type
+      end
+
+      def ptr_level
+        temp = @type
+        ptr_level = ""
+        while temp.cptr?
+          ptr_level << "*"
+          temp = @type.type
+        end
+
+        ptr_level
       end
 
       # from a Ruby function get a pointer to some value.
@@ -468,16 +498,20 @@ module Rubex
 
     class TypeDef
       include Helpers
-      attr_reader :type, :old_type, :alias_type
+      attr_reader :type, :old_type, :new_type
 
-      def initialize old_type, alias_type, type
-        @old_type, @alias_type, @type = old_type, alias_type, type
+      def initialize old_type, new_type, type
+        @old_type, @new_type, @type = old_type, new_type, type
       end
 
       def alias_type?; true; end
 
       def to_s
-        @alias_type
+        @new_type.to_s
+      end
+
+      def base_type
+        @old_type
       end
     end
 
@@ -549,7 +583,7 @@ module Rubex
         @name, @c_name, @arg_list, @type = name, c_name, arg_list, type
       end
 
-      def c_method?; true; end
+      def c_function?; true; end
     end
     # TODO: How to store this in a Ruby class? Use BigDecimal?
     # class LF64

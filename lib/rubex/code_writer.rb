@@ -50,6 +50,16 @@ module Rubex
       new_line
     end
 
+    def declare_func_ptr var:
+      type = var.type
+      func = type.base_type
+      @code << " "*@indent
+      @code << "#{func.type.to_s} (#{type.ptr_level}#{func.c_name}) "
+      @code << "(" + func.arg_list.map { |e| e.type.to_s }.join(',') + ")"
+      @code << ";"
+      nl
+    end
+
     def declare_carray type:, c_name:, dimension:, value: nil
       stmt = "#{type} #{c_name}[#{dimension}]"
       stmt << " = {" + value.join(',') + "}" if value

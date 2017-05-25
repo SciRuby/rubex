@@ -110,6 +110,7 @@ module Rubex
           @type = Helpers.determine_dtype @type, @ptr_level
           @value.analyse_statement(local_scope) if @value
 
+          puts "pointer >> #{@name} #{c_name}"
           @entry = local_scope.declare_var name: @name, c_name: c_name,
             type: @type, value: @value, extern: extern
         end
@@ -715,7 +716,7 @@ module Rubex
 
       class ArgDeclaration
         include Rubex::AST::Statement
-        attr_reader :entry
+        attr_reader :entry, :type
 
         # data_hash - a Hash containing data about the variable.
         def initialize data_hash
@@ -744,17 +745,17 @@ module Rubex
               c_name = Rubex::ARG_PREFIX + name
             end
 
-            type   = Helpers.determine_dtype(
+            @type   = Helpers.determine_dtype(
               DataType::CFunction.new(name, c_name, arg_list, cfunc_return_type),
               ptr_level)
           else
             if !inside_func_ptr
               name, c_name = ident, Rubex::ARG_PREFIX + ident 
             end
-            type = Helpers.determine_dtype(dtype, ptr_level)
+            @type = Helpers.determine_dtype(dtype, ptr_level)
           end
 
-          @entry = local_scope.add_arg(name: name, c_name: c_name, type: type,
+          @entry = local_scope.add_arg(name: name, c_name: c_name, type: @type,
             value: value) if !inside_func_ptr
         end
       end # class ArgDeclaration

@@ -45,7 +45,11 @@ module Rubex
     module Writers
       def declare_vars code, scope
         scope.var_entries.each do |var|
-          code.declare_variable type: var.type.to_s, c_name: var.c_name
+          if var.type.base_type.c_function?
+            code.declare_func_ptr var: var
+          else
+            code.declare_variable type: var.type.to_s, c_name: var.c_name
+          end
         end
       end
 
@@ -67,7 +71,16 @@ module Rubex
           type = entry.type
 
           if type.alias_type?
-            code << "typedef #{type.old_name} #{type.new_name};"
+            base = type.base_type
+            if base.base_type.c_function?
+              func = base.base_type
+              str = "typedef #{func.type} (#{type.old_type.ptr_level} #{type.new_type})"
+              str << "(" + func.arg_list.map { |e| e.type.to_s }.join(',') + ")"
+              str << ";"
+              code << str
+            else
+              code << "typedef #{type.old_type} #{type.new_type};"
+            end
           elsif type.struct_or_union? && !entry.extern?
             code << sue_header(entry)
             code.block(sue_footer(entry)) do

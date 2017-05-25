@@ -337,14 +337,14 @@ module Rubex
           end
           # If the entry is a RubyMethod, it should be interpreted as a command
           # call. So, make the @name a CommandCall Node.
-          if @entry.type.ruby_method? || @entry.type.c_method?
+          if @entry.type.ruby_method? || @entry.type.c_function?
             @name = Rubex::AST::Expression::CommandCall.new(
               Expression::Self.new, @name, [])
             @name.analyse_statement local_scope
           end
 
           if @entry.type.alias_type? || @entry.type.ruby_method? || 
-              @entry.type.c_method?
+              @entry.type.c_function?
             @type = @entry.type.type
           else
             @type = @entry.type
@@ -352,7 +352,7 @@ module Rubex
         end
 
         def c_code local_scope
-          if @entry.type.ruby_method? || @entry.type.c_method? ||
+          if @entry.type.ruby_method? || @entry.type.c_function? ||
               @entry.type.ruby_constant?
             @name.c_code(local_scope)
           else
@@ -377,6 +377,7 @@ module Rubex
         # local_scope is the local method scope.
         def analyse_statement local_scope
           entry = local_scope.find(@method_name)
+          pp(local_scope) if !entry
           if !entry
             local_scope.add_ruby_method(name: @method_name, 
               c_name: @method_name, extern: true)
@@ -388,10 +389,12 @@ module Rubex
             raise Rubex::NoMethodError, "Cannot call #{@name} from this method."
           end
 
-          # a symtab entry for a predeclared extern C func.
-          # FIXME: C functions should have the type CFunction like RubyMethod.
-          #   Currently their type is set to their return type.
-          if entry && entry.type.c_method?
+          # FIXME: Print a warning during compilation if a symbol is being
+          #   interpreted as a Ruby method call due it not being found in the
+          #   symbol table.
+          
+          # A symtab entry for a predeclared extern C func.
+          if entry && entry.type.c_function?
             @type = entry.type.type
             # All C functions have compulsory last arg as self. This does not
             #   apply to extern functions as they are usually not made for accepting
@@ -413,6 +416,7 @@ module Rubex
 
         def c_code local_scope
           entry = local_scope.find(@method_name)
+          ap "abcef:::: #{@method_name} "
           if entry.type.ruby_method?
             return code_for_ruby_method_call(local_scope)
           else
@@ -435,7 +439,7 @@ module Rubex
           caller_entry = local_scope.find local_scope.name
           if ( caller_entry.singleton? &&  entry.singleton?) || 
              (!caller_entry.singleton? && !entry.singleton?) ||
-             entry.c_method?
+             entry.c_function?
             false
           else
             true

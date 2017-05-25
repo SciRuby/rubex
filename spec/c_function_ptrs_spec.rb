@@ -18,6 +18,7 @@ describe Rubex do
     context ".compile", focus: true do
       it "generates valid C code" do
         t, c, e = Rubex.compile @path + ".rubex", test: true
+        puts c
       end
     end
 
