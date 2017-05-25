@@ -408,6 +408,7 @@ module Rubex
 
     class CPtr
       include Helpers
+      # The data type that this pointer is pointing to.
       attr_reader :type
 
       def initialize type
@@ -419,14 +420,9 @@ module Rubex
       def to_s
         base_type = @type.base_type
         if base_type.c_function?
-          ptr_level = ""
-          temp = @type
-          while !temp.c_function?
-            ptr_level << "*"
-            temp = @type.type
-          end
+          ptr = ptr_level
 
-          str = "#{base_type.type.to_s} (#{ptr_level} #{base_type.c_name.to_s})"
+          str = "#{base_type.type.to_s} (#{ptr} #{base_type.c_name.to_s})"
           str << "(" + base_type.arg_list.map { |e| e.type.to_s }.join(',') + ")"
         else
           t = @type
@@ -447,13 +443,13 @@ module Rubex
 
       def ptr_level
         temp = @type
-        ptr_level = ""
+        ptr = "*"
         while temp.cptr?
-          ptr_level << "*"
+          ptr << "*"
           temp = @type.type
         end
 
-        ptr_level
+        ptr
       end
 
       # from a Ruby function get a pointer to some value.

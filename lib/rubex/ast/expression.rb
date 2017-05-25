@@ -392,10 +392,10 @@ module Rubex
           # FIXME: Print a warning during compilation if a symbol is being
           #   interpreted as a Ruby method call due it not being found in the
           #   symbol table.
-          
+
           # A symtab entry for a predeclared extern C func.
-          if entry && entry.type.c_function?
-            @type = entry.type.type
+          if entry && entry.type.base_type.c_function?
+            @type = entry.type.base_type
             # All C functions have compulsory last arg as self. This does not
             #   apply to extern functions as they are usually not made for accepting
             #   a VALUE last arg.
@@ -416,7 +416,6 @@ module Rubex
 
         def c_code local_scope
           entry = local_scope.find(@method_name)
-          ap "abcef:::: #{@method_name} "
           if entry.type.ruby_method?
             return code_for_ruby_method_call(local_scope)
           else

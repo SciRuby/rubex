@@ -14,7 +14,7 @@ include Rubex::AST
 module Rubex
   class Parser < Racc::Parser
 
-module_eval(<<'...end parser.racc/module_eval...', 'parser.racc', 556)
+module_eval(<<'...end parser.racc/module_eval...', 'parser.racc', 562)
 
 def parse file_name
   @lexer = Rubex::Lexer.new
@@ -1385,77 +1385,81 @@ module_eval(<<'.,.,', 'parser.racc', 215)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 216)
+module_eval(<<'.,.,', 'parser.racc', 218)
   def _reduce_47(val, _values, result)
-     result = Statement::ArgumentList.new(val[1]) 
+            # self is a compulsory implicit argument for C methods.
+        val[1] << Statement::ArgDeclaration.new(
+            { dtype: 'object', variables: [ {ident: 'self' }] })
+        result = Statement::ArgumentList.new(val[1])
+      
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 219)
+module_eval(<<'.,.,', 'parser.racc', 225)
   def _reduce_48(val, _values, result)
      result = false 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 220)
+module_eval(<<'.,.,', 'parser.racc', 226)
   def _reduce_49(val, _values, result)
      result = true 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 223)
+module_eval(<<'.,.,', 'parser.racc', 229)
   def _reduce_50(val, _values, result)
      result = val[0] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 226)
+module_eval(<<'.,.,', 'parser.racc', 232)
   def _reduce_51(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 227)
+module_eval(<<'.,.,', 'parser.racc', 233)
   def _reduce_52(val, _values, result)
      result = [*val[0]] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 228)
+module_eval(<<'.,.,', 'parser.racc', 234)
   def _reduce_53(val, _values, result)
      result = [*val[0], *val[2]] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 232)
+module_eval(<<'.,.,', 'parser.racc', 238)
   def _reduce_54(val, _values, result)
      result = variable_decl_nodes val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 233)
+module_eval(<<'.,.,', 'parser.racc', 239)
   def _reduce_55(val, _values, result)
      result = Statement::Return.new val[1], location 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 234)
+module_eval(<<'.,.,', 'parser.racc', 240)
   def _reduce_56(val, _values, result)
      result = Statement::Print.new val[1], location 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 237)
+module_eval(<<'.,.,', 'parser.racc', 243)
   def _reduce_57(val, _values, result)
             match = val[0]
         result = Statement::Assign.new match[:name], match[:value], location
@@ -1464,7 +1468,7 @@ module_eval(<<'.,.,', 'parser.racc', 237)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 242)
+module_eval(<<'.,.,', 'parser.racc', 248)
   def _reduce_58(val, _values, result)
             result = Statement::IfBlock.new val[1], [*val[3]], [*val[4]], location
       
@@ -1472,7 +1476,7 @@ module_eval(<<'.,.,', 'parser.racc', 242)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 246)
+module_eval(<<'.,.,', 'parser.racc', 252)
   def _reduce_59(val, _values, result)
             set_location
         result = Statement::IfBlock.new val[2], [*val[0]], [], location
@@ -1481,7 +1485,7 @@ module_eval(<<'.,.,', 'parser.racc', 246)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 251)
+module_eval(<<'.,.,', 'parser.racc', 257)
   def _reduce_60(val, _values, result)
             result = Statement::For.new *val[1], val[3], location
       
@@ -1489,7 +1493,7 @@ module_eval(<<'.,.,', 'parser.racc', 251)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 255)
+module_eval(<<'.,.,', 'parser.racc', 261)
   def _reduce_61(val, _values, result)
             result = Statement::While.new val[1], val[3], location
       
@@ -1497,7 +1501,7 @@ module_eval(<<'.,.,', 'parser.racc', 255)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 257)
+module_eval(<<'.,.,', 'parser.racc', 263)
   def _reduce_62(val, _values, result)
     
     result
@@ -1506,7 +1510,7 @@ module_eval(<<'.,.,', 'parser.racc', 257)
 
 # reduce 63 omitted
 
-module_eval(<<'.,.,', 'parser.racc', 259)
+module_eval(<<'.,.,', 'parser.racc', 265)
   def _reduce_64(val, _values, result)
     
     result
@@ -1515,14 +1519,14 @@ module_eval(<<'.,.,', 'parser.racc', 259)
 
 # reduce 65 omitted
 
-module_eval(<<'.,.,', 'parser.racc', 261)
+module_eval(<<'.,.,', 'parser.racc', 267)
   def _reduce_66(val, _values, result)
      result = Statement::Expression.new(val[0], location) 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 266)
+module_eval(<<'.,.,', 'parser.racc', 272)
   def _reduce_67(val, _values, result)
           val.flatten!
       add_dtype_to_lexer val[1]
@@ -1532,7 +1536,7 @@ module_eval(<<'.,.,', 'parser.racc', 266)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 274)
+module_eval(<<'.,.,', 'parser.racc', 280)
   def _reduce_68(val, _values, result)
             #  TODO: error if lvalue is a literal
         result = op_assign val
@@ -1541,14 +1545,14 @@ module_eval(<<'.,.,', 'parser.racc', 274)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 279)
+module_eval(<<'.,.,', 'parser.racc', 285)
   def _reduce_69(val, _values, result)
      result = val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 280)
+module_eval(<<'.,.,', 'parser.racc', 286)
   def _reduce_70(val, _values, result)
      result = val 
     result
@@ -1567,21 +1571,21 @@ module_eval(<<'.,.,', 'parser.racc', 280)
 
 # reduce 76 omitted
 
-module_eval(<<'.,.,', 'parser.racc', 292)
+module_eval(<<'.,.,', 'parser.racc', 298)
   def _reduce_77(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 293)
+module_eval(<<'.,.,', 'parser.racc', 299)
   def _reduce_78(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 296)
+module_eval(<<'.,.,', 'parser.racc', 302)
   def _reduce_79(val, _values, result)
             result = Statement::IfBlock::Elsif.new val[1], [*val[3]], [*val[4]], location
       
@@ -1589,14 +1593,14 @@ module_eval(<<'.,.,', 'parser.racc', 296)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 300)
+module_eval(<<'.,.,', 'parser.racc', 306)
   def _reduce_80(val, _values, result)
      result = Statement::IfBlock::Else.new val[1], location 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 305)
+module_eval(<<'.,.,', 'parser.racc', 311)
   def _reduce_81(val, _values, result)
             result = {
           dtype: val[0],
@@ -1607,35 +1611,35 @@ module_eval(<<'.,.,', 'parser.racc', 305)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 312)
+module_eval(<<'.,.,', 'parser.racc', 318)
   def _reduce_82(val, _values, result)
      result = [*val[0], val[2]] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 313)
+module_eval(<<'.,.,', 'parser.racc', 319)
   def _reduce_83(val, _values, result)
      result = [*val[0], val[2]] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 314)
+module_eval(<<'.,.,', 'parser.racc', 320)
   def _reduce_84(val, _values, result)
      result = [val[0]] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 315)
+module_eval(<<'.,.,', 'parser.racc', 321)
   def _reduce_85(val, _values, result)
      result = [val[0]] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 321)
+module_eval(<<'.,.,', 'parser.racc', 327)
   def _reduce_86(val, _values, result)
             result = {}
 
@@ -1655,7 +1659,7 @@ module_eval(<<'.,.,', 'parser.racc', 321)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 337)
+module_eval(<<'.,.,', 'parser.racc', 343)
   def _reduce_87(val, _values, result)
             result = {}
 
@@ -1678,7 +1682,7 @@ module_eval(<<'.,.,', 'parser.racc', 337)
 
 # reduce 89 omitted
 
-module_eval(<<'.,.,', 'parser.racc', 356)
+module_eval(<<'.,.,', 'parser.racc', 362)
   def _reduce_90(val, _values, result)
             result = val[0]
         result[:value] = val[2]
@@ -1689,63 +1693,63 @@ module_eval(<<'.,.,', 'parser.racc', 356)
 
 # reduce 91 omitted
 
-module_eval(<<'.,.,', 'parser.racc', 362)
+module_eval(<<'.,.,', 'parser.racc', 368)
   def _reduce_92(val, _values, result)
      result = val[1] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 365)
+module_eval(<<'.,.,', 'parser.racc', 371)
   def _reduce_93(val, _values, result)
      result = nil 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 366)
+module_eval(<<'.,.,', 'parser.racc', 372)
   def _reduce_94(val, _values, result)
      result = val.join 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 369)
+module_eval(<<'.,.,', 'parser.racc', 375)
   def _reduce_95(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 370)
+module_eval(<<'.,.,', 'parser.racc', 376)
   def _reduce_96(val, _values, result)
      result = [*val[0]] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 371)
+module_eval(<<'.,.,', 'parser.racc', 377)
   def _reduce_97(val, _values, result)
      result = [*val[0], val[2]] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 374)
+module_eval(<<'.,.,', 'parser.racc', 380)
   def _reduce_98(val, _values, result)
      result = { name: val[0], value: val[2] } 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 375)
+module_eval(<<'.,.,', 'parser.racc', 381)
   def _reduce_99(val, _values, result)
      result = { name: val[0], value: val[2] } 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 378)
+module_eval(<<'.,.,', 'parser.racc', 384)
   def _reduce_100(val, _values, result)
           result = {
         name: Expression::CommandCall.new(val[0][0], val[0][1], []),
@@ -1756,105 +1760,105 @@ module_eval(<<'.,.,', 'parser.racc', 378)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 385)
+module_eval(<<'.,.,', 'parser.racc', 391)
   def _reduce_101(val, _values, result)
      result = Expression::Literal::Int.new val[0]    
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 386)
+module_eval(<<'.,.,', 'parser.racc', 392)
   def _reduce_102(val, _values, result)
      result = Expression::Literal::Double.new val[0] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 387)
+module_eval(<<'.,.,', 'parser.racc', 393)
   def _reduce_103(val, _values, result)
      result = Expression::Literal::Char.new val[0]   
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 388)
+module_eval(<<'.,.,', 'parser.racc', 394)
   def _reduce_104(val, _values, result)
      result = Expression::Literal::Str.new val[0] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 389)
+module_eval(<<'.,.,', 'parser.racc', 395)
   def _reduce_105(val, _values, result)
      result = Expression::Literal::True.new 'Qtrue' 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 390)
+module_eval(<<'.,.,', 'parser.racc', 396)
   def _reduce_106(val, _values, result)
      result = Expression::Literal::False.new 'Qfalse' 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 391)
+module_eval(<<'.,.,', 'parser.racc', 397)
   def _reduce_107(val, _values, result)
      result = Expression::Literal::Nil.new 'Qnil' 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 392)
+module_eval(<<'.,.,', 'parser.racc', 398)
   def _reduce_108(val, _values, result)
      result = Expression::Literal::RubySymbol.new val[0] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 393)
+module_eval(<<'.,.,', 'parser.racc', 399)
   def _reduce_109(val, _values, result)
      result = Expression::Literal::CNull.new val[0] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 396)
+module_eval(<<'.,.,', 'parser.racc', 402)
   def _reduce_110(val, _values, result)
      result = "#{val[0]}#{val[1]}" 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 397)
+module_eval(<<'.,.,', 'parser.racc', 403)
   def _reduce_111(val, _values, result)
      result = "#{val[0]}#{val[1]}" 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 398)
+module_eval(<<'.,.,', 'parser.racc', 404)
   def _reduce_112(val, _values, result)
      result = val[0] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 401)
+module_eval(<<'.,.,', 'parser.racc', 407)
   def _reduce_113(val, _values, result)
      result = [] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 402)
+module_eval(<<'.,.,', 'parser.racc', 408)
   def _reduce_114(val, _values, result)
      result = Statement::ArgumentList.new val[1] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 407)
+module_eval(<<'.,.,', 'parser.racc', 413)
   def _reduce_115(val, _values, result)
             result = [Statement::ArgDeclaration.new(val[0])] 
       
@@ -1862,7 +1866,7 @@ module_eval(<<'.,.,', 'parser.racc', 407)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 411)
+module_eval(<<'.,.,', 'parser.racc', 417)
   def _reduce_116(val, _values, result)
             result = [*val[0], Statement::ArgDeclaration.new(val[2])]
       
@@ -1870,7 +1874,7 @@ module_eval(<<'.,.,', 'parser.racc', 411)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 417)
+module_eval(<<'.,.,', 'parser.racc', 423)
   def _reduce_117(val, _values, result)
             result = { 
           dtype: val[0],
@@ -1885,7 +1889,7 @@ module_eval(<<'.,.,', 'parser.racc', 417)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 428)
+module_eval(<<'.,.,', 'parser.racc', 434)
   def _reduce_118(val, _values, result)
             result = { 
           dtype: 'object',
@@ -1900,224 +1904,224 @@ module_eval(<<'.,.,', 'parser.racc', 428)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 439)
+module_eval(<<'.,.,', 'parser.racc', 445)
   def _reduce_119(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 440)
+module_eval(<<'.,.,', 'parser.racc', 446)
   def _reduce_120(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 441)
+module_eval(<<'.,.,', 'parser.racc', 447)
   def _reduce_121(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 442)
+module_eval(<<'.,.,', 'parser.racc', 448)
   def _reduce_122(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 443)
+module_eval(<<'.,.,', 'parser.racc', 449)
   def _reduce_123(val, _values, result)
      result = unary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 444)
+module_eval(<<'.,.,', 'parser.racc', 450)
   def _reduce_124(val, _values, result)
      result = val[1] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 447)
+module_eval(<<'.,.,', 'parser.racc', 453)
   def _reduce_125(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 448)
+module_eval(<<'.,.,', 'parser.racc', 454)
   def _reduce_126(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 449)
+module_eval(<<'.,.,', 'parser.racc', 455)
   def _reduce_127(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 450)
+module_eval(<<'.,.,', 'parser.racc', 456)
   def _reduce_128(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 451)
+module_eval(<<'.,.,', 'parser.racc', 457)
   def _reduce_129(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 452)
+module_eval(<<'.,.,', 'parser.racc', 458)
   def _reduce_130(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 453)
+module_eval(<<'.,.,', 'parser.racc', 459)
   def _reduce_131(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 454)
+module_eval(<<'.,.,', 'parser.racc', 460)
   def _reduce_132(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 455)
+module_eval(<<'.,.,', 'parser.racc', 461)
   def _reduce_133(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 456)
+module_eval(<<'.,.,', 'parser.racc', 462)
   def _reduce_134(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 457)
+module_eval(<<'.,.,', 'parser.racc', 463)
   def _reduce_135(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 458)
+module_eval(<<'.,.,', 'parser.racc', 464)
   def _reduce_136(val, _values, result)
      result = unary_op val  
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 459)
+module_eval(<<'.,.,', 'parser.racc', 465)
   def _reduce_137(val, _values, result)
      result = unary_op val  
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 460)
+module_eval(<<'.,.,', 'parser.racc', 466)
   def _reduce_138(val, _values, result)
      result = unary_op val  
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 461)
+module_eval(<<'.,.,', 'parser.racc', 467)
   def _reduce_139(val, _values, result)
      result = val[1] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 462)
+module_eval(<<'.,.,', 'parser.racc', 468)
   def _reduce_140(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 465)
+module_eval(<<'.,.,', 'parser.racc', 471)
   def _reduce_141(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 466)
+module_eval(<<'.,.,', 'parser.racc', 472)
   def _reduce_142(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 467)
+module_eval(<<'.,.,', 'parser.racc', 473)
   def _reduce_143(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 468)
+module_eval(<<'.,.,', 'parser.racc', 474)
   def _reduce_144(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 469)
+module_eval(<<'.,.,', 'parser.racc', 475)
   def _reduce_145(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 470)
+module_eval(<<'.,.,', 'parser.racc', 476)
   def _reduce_146(val, _values, result)
      result = binary_op val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 471)
+module_eval(<<'.,.,', 'parser.racc', 477)
   def _reduce_147(val, _values, result)
      result = val[1] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 474)
+module_eval(<<'.,.,', 'parser.racc', 480)
   def _reduce_148(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 475)
+module_eval(<<'.,.,', 'parser.racc', 481)
   def _reduce_149(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 478)
+module_eval(<<'.,.,', 'parser.racc', 484)
   def _reduce_150(val, _values, result)
             args = val[1]
         result =
@@ -2133,7 +2137,7 @@ module_eval(<<'.,.,', 'parser.racc', 478)
 
 # reduce 151 omitted
 
-module_eval(<<'.,.,', 'parser.racc', 491)
+module_eval(<<'.,.,', 'parser.racc', 497)
   def _reduce_152(val, _values, result)
             result = Expression::CommandCall.new val[0][0], val[0][1], val[1]
       
@@ -2141,7 +2145,7 @@ module_eval(<<'.,.,', 'parser.racc', 491)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 497)
+module_eval(<<'.,.,', 'parser.racc', 503)
   def _reduce_153(val, _values, result)
             result = [val[0], val[2]]
       
@@ -2149,7 +2153,7 @@ module_eval(<<'.,.,', 'parser.racc', 497)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 501)
+module_eval(<<'.,.,', 'parser.racc', 507)
   def _reduce_154(val, _values, result)
           result = [val[0], val[2]]
     
@@ -2157,42 +2161,42 @@ module_eval(<<'.,.,', 'parser.racc', 501)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 505)
+module_eval(<<'.,.,', 'parser.racc', 511)
   def _reduce_155(val, _values, result)
      result = [] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 506)
+module_eval(<<'.,.,', 'parser.racc', 512)
   def _reduce_156(val, _values, result)
      result = val[1] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 509)
+module_eval(<<'.,.,', 'parser.racc', 515)
   def _reduce_157(val, _values, result)
      result = [] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 510)
+module_eval(<<'.,.,', 'parser.racc', 516)
   def _reduce_158(val, _values, result)
      result = val 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 511)
+module_eval(<<'.,.,', 'parser.racc', 517)
   def _reduce_159(val, _values, result)
      result = [*val[0], val[2]] 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 516)
+module_eval(<<'.,.,', 'parser.racc', 522)
   def _reduce_160(val, _values, result)
             result = Expression::ElementRef.new val[0], val[2]
       
@@ -2240,7 +2244,7 @@ module_eval(<<'.,.,', 'parser.racc', 516)
 
 # reduce 180 omitted
 
-module_eval(<<'.,.,', 'parser.racc', 526)
+module_eval(<<'.,.,', 'parser.racc', 532)
   def _reduce_181(val, _values, result)
             result = val[0]
       
@@ -2248,42 +2252,42 @@ module_eval(<<'.,.,', 'parser.racc', 526)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 530)
+module_eval(<<'.,.,', 'parser.racc', 536)
   def _reduce_182(val, _values, result)
      result = val.join 
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 533)
+module_eval(<<'.,.,', 'parser.racc', 539)
   def _reduce_183(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 534)
+module_eval(<<'.,.,', 'parser.racc', 540)
   def _reduce_184(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 537)
+module_eval(<<'.,.,', 'parser.racc', 543)
   def _reduce_185(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 538)
+module_eval(<<'.,.,', 'parser.racc', 544)
   def _reduce_186(val, _values, result)
     
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.racc', 541)
+module_eval(<<'.,.,', 'parser.racc', 547)
   def _reduce_187(val, _values, result)
     
     result
@@ -2292,7 +2296,7 @@ module_eval(<<'.,.,', 'parser.racc', 541)
 
 # reduce 188 omitted
 
-module_eval(<<'.,.,', 'parser.racc', 545)
+module_eval(<<'.,.,', 'parser.racc', 551)
   def _reduce_189(val, _values, result)
     result = val[0]
     result

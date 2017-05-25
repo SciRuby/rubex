@@ -172,9 +172,6 @@ module Rubex
           super(name, arg_list, statements)
           @type = type
           @return_ptr_level = return_ptr_level
-          # self is a compulsory implicit argument for C methods.
-          @arg_list << Statement::ArgDeclaration.new(
-            { dtype: 'object', variables: [ {ident: 'self' }] })
         end
 
         def analyse_statement outer_scope, extern: false

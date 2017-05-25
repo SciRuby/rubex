@@ -36,7 +36,8 @@ module Rubex
 
       def create_arg_arrays scope
         scope.arg_entries.inject([]) do |array, arg|
-          array << [arg.type.to_s, arg.c_name]
+          c_name = arg.type.base_type.c_function? ? "" : arg.c_name
+          array << [arg.type.to_s, c_name]
           array
         end
       end
@@ -71,7 +72,7 @@ module Rubex
           type = entry.type
 
           if type.alias_type?
-            base = type.base_type
+            base = type.old_type
             if base.base_type.c_function?
               func = base.base_type
               str = "typedef #{func.type} (#{type.old_type.ptr_level} #{type.new_type})"

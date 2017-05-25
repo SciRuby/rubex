@@ -214,7 +214,13 @@ rule
 
   opt_c_func_arg_list:
     { result = nil }
-  | tLPAREN c_func_args tRPAREN { result = Statement::ArgumentList.new(val[1]) }
+  | tLPAREN c_func_args tRPAREN
+      { 
+        # self is a compulsory implicit argument for C methods.
+        val[1] << Statement::ArgDeclaration.new(
+            { dtype: 'object', variables: [ {ident: 'self' }] })
+        result = Statement::ArgumentList.new(val[1])
+      }
 
   opt_singleton:
     { result = false }

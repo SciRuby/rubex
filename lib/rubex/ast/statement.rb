@@ -110,7 +110,6 @@ module Rubex
           @type = Helpers.determine_dtype @type, @ptr_level
           @value.analyse_statement(local_scope) if @value
 
-          puts "pointer >> #{@name} #{c_name}"
           @entry = local_scope.declare_var name: @name, c_name: c_name,
             type: @type, value: @value, extern: extern
         end
@@ -402,9 +401,10 @@ module Rubex
           elsif local_scope.has_entry? @lhs
             @lhs = local_scope[@lhs]
           else
-            # If LHS is not found in the symtab assume that its a Ruby object being assigned.
-            local_scope.add_ruby_obj(name: @lhs, c_name: Rubex::VAR_PREFIX + @lhs,
-              value: @rhs)
+            # If LHS is not found in the symtab assume that its a Ruby object
+            #   being assigned.
+            local_scope.add_ruby_obj(name: @lhs,
+              c_name: Rubex::VAR_PREFIX + @lhs, value: @rhs)
             @lhs = local_scope[@lhs]
             @ruby_obj_init = true
           end
@@ -436,15 +436,28 @@ module Rubex
               str << "#{@rhs.type.to_ruby_object(@rhs.c_code(local_scope))}"
             end
           else
-            if @lhs.type.cptr?
-              if @lhs.type.type.char? && @rhs.type.object?
-                # FIXME: This should happen only if object is declared as Ruby string.
-                str << "StringValueCStr(#{@rhs.c_code(local_scope)})"
-              else
-                str << "#{@rhs.c_code(local_scope)}"
-              end
+            rt = @rhs.type
+            lt = @lhs.type
+            # if lt.alias_type?
+            # puts ">>>>"
+            #   puts "#{@lhs.c_name} #{@lhs.type} #{@rhs.type}"
+            #   puts "*** L: #{@lhs} R:#{@rhs}"
+            #   puts"#{lt.base_type.c_function?}"
+            #   puts"#{(lt.alias_type? && lt.old_type.base_type.c_function?)}"
+            #   puts"#{rt.base_type.c_function?}"
+            #   puts"#{(rt.alias_type? && rt.old_type.base_type.c_function?)}"
+            #   puts"#{@rhs.is_a?(Rubex::AST::Expression::Name)}"
+            # puts "<<<<"
+            # end
+            if lt.cptr? && lt.type.char? && @rhs.type.object?
+              # FIXME: This should happen only if object is declared as Ruby string.
+              str << "StringValueCStr(#{@rhs.c_code(local_scope)})"
+            elsif (lt.base_type.c_function? || 
+              (lt.alias_type? && lt.old_type.base_type.c_function?)) &&
+              @rhs.is_a?(Rubex::AST::Expression::Name)
+              str << "#{@rhs.entry.c_name}"
             else
-              str << "#{@rhs.c_code(local_scope)}"
+              str << "#{@rhs.c_code(local_scope)}"  
             end
           end
           str << ";"
