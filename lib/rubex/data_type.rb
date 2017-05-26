@@ -492,6 +492,10 @@ module Rubex
       def to_s; "#{@c_name}"; end
     end
 
+    # FIXME: Find out a better way to generically find the old type of a typedef
+    #   when the new type is encountered. Should cover cases where the new type
+    #   is aliased with some other name too. In other words, reach the actual
+    #   type in the most generic way possible without too many checks.
     class TypeDef
       include Helpers
       attr_reader :type, :old_type, :new_type

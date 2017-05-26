@@ -26,7 +26,7 @@ describe Rubex do
           require_relative "#{dir}/#{test_case}.so"
 
           c = CFunctions.new
-          expect(c.pure_ruby_method).to eq(46)
+          expect(c.pure_ruby_method).to eq(50)
           expect { c.first_c_function(1,2) }.to raise_error(NoMethodError)
         end
       end

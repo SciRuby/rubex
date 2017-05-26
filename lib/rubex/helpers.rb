@@ -73,7 +73,7 @@ module Rubex
 
           if type.alias_type?
             base = type.old_type
-            if base.base_type.c_function?
+            if base.respond_to?(:base_type) && base.base_type.c_function?
               func = base.base_type
               str = "typedef #{func.type} (#{type.old_type.ptr_level} #{type.new_type})"
               str << "(" + func.arg_list.map { |e| e.type.to_s }.join(',') + ")"

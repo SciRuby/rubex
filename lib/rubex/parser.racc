@@ -88,27 +88,28 @@ rule
   | alias_stmt
 
   c_function_declaration:
-    dtype_or_ptr tIDENTIFIER opt_c_func_arg_list
+    dtype opt_star tIDENTIFIER opt_c_func_arg_list
       { 
-        result = Statement::CFunctionDecl.new val[0], val[1], val[2]
+        result = Statement::CFunctionDecl.new val[0], val[1], val[2], val[4]
       }
 
   struct_or_union_def:
-    kSTRUCT tIDENTIFIER kDO eol su_var_decl_stmts kEND 
+    kSTRUCT tIDENTIFIER kDO eol su_var_decl_stmts terms kEND 
       { #TODO: Take the hash from var_decls and create nodes.
         add_dtype_to_lexer val[1]
-        result = Statement::CStructOrUnionDef.new(val[0], val[1], val[4],
+        result = Statement::CStructOrUnionDef.new(val[0], val[1], val[4].flatten,
           location)
       }
 
   su_var_decl_stmts:
-    su_var_decl_stmt { result = [val[0]] } 
+    { result = [] }
+  |  su_var_decl_stmt { result = [*val[0]] } 
   | su_var_decl_stmts terms su_var_decl_stmt { result = [*val[0], val[2]] }
 
   su_var_decl_stmt:
     dtype var_decl_stmts
       {
-        result = variable_decl_nodes val
+        result = variable_decl_nodes([{ dtype: val[0], variables: val[1] }])
       }
 
   var_decl_stmts:
@@ -141,7 +142,7 @@ rule
   | kSTRUCT tIDENTIFIER opt_star
       { 
         result = {
-          dtype: val[0].join(val[1]),
+          dtype: "#{val[0]}#{val[1]}",
           variables: [
             {
               ptr_level: val[2],
@@ -185,6 +186,15 @@ rule
   c_function:
     kCFUNC dtype opt_star tIDENTIFIER opt_c_func_arg_list eol compstmt kEND
       { 
+        if !val[4] # since last arg of cfunc must be self.
+          val[4] = Statement::ArgumentList.new(
+            [
+              Statement::ArgDeclaration.new(
+                { dtype: 'object', variables: [ {ident: 'self' }] }
+                )
+            ]
+          ) 
+        end
         result = TopStatement::CFunctionDef.new(val[1], val[2], val[3], 
           val[4], val[6])
       }
@@ -213,7 +223,7 @@ rule
       }
 
   opt_c_func_arg_list:
-    { result = nil }
+      {}
   | tLPAREN c_func_args tRPAREN
       { 
         # self is a compulsory implicit argument for C methods.
@@ -405,7 +415,7 @@ rule
   | tIDENTIFIER        { result = val[0] }
 
   f_opt_arglist:
-    { result = [] }
+    { result = Statement::ArgumentList.new([]) }
   | tLPAREN f_args tRPAREN eol { result = Statement::ArgumentList.new val[1] }
 
   f_args:
@@ -532,9 +542,6 @@ rule
       {
         result = val[0]
       }
-
-  dtype_or_ptr:
-    dtype opt_star { result = val.join }
 
   opt_terms:
     {}

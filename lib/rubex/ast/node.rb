@@ -84,17 +84,6 @@ module Rubex
         end
       end
 
-      # def declare_types code
-      #   @scope.type_entries.each do |entry|
-      #     type = entry.type
-
-      #     if type.alias_type?
-      #       code << "typedef #{type.type.to_s} #{type.to_s};"
-      #     end
-      #     code.nl
-      #   end
-      # end
-
       def analyse_statement
         create_symtab_entries_for_top_statements
         @statements.each do |stat|

@@ -377,7 +377,6 @@ module Rubex
         # local_scope is the local method scope.
         def analyse_statement local_scope
           entry = local_scope.find(@method_name)
-          pp(local_scope) if !entry
           if !entry
             local_scope.add_ruby_method(name: @method_name, 
               c_name: @method_name, extern: true)

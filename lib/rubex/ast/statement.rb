@@ -95,16 +95,16 @@ module Rubex
         # name [String] - name of the variable.
         def initialize type, name, value, ptr_level, location
           super(location)
-          @name, @value, @ptr_level, @type = name, value, ptr_level, type
+          @name, @type, @value, @ptr_level  = name, type, value, ptr_level
         end
 
         def analyse_statement local_scope, extern: false
           c_name = extern ? @name : Rubex::POINTER_PREFIX + @name
-          @type =
+          
           if @type.is_a?(Hash) # function ptr
             ident = @type[:ident]
             ident[:arg_list].analyse_statement(local_scope, inside_func_ptr: true)
-            DataType::CFunction.new(@name, c_name, ident[:arg_list],
+            @type = DataType::CFunction.new(@name, c_name, ident[:arg_list],
               Helpers.determine_dtype(@type[:dtype], ident[:return_ptr_level]))
           end
           @type = Helpers.determine_dtype @type, @ptr_level
@@ -246,7 +246,7 @@ module Rubex
         def analyse_statement local_scope, extern: false
           @c_name = Rubex::TYPE_PREFIX + local_scope.klass_name + "_" + @name
           @type = Rubex::DataType::TypeDef.new("#{@kind} #{@name}", @c_name, type)
-          local_scope.declare_type self
+          local_scope.declare_type type: @type
         end
 
         def rescan_declarations local_scope
@@ -369,7 +369,13 @@ module Rubex
 
         def analyse_statement local_scope
           @expression.analyse_statement local_scope
-          @type = @expression.type
+          t = @expression.type
+          @type =
+          if t.c_function? || t.alias_type?
+            t.type
+          else
+            t
+          end
           # TODO: Raise error if type as inferred from the
           # is not compatible with the return statement type.
         end
@@ -377,7 +383,12 @@ module Rubex
         def generate_code code, local_scope
           super
           code << "return "
-          code << @type.to_ruby_object("#{@expression.c_code(local_scope)}") + ";"
+          if local_scope.type.type.object?
+            code << @type.to_ruby_object("#{@expression.c_code(local_scope)}") + ";"
+          else
+            code << @expression.c_code(local_scope) + ";"
+          end
+          
           code.nl
         end
       end # class Return
@@ -438,17 +449,6 @@ module Rubex
           else
             rt = @rhs.type
             lt = @lhs.type
-            # if lt.alias_type?
-            # puts ">>>>"
-            #   puts "#{@lhs.c_name} #{@lhs.type} #{@rhs.type}"
-            #   puts "*** L: #{@lhs} R:#{@rhs}"
-            #   puts"#{lt.base_type.c_function?}"
-            #   puts"#{(lt.alias_type? && lt.old_type.base_type.c_function?)}"
-            #   puts"#{rt.base_type.c_function?}"
-            #   puts"#{(rt.alias_type? && rt.old_type.base_type.c_function?)}"
-            #   puts"#{@rhs.is_a?(Rubex::AST::Expression::Name)}"
-            # puts "<<<<"
-            # end
             if lt.cptr? && lt.type.char? && @rhs.type.object?
               # FIXME: This should happen only if object is declared as Ruby string.
               str << "StringValueCStr(#{@rhs.c_code(local_scope)})"
@@ -713,7 +713,7 @@ module Rubex
         end
 
         def analyse_statement local_scope, extern: false
-          @arg_list.analyse_statement(local_scope)
+          @arg_list.analyse_statement(local_scope) if @arg_list
           c_name = extern ? @name : (Rubex::C_FUNC_PREFIX + @name)
           type   = Rubex::DataType::CFunction.new(@name, c_name, @arg_list, 
             Helpers.determine_dtype(@type, @return_ptr_level))

@@ -44,7 +44,7 @@ module Rubex
           @entry.type.arg_list = @arg_list
           @scope.type = @entry.type
           @scope.self_name = Rubex::ARG_PREFIX + "self"
-          @arg_list.analyse_statement(@scope)
+          @arg_list.analyse_statement(@scope) if @arg_list
 
           @statements.each do |stat|
             stat.analyse_statement @scope
@@ -53,9 +53,9 @@ module Rubex
 
         # Option c_function - When set to true, certain code that is not required
         #   for Ruby methods will be generated too.
-        def generate_code code, c_method: false
+        def generate_code code, c_function: false
           code.block do
-            generate_function_definition code, c_method: c_method
+            generate_function_definition code, c_function: c_function
           end
         end
 
@@ -67,14 +67,14 @@ module Rubex
         end
 
       private
-        def generate_function_definition code, c_method:
+        def generate_function_definition code, c_function:
           declare_types code, @scope
-          declare_args code unless c_method
+          declare_args code unless c_function
           declare_vars code, @scope
           declare_carrays code, @scope
           declare_ruby_objects code, @scope
-          generate_arg_checking code unless c_method
-          init_args code unless c_method
+          generate_arg_checking code unless c_function
+          init_args code unless c_function
           init_vars code
           declare_carrays_using_init_var_value code
           generate_statements code
@@ -181,7 +181,7 @@ module Rubex
         def generate_code code
           code.write_c_method_header(type: @entry.type.type.to_s, 
             c_name: @entry.c_name, args: Helpers.create_arg_arrays(@scope))
-          super code, c_method: true
+          super code, c_function: true
         end
       end # class CFunctionDef
 
