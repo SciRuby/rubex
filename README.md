@@ -314,6 +314,69 @@ def for_loop_demo
 end
 ```
 
+## Callbacks
+
+Frequently, C libraries use C function pointers to pass functions to other functions as callbacks. Rubex supports this behaviour too.
+
+A C function pointer for a function that returns an `int` and accepts two `int`s as arguments can be declared as:
+```
+int (*foo)(int, int)
+```
+
+You can also alias function pointers to something more readable with the `alias` statement:
+```
+alias foo = int (*)(int, int)
+```
+
+A sample program using C function pointers is demonstrated below:
+``` ruby
+cfunc int foo1(int a)
+  return a + 1
+end
+
+cfunc int foo2(int a)
+  return a + 2
+end
+
+cfunc int baz1(int a, int b)
+  return a + b + 1
+end
+
+cfunc int baz2(int a, int b)
+  return a + b + 2
+end
+
+cfunc int bar(int (*func1)(int), int (*func2)(int, int), int a, int b)
+  int ans1
+  int ans2
+
+  ans1 = func1(a)
+  ans2 = func2(a, b)
+
+  return ans1 + ans2
+end
+
+class CFunctionPtrs
+  def test_c_function_pointers(switch)
+    alias goswim = int (*ernub)(int, int)
+    int (*func_ptr1)(int)
+    goswim func_ptr2
+    int a = 1
+    int b = 1
+
+    if switch
+      func_ptr1 = foo1
+      func_ptr2 = baz1
+    else
+      func_ptr1 = foo2
+      func_ptr2 = baz2
+    end
+
+    return bar(func_ptr1, func_ptr2, a, b)
+  end
+end
+```
+
 # Roadmap for v0.1
 
 See the [wiki](https://github.com/v0dro/rubex/wiki/Rubex-v0.1-goals) for a roadmap of Rubex for v0.1
