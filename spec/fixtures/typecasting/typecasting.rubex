@@ -1,0 +1,15 @@
+class TestTypeCasts
+  def test_this
+    int i, *b
+    int *c
+    float a
+
+    a = 5.6
+    i = <int> a
+
+    b = &i
+    c = <int*>b
+
+    return i + c
+  end
+end

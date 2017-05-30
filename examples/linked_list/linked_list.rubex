@@ -1,3 +1,20 @@
-cfunc class Node
-  
+class Node
+  cdata do
+    int *data
+    object *next
+
+    def allocate!(d, n)
+      data = d
+      next = malloc(sizeof(object))
+    end
+
+    def free!
+      free(data)
+      free(node)
+    end
+  end
+
+  def initialize
+
+  end
 end
