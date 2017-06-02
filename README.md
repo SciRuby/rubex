@@ -384,4 +384,4 @@ See the [wiki](https://github.com/v0dro/rubex/wiki/Rubex-v0.1-goals) for a roadm
 # Acknowledgements
 
 * The Ruby Association (Japan) for providing the initial funding for this project through the Ruby Association Grant 2016.
-* Koichi Sasada (@ko1) for his support and mentorship throughout this project.
+* Koichi Sasada (@ko1) and Kenta Murata (@mrkn) for their support and mentorship throughout this project.

@@ -1,3 +1,47 @@
-class Interface
-  
+struct mp3info do
+  char *artist, *title
+  int id
+end
+
+# The class that will be 'attached' to the struct and will make it possible to
+#   initialize instances of the struct. There will be a variable called `data`
+#   which will be made available to the user which will be of type
+#   'struct __rubex_data_Music'. This variable will be available throughout the #   class.
+#
+# The allocate function will be defined implicitly, and calls to `TypeData_*`
+#   macros will also be implicit.
+#
+# The data variable is analogous to the 'params' variable in Sinatra routes.
+class Music attach mp3info
+  def initialize(artist, title, id)
+    mp3info mp3 = data.mp3info
+
+    mp3.artist = <char*>malloc(sizeof(char)*(<int>arist.size))
+    mp3.artist = artist # implicit conversion of Ruby String to char*
+
+    mp3.title = <char*>malloc(sizeof(char)*(<int>title.size))
+    mp3.title = title # implicit conversion of Ruby String to char*
+
+    mp3.id = id # implicit typecast to int
+  end
+
+  # The deallocate! function will be used by TypeData_* macros as a function
+  #   for freeing memory once this class has been GC'd. It will be a compulsory
+  #   method for such 'attach' classes and will not be callable through Ruby
+  #   scripts.
+  def deallocate!
+    delete(data.mp3info.artist)
+    delete(data.mp3info.title)
+    delete(data.mp3info.id)
+    delete(&data.mp3info)
+    delete(&data)
+  end
+
+  def artist
+    return data.mp3info.artist # implicit conversion of char* to Ruby string
+  end
+
+  def title
+    return data.mp3info.title # implicit conversion of char* to Ruby string
+  end
 end
