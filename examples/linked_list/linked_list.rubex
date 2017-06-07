@@ -1,20 +1,39 @@
-class Node
-  cdata do
-    int *data
-    object *next
+struct node
+  int data
+  object next
+end
 
-    def allocate!(d, n)
-      data = d
-      next = malloc(sizeof(object))
-    end
+class LLNode attach node
+  def initialize(int d)
+    node n = data.node
 
-    def free!
-      free(data)
-      free(node)
+    n.data = d
+    n.next = nil
+  endturn
+
+  def add_node d
+    node n = data.node
+
+    new_node = LLNode.new(d)
+    n.next = new_node
+  end
+
+  def print_list
+    node n = data.node
+
+    temp = self
+    print "The linked list is: \n"
+    while next_node do
+      print temp.get_data
+      temp = n.next_node
     end
   end
 
-  def initialize
+  def get_data
+    return data.node.data
+  end
 
+  def next_node
+    return data.node.next
   end
 end
