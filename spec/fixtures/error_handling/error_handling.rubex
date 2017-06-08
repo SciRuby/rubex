@@ -1,0 +1,22 @@
+class Handler
+  def error_test(num)
+    int i = num
+    int j = 0
+
+    begin
+      raise(ArgumentError) if i == 1
+      raise(LoadError) if i == 2
+      raise(SyntaxError) if i == 3
+    rescue ArgumentError
+      j = 1
+    rescue LoadError
+      j = 2
+    rescue SyntaxError
+      j = 3
+    ensure
+      j += 5
+    end
+
+    return j
+  end
+end
