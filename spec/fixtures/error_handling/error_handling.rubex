@@ -13,6 +13,8 @@ class Handler
       j = 2
     rescue SyntaxError
       j = 3
+    else
+      j = 4
     ensure
       j += 5
     end
