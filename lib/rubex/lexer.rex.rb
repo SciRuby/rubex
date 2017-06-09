@@ -164,6 +164,8 @@ class Rubex::Lexer
             action { [:kCLASS, text]  }
           when text = ss.scan(/#{NULL}/) then
             action { [:kNULL, text] }
+          when text = ss.scan(/fwd/) then
+            action { [:kFWD, text] }
           when text = ss.scan(/#{DOT}#{EACH}/) then
             action { [:kDOT_EACH, text] }
           when text = ss.scan(/unsigned long long int/) then

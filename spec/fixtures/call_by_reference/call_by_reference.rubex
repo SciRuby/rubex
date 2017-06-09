@@ -1,4 +1,4 @@
-struct attribs do
+struct attribs
   int a, b
   float c
 end

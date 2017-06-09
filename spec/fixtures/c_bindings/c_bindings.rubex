@@ -1,7 +1,7 @@
 lib "<math.h>" do
   double cos(double a)
 
-  struct exception do
+  struct exception
     int type
     char *name
   end
@@ -21,7 +21,7 @@ def maths(double a, double b, c)
   exec e
   e.type = 3
 
-  struct new_struct do
+  struct new_struct
     double a,b,c
     char* str
   end

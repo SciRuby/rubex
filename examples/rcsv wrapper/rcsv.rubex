@@ -5,7 +5,7 @@ lib "stdbool.h" do
 end
 
 lib "csv.h" do
-  struct csv_parser do
+  struct csv_parser
   end
 
   int CSV_STRICT_FINI
@@ -35,7 +35,7 @@ lib "csv.h" do
   size_t csv_get_buffer_size(csv_parser *)
 end
 
-struct rcsv_metadata do
+struct rcsv_metadata
   # Derived from user-specified options
   bool row_as_hash             # Used to return array of hashes rather than array of arrays
   bool empty_field_is_nil      # Do we convert empty fields to nils?

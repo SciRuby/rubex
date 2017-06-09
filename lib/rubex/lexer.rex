@@ -114,6 +114,7 @@ rules
   /#{LIB}/    { [:kLIB, text]    }
   /#{CLASS}/  { [:kCLASS, text]  }
   /#{NULL}/   { [:kNULL, text] }
+  /fwd/       { [:kFWD, text] }
 
   # Method hacks
 

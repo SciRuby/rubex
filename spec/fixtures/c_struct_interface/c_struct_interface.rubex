@@ -1,4 +1,4 @@
-struct mp3info do
+struct mp3info
   char *artist, *title
   int id
 end

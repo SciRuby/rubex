@@ -1,14 +1,14 @@
 def structure(a, i32 b, i32 c)
-  struct other_node
+  fwd struct other_node
   i32 f[10]
 
-  struct node do
+  struct node
     i32 a, b
     other_node *other
     f32 c[10]
   end
 
-  struct other_node do
+  struct other_node
     i64 a, b
     char *str
   end

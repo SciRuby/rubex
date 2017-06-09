@@ -1,5 +1,5 @@
 lib "<ruby/encoding.h>" do
-  struct rb_encoding do
+  struct rb_encoding
 
   end
 
