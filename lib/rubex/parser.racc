@@ -2,7 +2,7 @@ class Rubex::Parser
 token
   kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE   kTHEN  kSTATIC_ARRAY kFOR kWHILE
   kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS        kLIB kCLASS
-  kCFUNC     kSELF  kNULL  kFWD
+  kCFUNC     kSELF  kNULL  kFWD   kATTACH
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT kDTYPE_CHAR kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8   kDTYPE_UI16 kDTYPE_UI32 kDTYPE_UI64
@@ -59,6 +59,7 @@ rule
   top_stmt:
     methods {}
   | klass {}
+  | attached_klass {}
   | struct_or_union_def {}
 
   klass:
@@ -66,6 +67,13 @@ rule
       { 
         raise Rubex::SyntaxError unless val[1][0].match(/[A-Z]/)
         result = TopStatement::Klass.new val[1], val[2], val[4]
+      }
+
+  attached_klass:
+    kCLASS tIDENTIFIER kATTACH dtype opt_inheritance eol top_stmts terms kEND
+      {
+        raise Rubex::SyntaxError unless val[1][0].match(/[A-Z]/)
+        result = TopStatement::AttachedKlass.new val[1], val[3], val[4], val[6]
       }
 
   opt_inheritance:
@@ -585,7 +593,8 @@ def next_token
 
   if !t.nil?
     if t[0] == :tIDENTIFIER
-      if @custom_dtypes.has_key?(t[1]) && !(@prev_token[0] == :kSTRUCT)
+      if @custom_dtypes.has_key?(t[1]) &&
+        !(@prev_token[0] == :kSTRUCT || @prev_token[0] == :tDOT)
         t = [:tCUSTOM_DTYPE, t[1]]
       else
         t = check_for_primitive_dtype(t)

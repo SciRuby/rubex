@@ -10,6 +10,6 @@ class TestTypeCasts
     b = &i
     c = <int*>b
 
-    return i + c
+    return i + c[0]
   end
 end

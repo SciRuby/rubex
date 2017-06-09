@@ -247,6 +247,21 @@ module Rubex
           end
         end
       end # class Klass
+
+      class AttachedKlass
+        # name of the class
+        attr_reader :name
+
+        attr_reader :attached_type
+
+        attr_reader :statements
+
+        attr_reader :ancestor
+
+        def initialize name, attached_type, ancestor, statements
+
+        end
+      end # class AttachedKlass
     end # module TopStatement
   end # module AST
 end # module Rubex

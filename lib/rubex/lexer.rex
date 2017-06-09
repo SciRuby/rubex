@@ -27,6 +27,7 @@ macros
   LIB             /lib/
   CLASS           /class/
   NULL            /NULL/
+  ATTACH          /attach/
 
   IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN          /\(/
@@ -115,6 +116,7 @@ rules
   /#{CLASS}/  { [:kCLASS, text]  }
   /#{NULL}/   { [:kNULL, text] }
   /fwd/       { [:kFWD, text] }
+  /#{ATTACH}/ { [:kATTACH, text] }
 
   # Method hacks
 

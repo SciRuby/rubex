@@ -2,7 +2,7 @@ require 'spec_helper'
 include Rubex::AST
 
 describe Rubex do
-  test_case = 'c_struct_interface'
+  test_case = 'typecasting'
 
   context "Case : #{test_case}" do
     before do
@@ -21,17 +21,15 @@ describe Rubex do
       end
     end
 
-    context "Black Box testing", focus: true do
+    context "Black Box testing" do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do
           dir = dir_str test_case
           require_relative "#{dir}/#{test_case}.so"
           
-          m = Music.new("Animals as Leaders", "CAFO", 1)
+          t = TestTypeCasts.new
 
-          expect(m.artist).to eq("Animals as Leaders")
-          expect(m.title) .to eq("CAFO")
-          expect(m.id)    .to eq(1)
+          expect(t.test_this).to eq(10)
         end
       end
     end

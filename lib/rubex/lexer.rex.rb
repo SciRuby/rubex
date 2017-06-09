@@ -31,6 +31,7 @@ class Rubex::Lexer
   LIB               = /lib/
   CLASS             = /class/
   NULL              = /NULL/
+  ATTACH            = /attach/
   IDENTIFIER        = /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN            = /\(/
   RPAREN            = /\)/
@@ -166,6 +167,8 @@ class Rubex::Lexer
             action { [:kNULL, text] }
           when text = ss.scan(/fwd/) then
             action { [:kFWD, text] }
+          when text = ss.scan(/#{ATTACH}/) then
+            action { [:kATTACH, text] }
           when text = ss.scan(/#{DOT}#{EACH}/) then
             action { [:kDOT_EACH, text] }
           when text = ss.scan(/unsigned long long int/) then
