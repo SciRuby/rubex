@@ -686,6 +686,7 @@ module Rubex
       class Expression
         include Rubex::AST::Statement
         attr_reader :expr
+        attr_accessor :typecast
 
         def initialize expr, location
           super(location)

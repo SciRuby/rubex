@@ -23,6 +23,7 @@ prechigh
   right tBANG tBIT_NOT
   right ADDRESS_OF
   right tEXPO
+  right TYPECAST
 
   right UMINUS
   left tSTAR tDIVIDE tMODULUS
@@ -461,10 +462,21 @@ rule
       }
 
   expr:
+    actual_expr  {}
+  | typecast actual_expr   =TYPECAST 
+      {
+        val[1].typecast = val[0]
+        result = val[1]
+      }
+  | expr    tANDOP    expr  { result = binary_op val }
+  | expr    tOROP     expr  { result = binary_op val }
+
+  typecast:
+    tLT dtype opt_star tGT { result = Expression::Typecast.new(val[1], val[2]) }
+
+  actual_expr:
     expr_value                   {}
   | expr_cmp                     {}  
-  | expr    tANDOP    expr       { result = binary_op val }
-  | expr    tOROP     expr       { result = binary_op val }
   | tBANG   expr                 { result = unary_op val }
   | tLPAREN expr      tRPAREN    { result = val[1] }
 

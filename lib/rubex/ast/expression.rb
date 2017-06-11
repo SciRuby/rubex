@@ -1,13 +1,38 @@
 module Rubex
   module AST
     module Expression
+      attr_accessor :typecast
 
-      # Stub for making certain subclasses of Expression not needed statement analysis.
+      # If the typecast exists, the typecast is made the overall type of
+      # the expression.
       def analyse_statement local_scope
-        nil
+        if @typecast
+          @typecast.analyse_statement(local_scope) 
+          @type = @typecast.type
+        end
       end
 
       def expression?; true; end
+
+      def c_code local_scope
+        @typecast ? @typecast.c_code(local_scope) : ""
+      end
+
+      class Typecast
+        attr_reader :type
+
+        def initialize dtype, ptr_level
+          @dtype, @ptr_level = dtype, ptr_level
+        end
+
+        def analyse_statement local_scope
+          @type = Rubex::Helpers.determine_dtype @dtype, @ptr_level
+        end
+
+        def c_code local_scope
+          "(#{@type.to_s})"
+        end
+      end
 
       class Binary
         include Rubex::AST::Expression
@@ -26,10 +51,11 @@ module Rubex
         def analyse_statement local_scope
           analyse_left_and_right_nodes local_scope, self
           analyse_return_type local_scope, self
+          super
         end
 
         def c_code local_scope
-          code = ""
+          code = super
           code << "( "
           left_code = @left.c_code(local_scope)
           right_code = @right.c_code(local_scope)
@@ -114,10 +140,12 @@ module Rubex
         def analyse_statement local_scope
           @expr.analyse_statement local_scope
           @type = @expr.type
+          super
         end
 
         def c_code local_scope
-          code = @expr.c_code(local_scope)
+          code = super
+          code << @expr.c_code(local_scope)
           if @type.object?
             "rb_funcall(#{@type.to_ruby_object(code)}, rb_intern(\"#{@operator}\"), 0)"
           else
@@ -143,29 +171,34 @@ module Rubex
           end
 
           @type = @entry.type.object? ? @entry.type : @entry.type.type
+          super(local_scope)
         end
 
         def c_code local_scope
+          code = super
           pos_code = @pos.c_code(local_scope)
           if @type.object?
             pos_code = @pos.type.to_ruby_object(pos_code)
-            "rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, #{pos_code})"
+            code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, #{pos_code})"
           else
-            "#{@entry.c_name}[#{pos_code}]"
+            code << "#{@entry.c_name}[#{pos_code}]"
           end
+
+          code
         end
       end # class ElementRef
 
       module Literal
         include Rubex::AST::Expression
-        attr_reader :name
+        attr_reader :name, :type
 
         def initialize name
           @name = name
         end
 
         def c_code local_scope
-          @name
+          code = super
+          code << @name
         end
 
         def c_name
@@ -183,10 +216,7 @@ module Rubex
 
           def initialize name
             super(name[1..-1])
-          end
-
-          def type
-            Rubex::DataType::RubySymbol.new
+            @type = Rubex::DataType::RubySymbol.new
           end
 
           def c_code local_scope
@@ -197,24 +227,27 @@ module Rubex
         class Double
           include Rubex::AST::Expression::Literal
 
-          def type
-            Rubex::DataType::F64.new
+          def initialize name
+            super
+            @type = Rubex::DataType::F64.new
           end
         end
 
         class Int
           include Rubex::AST::Expression::Literal
 
-          def type
-            Rubex::DataType::Int.new
+          def initialize name
+            super
+            @type = Rubex::DataType::Int.new
           end
         end
 
         class Str
           include Rubex::AST::Expression::Literal
 
-          def type
-            Rubex::DataType::CStr.new
+          def initialize name
+            super
+            @type = Rubex::DataType::CStr.new
           end
 
           def c_code local_scope
@@ -225,41 +258,46 @@ module Rubex
         class Char
           include Rubex::AST::Expression::Literal
 
-          def type
-            Rubex::DataType::Char.new
+          def initialize name
+            super
+            @type = Rubex::DataType::Char.new
           end
         end # class Char
 
         class True
           include Rubex::AST::Expression::Literal
 
-          def type
-            Rubex::DataType::TrueType.new
+          def initialize name
+            super
+            @type = Rubex::DataType::TrueType.new
           end
         end # class True
 
         class False
           include Rubex::AST::Expression::Literal
 
-          def type
-            Rubex::DataType::FalseType.new
+          def initialize name
+            super
+            @type = Rubex::DataType::FalseType.new
           end
         end # class False
 
         class Nil
           include Rubex::AST::Expression::Literal
 
-          def type
-            Rubex::DataType::NilType.new
+          def initialize name
+            super
+            @type = Rubex::DataType::NilType.new
           end
         end # class Nil
 
         class CNull
           include Rubex::AST::Expression::Literal
 
-          def type
+          def initialize name
             # Rubex treats NULL's dtype as void*
-            Rubex::DataType::CPtr.new(Rubex::DataType::Void.new)
+            super
+            @type = Rubex::DataType::CPtr.new(Rubex::DataType::Void.new)
           end
         end # class CNull
       end # module Literal
@@ -349,15 +387,19 @@ module Rubex
           else
             @type = @entry.type
           end
+          super
         end
 
         def c_code local_scope
+          code = super
           if @entry.type.ruby_method? || @entry.type.c_function? ||
               @entry.type.ruby_constant?
-            @name.c_code(local_scope)
+            code << @name.c_code(local_scope)
           else
-            @entry.c_name
+            code << @entry.c_name
           end
+
+          code
         end
       end # class Name
 
@@ -411,15 +453,19 @@ module Rubex
               dimension: Literal::Int.new("#{args_size}"), 
               type: Rubex::DataType::RubyObject.new)
           end
+          super
         end
 
         def c_code local_scope
+          code = super
           entry = local_scope.find(@method_name)
           if entry.type.ruby_method?
-            return code_for_ruby_method_call(local_scope)
+            code << code_for_ruby_method_call(local_scope)
           else
-            return code_for_c_method_call(local_scope, entry)
+            code << code_for_c_method_call(local_scope, entry)
           end
+
+          code
         end
 
       private
@@ -514,14 +560,16 @@ module Rubex
           # if command is extern @expr will be nil.
           @expr.analyse_statement(local_scope) unless @expr.nil?
           analyse_command_type local_scope
+          super
         end
 
         def c_code local_scope
+          code = super
           # Interpreted as a method call
           if @command.is_a? Rubex::AST::Expression::MethodCall
-            @command.c_code(local_scope)
+            code << @command.c_code(local_scope)
           else # interpreted as referencing the contents of a struct
-            "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
+            code << "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
           end
         end
 
