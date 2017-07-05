@@ -205,13 +205,15 @@ module Rubex
           @ancestor = 'Object' if @ancestor.nil?
         end
 
-        def analyse_statement local_scope
+        def analyse_statement local_scope, attach_klass: false
           @entry = local_scope.find(@name)
           @scope = @entry.type.scope
           @ancestor = @entry.type.ancestor
           add_statement_symbols_to_symbol_table
-          @statements.each do |stat|
-            stat.analyse_statement @scope
+          if attach_klass
+            @statements.each do |stat|
+              stat.analyse_statement @scope
+            end
           end
         end
 
@@ -227,7 +229,7 @@ module Rubex
           end
         end
 
-      private
+      protected
 
         def add_statement_symbols_to_symbol_table
           @statements.each do |stat|
@@ -252,16 +254,24 @@ module Rubex
 
         attr_reader :attached_type
 
-        def initialize name, attached_type, ancestor, statements
+        def initialize name, attached_type, ancestor, statements, location
           @attached_type = attached_type
+          @location = location
           super(name, ancestor, statements)
         end
 
         def analyse_statement local_scope
+          super(local_scope, attach_klass: true)
           prepare_data_holding_struct local_scope
-          prepare_rb_data_type_t_struct local_scope
-          prepare_auxillary_c_functions local_scope
-          analyse_methods_for_special_data_variable
+          prepare_rb_data_type_t_struct
+          prepare_auxillary_c_functions
+          @statements.each do |stmt|
+            if has_special_data_var?(stmt)
+              rewrite_method_with_data_fetching stmt
+            end
+
+            stmt.analyse_statement @scope
+          end
         end
 
         def generate_code code
@@ -270,38 +280,70 @@ module Rubex
 
       private
         def prepare_data_holding_struct local_scope
-          
+          struct_name = Rubex::RUBY_CLASS_PREFIX + @name + "_data_struct"
+          declarations = declarations_for_data_struct
+          @data_struct = Statement::CStructOrUnion.new(
+            :struct, struct_name, declarations, @location)
         end
 
-        def prepare_rb_data_type_t_struct local_scope
-          
+        # TODO: support inherited attached structs.
+        def declarations_for_data_struct
+          stmts = []
+          stmts << Statement::VarDecl.new(@attached_type, @attached_type, nil,
+            @location)
+
+          stmts
+        end
+
+        def prepare_rb_data_type_t_struct
+          @data_type_t = Rubex::RUBY_CLASS_PREFIX + @name + "_data_type_t"
         end
 
         def prepare_auxillary_c_functions local_scope
           prepare_alloc_c_function
           prepare_memcount_c_function
           prepare_deallocation_c_function
-          prepare_struct_unwrapping_c_function
+          prepare_get_struct_c_function
         end
 
-        def analyse_methods_for_special_data_variable
+        def has_special_data_var? stmt
+          
+        end
+
+        def rewrite_method_with_data_fetching stmt
           
         end
 
         def prepare_alloc_c_function
-          
+          @alloc_c_func = Rubex::RUBY_CLASS_PREFIX + @name + "_alloc_func"
         end
 
         def prepare_memcount_c_function
-          
+          @memcount_c_func = Rubex::RUBY_CLASS_PREFIX + @name + "_memcount_func"
         end
 
         def prepare_deallocation_c_function
-          
+          @dealloc_c_func = Rubex::RUBY_CLASS_PREFIX + @name + "_deallocation"
         end
 
-        def prepare_struct_unwrapping_c_function
-          
+        def prepare_get_struct_c_function
+          @get_struct_c_func = Rubex::RUBY_CLASS_PREFIX + @name + "_get_struct"
+        end
+
+        def user_defined_dealloc?
+          !!@scope.find('deallocate')
+        end
+
+        def user_defined_alloc?
+          !!@scope.find('allocate')
+        end
+
+        def user_defined_memcount?
+          !!@scope.find('memcount')
+        end
+
+        def user_defined_get_struct?
+          !!@scope.find('get_struct')
         end
       end # class AttachedKlass
     end # module TopStatement
