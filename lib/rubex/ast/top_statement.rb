@@ -248,18 +248,60 @@ module Rubex
         end
       end # class Klass
 
-      class AttachedKlass
-        # name of the class
-        attr_reader :name
+      class AttachedKlass < Klass
 
         attr_reader :attached_type
 
-        attr_reader :statements
-
-        attr_reader :ancestor
-
         def initialize name, attached_type, ancestor, statements
+          @attached_type = attached_type
+          super(name, ancestor, statements)
+        end
 
+        def analyse_statement local_scope
+          prepare_data_holding_struct local_scope
+          prepare_rb_data_type_t_struct local_scope
+          prepare_auxillary_c_functions local_scope
+          analyse_methods_for_special_data_variable
+        end
+
+        def generate_code code
+          
+        end
+
+      private
+        def prepare_data_holding_struct local_scope
+          
+        end
+
+        def prepare_rb_data_type_t_struct local_scope
+          
+        end
+
+        def prepare_auxillary_c_functions local_scope
+          prepare_alloc_c_function
+          prepare_memcount_c_function
+          prepare_deallocation_c_function
+          prepare_struct_unwrapping_c_function
+        end
+
+        def analyse_methods_for_special_data_variable
+          
+        end
+
+        def prepare_alloc_c_function
+          
+        end
+
+        def prepare_memcount_c_function
+          
+        end
+
+        def prepare_deallocation_c_function
+          
+        end
+
+        def prepare_struct_unwrapping_c_function
+          
         end
       end # class AttachedKlass
     end # module TopStatement

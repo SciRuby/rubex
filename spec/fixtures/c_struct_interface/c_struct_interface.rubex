@@ -7,16 +7,12 @@ class Music attach mp3info
   def initialize(artist, title, id)
     mp3info mp3 = data.mp3info
 
-    mp3.artist = <char*>malloc(sizeof(char)*(<int>arist.size))
     mp3.artist = artist # implicit conversion of Ruby String to char*
-
-    mp3.title = <char*>malloc(sizeof(char)*(<int>title.size))
     mp3.title = title # implicit conversion of Ruby String to char*
-
     mp3.id = id # implicit typecast to int
   end
 
-  def deallocate!
+  cfunc void deallocate
     delete(data.mp3info.artist)
     delete(data.mp3info.title)
     delete(data.mp3info.id)
