@@ -239,7 +239,7 @@ module Rubex
                 name.gsub("?", "_qmark").gsub("!", "_bang")
               @scope.add_ruby_method name: name, c_name: c_name
             elsif stat.is_a? Rubex::AST::TopStatement::CFunctionDef
-              c_name = Rubex::C_FUNC_PREFIX + @name + "_" + name
+              c_name = c_func_c_name(name)
               type = Rubex::DataType::CFunction.new(
                 name, c_name, stat.arg_list, 
                 Helpers.determine_dtype(stat.type, stat.return_ptr_level))
@@ -248,11 +248,20 @@ module Rubex
             end
           end
         end
+
+        def c_func_c_name name
+          Rubex::C_FUNC_PREFIX + @name + "_" + name
+        end
       end # class Klass
 
       class AttachedKlass < Klass
 
         attr_reader :attached_type
+
+        ALLOC_FUNC_NAME = 'allocate'
+        DEALLOC_FUNC_NAME = 'deallocate'
+        MEMCOUNT_FUNC_NAME = 'memcount'
+        GET_STRUCT_FUNC_NAME = 'get_struct'
 
         def initialize name, attached_type, ancestor, statements, location
           @attached_type = attached_type
@@ -266,10 +275,9 @@ module Rubex
           prepare_rb_data_type_t_struct
           prepare_auxillary_c_functions
           @statements.each do |stmt|
-            if has_special_data_var?(stmt)
+            if ruby_method_or_c_func?(stmt)
               rewrite_method_with_data_fetching stmt
             end
-
             stmt.analyse_statement @scope
           end
         end
@@ -280,7 +288,7 @@ module Rubex
 
       private
         def prepare_data_holding_struct local_scope
-          struct_name = Rubex::RUBY_CLASS_PREFIX + @name + "_data_struct"
+          struct_name = Rubex::ATTACH_CLASS_PREFIX + @name + "_data_struct"
           declarations = declarations_for_data_struct
           @data_struct = Statement::CStructOrUnion.new(
             :struct, struct_name, declarations, @location)
@@ -296,7 +304,7 @@ module Rubex
         end
 
         def prepare_rb_data_type_t_struct
-          @data_type_t = Rubex::RUBY_CLASS_PREFIX + @name + "_data_type_t"
+          @data_type_t = Rubex::ATTACH_CLASS_PREFIX + @name + "_data_type_t"
         end
 
         def prepare_auxillary_c_functions local_scope
@@ -306,28 +314,49 @@ module Rubex
           prepare_get_struct_c_function
         end
 
-        def has_special_data_var? stmt
-          
+        def ruby_method_or_c_func? stmt
+          stmt.is_a?(RubyMethodDef) || stmt.is_a?(CFunctionDef)
         end
 
         def rewrite_method_with_data_fetching stmt
-          
+          data_stmt = Statement::VarDecl.new(@data_struct.name, 'data', 
+            get_struct_func_call(stmt), @location)
+          stmt.statements.unshift data_stmt
+        end
+
+        def get_struct_func_call stmt
+          Expression::CommandCall.new(nil, @get_struct_c_func.name, 
+            stmt.scope.self_name)
         end
 
         def prepare_alloc_c_function
-          @alloc_c_func = Rubex::RUBY_CLASS_PREFIX + @name + "_alloc_func"
+          if user_defined_alloc?
+            @alloc_c_func = @scope.find(ALLOC_FUNC_NAME)
+          else
+            c_name = c_func_c_name(ALLOC_FUNC_NAME)
+            arg = Statement::ArgumentList.new([Expression::Self.new])
+            type = Rubex::DataType::CFunction.new(
+              ALLOC_FUNC_NAME, c_name, arg, DataType::RubyObject.new)
+            @alloc_c_func = @scope.add_c_method(name: ALLOC_FUNC_NAME,
+              c_name: c_name, type: type)
+          end
         end
 
         def prepare_memcount_c_function
-          @memcount_c_func = Rubex::RUBY_CLASS_PREFIX + @name + "_memcount_func"
+          if user_defined_memcount?
+            @memcount_c_func = @scope.find(MEMCOUNT_FUNC_NAME)
+          else
+            c_name = c_func_c_name(MEMCOUNT_FUNC_NAME)
+            
+          end
         end
 
         def prepare_deallocation_c_function
-          @dealloc_c_func = Rubex::RUBY_CLASS_PREFIX + @name + "_deallocation"
+          @dealloc_c_func = Rubex::ATTACH_CLASS_PREFIX + @name + "_deallocation"
         end
 
         def prepare_get_struct_c_function
-          @get_struct_c_func = Rubex::RUBY_CLASS_PREFIX + @name + "_get_struct"
+          @get_struct_c_func = Rubex::ATTACH_CLASS_PREFIX + @name + "_get_struct"
         end
 
         def user_defined_dealloc?
@@ -335,7 +364,7 @@ module Rubex
         end
 
         def user_defined_alloc?
-          !!@scope.find('allocate')
+          !!@scope.find(ALLOC_FUNC_NAME)
         end
 
         def user_defined_memcount?
