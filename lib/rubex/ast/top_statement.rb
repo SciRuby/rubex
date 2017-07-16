@@ -32,9 +32,12 @@ module Rubex
         attr_reader :entry
         # Instance of Scope::Local for this method.
         attr_reader :scope
+        # Variable name that identifies 'self'
+        attr_reader :self_name
 
         def initialize name, arg_list, statements
           @name, @arg_list, @statements = name, arg_list, statements
+          @self_name = Rubex::ARG_PREFIX + "self"
         end
 
         def analyse_statement outer_scope
@@ -43,7 +46,7 @@ module Rubex
           @entry.type.scope = @scope
           @entry.type.arg_list = @arg_list
           @scope.type = @entry.type
-          @scope.self_name = Rubex::ARG_PREFIX + "self"
+          @scope.self_name = @self_name
           @arg_list.analyse_statement(@scope) if @arg_list
 
           @statements.each do |stat|
@@ -269,9 +272,9 @@ module Rubex
           super(name, ancestor, statements)
         end
 
-        def analyse_statement local_scope
-          super(local_scope, attach_klass: true)
-          prepare_data_holding_struct local_scope
+        def analyse_statement outer_scope
+          super(outer_scope, attach_klass: true)
+          prepare_data_holding_struct outer_scope
           prepare_rb_data_type_t_struct
           prepare_auxillary_c_functions
           @statements.each do |stmt|
@@ -288,10 +291,11 @@ module Rubex
 
       private
         def prepare_data_holding_struct local_scope
-          struct_name = Rubex::ATTACH_CLASS_PREFIX + @name + "_data_struct"
+          struct_name = Rubex::ATTACH_CLASS_PREFIX + "_" + @name + "_data_struct"
           declarations = declarations_for_data_struct
           @data_struct = Statement::CStructOrUnionDef.new(
             :struct, struct_name, declarations, @location)
+          @statements.unshift @data_struct
         end
 
         # TODO: support inherited attached structs.
@@ -307,7 +311,7 @@ module Rubex
           @data_type_t = Rubex::ATTACH_CLASS_PREFIX + @name + "_data_type_t"
         end
 
-        def prepare_auxillary_c_functions local_scope
+        def prepare_auxillary_c_functions
           prepare_alloc_c_function
           prepare_memcount_c_function
           prepare_deallocation_c_function
@@ -326,7 +330,10 @@ module Rubex
 
         def get_struct_func_call stmt
           Expression::CommandCall.new(nil, @get_struct_c_func.name, 
-            stmt.scope.self_name)
+            Statement::ArgumentList.new(
+              [Expression::Self.new]
+              )
+            )
         end
 
         def prepare_alloc_c_function
