@@ -29,7 +29,7 @@ class Music attach mp3info
   #   for freeing memory once this class has been GC'd. It will be a compulsory
   #   method for such 'attach' classes and will not be callable through Ruby
   #   scripts.
-  def deallocate!
+  cfunc void deallocate
     delete(data.mp3info.artist)
     delete(data.mp3info.title)
     delete(data.mp3info.id)

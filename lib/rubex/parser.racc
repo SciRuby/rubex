@@ -74,7 +74,7 @@ rule
     kCLASS tIDENTIFIER kATTACH dtype opt_inheritance eol top_stmts terms kEND
       {
         raise Rubex::SyntaxError unless val[1][0].match(/[A-Z]/)
-        result = TopStatement::AttachedKlass.new(val[1], val[3], val[4], val[6],
+        result = TopStatement::AttachedKlass.new(val[1], val[3], val[4], val[6], 
           location)
       }
 

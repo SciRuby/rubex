@@ -22,8 +22,11 @@ module Rubex
         self.class == other.class
       end
 
-     private
+    private
 
+      # Scan all the statements that do not belong to any particular class
+      #   (meaning that they belong to Object) and add them to the Object class,
+      #   which becomes the class from which all other classes will inherit from.
       def add_top_statements_to_object_scope
         temp = []
         combined_statements = []

@@ -303,6 +303,8 @@ module Rubex
       def p_formatter; "%lu"; end
     end
 
+    class SizeT < ULInt; end
+
     class LLInt
       include IntHelpers
       def to_s; "long long int"; end

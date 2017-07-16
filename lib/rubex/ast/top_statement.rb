@@ -210,7 +210,7 @@ module Rubex
           @scope = @entry.type.scope
           @ancestor = @entry.type.ancestor
           add_statement_symbols_to_symbol_table
-          if attach_klass
+          if !attach_klass
             @statements.each do |stat|
               stat.analyse_statement @scope
             end
@@ -290,7 +290,7 @@ module Rubex
         def prepare_data_holding_struct local_scope
           struct_name = Rubex::ATTACH_CLASS_PREFIX + @name + "_data_struct"
           declarations = declarations_for_data_struct
-          @data_struct = Statement::CStructOrUnion.new(
+          @data_struct = Statement::CStructOrUnionDef.new(
             :struct, struct_name, declarations, @location)
         end
 
@@ -347,20 +347,74 @@ module Rubex
             @memcount_c_func = @scope.find(MEMCOUNT_FUNC_NAME)
           else
             c_name = c_func_c_name(MEMCOUNT_FUNC_NAME)
-            
+            arg = Statement::ArgumentList.new([
+              Statement::ArgDeclaration.new({ 
+                dtype: "struct #{@data_struct.name}", 
+                variables: [
+                    {
+                      ptr_level: "*",
+                      ident: "data"
+                    }
+                  ]
+                })
+              ])
+            type = Rubex::DataType::CFunction.new(
+              MEMCOUNT_FUNC_NAME, c_name, arg, DataType::SizeT.new)
+            @memcount_c_func = @scope.add_c_method(name: MEMCOUNT_FUNC_NAME,
+              c_name: c_name, type: type)
           end
         end
 
         def prepare_deallocation_c_function
-          @dealloc_c_func = Rubex::ATTACH_CLASS_PREFIX + @name + "_deallocation"
+          if user_defined_dealloc?
+            @dealloc_c_func = @scope.find(DEALLOC_FUNC_NAME)
+          else
+            c_name = c_func_c_name(DEALLOC_FUNC_NAME)
+            arg = Statement::ArgumentList.new([
+              Statement::ArgDeclaration.new({
+                dtype: "void",
+                variables: [
+                    {
+                      ptr_level: "*",
+                      ident: "arg"
+                    }
+                  ]
+                })
+              ])
+            type = Rubex::DataType::CFunction.new(
+              DEALLOC_FUNC_NAME, c_name, arg, DataType::Void.new)
+            @dealloc_c_func = @scope.add_c_method(name: DEALLOC_FUNC_NAME,
+              c_name: c_name, type: type)
+          end
         end
 
         def prepare_get_struct_c_function
-          @get_struct_c_func = Rubex::ATTACH_CLASS_PREFIX + @name + "_get_struct"
+          if user_defined_get_struct?
+            @get_struct_c_func = @scope.find(GET_STRUCT_FUNC_NAME)
+          else
+            c_name = c_func_c_name(GET_STRUCT_FUNC_NAME)
+            arg = Statement::ArgumentList.new([
+              Statement::ArgDeclaration.new({
+                  dtype: "object",
+                  variables: [
+                    {
+                      ident: "obj"
+                    }
+                  ]
+                })
+              ])
+            type = Rubex::DataType::CFunction.new(
+              GET_STRUCT_FUNC_NAME, c_name, arg, 
+              DataType::CStructOrUnion.new(
+                :struct, @data_struct.name, @data_struct.name, nil)
+              )
+            @get_struct_c_func = @scope.add_c_method(name: GET_STRUCT_FUNC_NAME,
+              c_name: c_name, type: type)
+          end
         end
 
         def user_defined_dealloc?
-          !!@scope.find('deallocate')
+          !!@scope.find(DEALLOC_FUNC_NAME)
         end
 
         def user_defined_alloc?
@@ -368,11 +422,11 @@ module Rubex
         end
 
         def user_defined_memcount?
-          !!@scope.find('memcount')
+          !!@scope.find(MEMCOUNT_FUNC_NAME)
         end
 
         def user_defined_get_struct?
-          !!@scope.find('get_struct')
+          !!@scope.find(GET_STRUCT_FUNC_NAME)
         end
       end # class AttachedKlass
     end # module TopStatement

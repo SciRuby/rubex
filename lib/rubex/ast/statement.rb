@@ -64,6 +64,7 @@ module Rubex
           else
             raise "Cannot decipher type #{@type}"
           end
+
           c_name = extern ? @name : Rubex::VAR_PREFIX + @name
           @value.analyse_statement(local_scope) if @value
 
@@ -213,6 +214,7 @@ module Rubex
           Rubex::CUSTOM_TYPES[@name] = @type
           @entry = outer_scope.declare_sue(name: @name, c_name: c_name,
             type: @type, extern: extern)
+          puts ">>>> #{Rubex::CUSTOM_TYPES}"
         end
 
         def generate_code code, local_scope=nil
