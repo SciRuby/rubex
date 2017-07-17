@@ -1,0 +1,15 @@
+lib "rubex/ruby"
+
+def test_method
+  int *i = xmalloc(sizeof(int)*5)
+  int j = 0, num
+
+  while j < 5
+    i[j] = j + 5
+    num = i[j]
+    j += 1
+  end
+
+  xfree(i)
+  return num
+end
