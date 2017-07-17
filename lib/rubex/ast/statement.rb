@@ -214,7 +214,6 @@ module Rubex
           Rubex::CUSTOM_TYPES[@name] = @type
           @entry = outer_scope.declare_sue(name: @name, c_name: c_name,
             type: @type, extern: extern)
-          puts ">>>> #{Rubex::CUSTOM_TYPES}"
         end
 
         def generate_code code, local_scope=nil
@@ -701,6 +700,7 @@ module Rubex
 
         def generate_code code, local_scope
           super
+          puts "#{@expr.command.method_name}"
           code << @expr.c_code(local_scope) + ";"
           code.nl
         end

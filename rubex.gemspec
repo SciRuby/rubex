@@ -30,4 +30,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'awesome_print'
   spec.add_development_dependency 'pry-byebug'
   spec.add_development_dependency 'pretty_backtrace'
+  spec.add_development_dependency 'ruby-prof'
 end

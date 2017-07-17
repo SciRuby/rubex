@@ -3,6 +3,7 @@ require 'awesome_print'
 require 'pp'
 require 'pry'
 require 'pretty_backtrace'
+require 'ruby-prof'
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))

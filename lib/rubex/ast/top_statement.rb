@@ -189,6 +189,7 @@ module Rubex
       end # class CFunctionDef
 
       class Klass
+        include Rubex::Helpers::Writers
         # Stores the scope of the class. Rubex::SymbolTable::Scope::Klass.
         attr_reader :scope
 
@@ -227,6 +228,7 @@ module Rubex
         end
 
         def generate_code code
+          # raise "name #{@name}"
           @statements.each do |stat|
             stat.generate_code code
           end
@@ -286,12 +288,33 @@ module Rubex
         end
 
         def generate_code code
-          
+          declare_types code, @scope
+          write_auxillary_c_functions code
+          write_data_type_t_struct code
+
+          # write the data struct
+          # write alloc, dealloc, memcount and get_struct functions in that order.
+          # write the data_type struct
+          # write rest of the user defined functions like initialize etc. 
+          super
         end
 
       private
+
+        def write_auxillary_c_functions code
+          write_alloc_c_function code
+        end
+
+        def write_alloc_c_function code
+          
+        end
+
+        def write_data_type_t_struct code
+          
+        end
+
         def prepare_data_holding_struct local_scope
-          struct_name = Rubex::ATTACH_CLASS_PREFIX + "_" + @name + "_data_struct"
+          struct_name = @name + "_data_struct"
           declarations = declarations_for_data_struct
           @data_struct = Statement::CStructOrUnionDef.new(
             :struct, struct_name, declarations, @location)

@@ -1,3 +1,5 @@
+lib "rubex/ruby"
+
 struct mp3info
   char *artist, *title
   int id
@@ -16,10 +18,10 @@ class Music attach mp3info
   def initialize(artist, title, id)
     mp3info mp3 = data.mp3info
 
-    mp3.artist = <char*>malloc(sizeof(char)*(<int>arist.size))
+    mp3.artist = <char*>xmalloc(sizeof(char)*(<int>arist.size))
     mp3.artist = artist # implicit conversion of Ruby String to char*
 
-    mp3.title = <char*>malloc(sizeof(char)*(<int>title.size))
+    mp3.title = <char*>xmalloc(sizeof(char)*(<int>title.size))
     mp3.title = title # implicit conversion of Ruby String to char*
 
     mp3.id = id # implicit typecast to int
@@ -30,11 +32,11 @@ class Music attach mp3info
   #   method for such 'attach' classes and will not be callable through Ruby
   #   scripts.
   cfunc void deallocate
-    delete(data.mp3info.artist)
-    delete(data.mp3info.title)
-    delete(data.mp3info.id)
-    delete(&data.mp3info)
-    delete(&data)
+    xfree(data.mp3info.artist)
+    xfree(data.mp3info.title)
+    xfree(data.mp3info.id)
+    xfree(&data.mp3info)
+    xfree(&data)
   end
 
   def artist
