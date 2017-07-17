@@ -18,7 +18,7 @@ class Music attach mp3info
   def initialize(artist, title, id)
     mp3info mp3 = data.mp3info
 
-    mp3.artist = <char*>xmalloc(sizeof(char)*(<int>arist.size))
+    mp3.artist = <char*>xmalloc(sizeof(char)*(<int>artist.size))
     mp3.artist = artist # implicit conversion of Ruby String to char*
 
     mp3.title = <char*>xmalloc(sizeof(char)*(<int>title.size))

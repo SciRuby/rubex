@@ -517,6 +517,7 @@ module Rubex
 
         def code_for_ruby_method_call local_scope
           entry = local_scope.find @method_name
+          puts @method_name
           str = ""
           if entry.extern?
             str << "rb_funcall(#{@invoker.c_code(local_scope)}, "

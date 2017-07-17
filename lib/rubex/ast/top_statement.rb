@@ -423,7 +423,7 @@ module Rubex
                 })
               ])
             type = Rubex::DataType::CFunction.new(
-              MEMCOUNT_FUNC_NAME, c_name, arg, DataType::SizeT.new)
+              MEMCOUNT_FUNC_NAME, c_name, arg, DataType::Size_t.new)
             @memcount_c_func = @scope.add_c_method(name: MEMCOUNT_FUNC_NAME,
               c_name: c_name, type: type)
           end

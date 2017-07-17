@@ -1084,7 +1084,7 @@ Racc_token_to_s_table = [
   "command_call",
   "term" ]
 
-Racc_debug_parser = true
+Racc_debug_parser = false
 
 ##### State transition tables end #####
 
