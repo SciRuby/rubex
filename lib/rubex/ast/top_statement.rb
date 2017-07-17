@@ -4,11 +4,13 @@ module Rubex
       class CBindings
         attr_reader :lib, :declarations
 
-        def initialize lib, declarations
+        def initialize lib, declarations=nil
           @lib, @declarations = lib, declarations
         end
 
         def analyse_statement local_scope
+          load_predecided_declarations unless @declarations
+
           @declarations.each do |stat|
             stat.analyse_statement local_scope, extern: true
           end
@@ -17,6 +19,37 @@ module Rubex
 
         def generate_code code
 
+        end
+
+      private
+
+        def load_predecided_declarations
+          if @lib == 'rubex/ruby'
+            load_ruby_functions_and_types
+            @lib = '<ruby.h>'
+          end
+        end
+
+        def load_ruby_functions_and_types
+          @declarations = []
+          @declarations << alias_size_t
+          @declarations << xmalloc
+          @declarations << xfree
+        end
+
+        def xmalloc
+          args = Statement::ArgumentList.new(
+            Statement::ArgDeclaration.new({ dtype: 'size_t', variables: [{}] })
+          )
+          Statement::CFunctionDecl.new('void', '*', 'xmalloc', args)  
+        end
+
+        def xfree
+          
+        end
+
+        def alias_size_t
+          
         end
       end # class CBindings
 

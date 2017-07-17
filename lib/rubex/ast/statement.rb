@@ -788,6 +788,10 @@ module Rubex
           @args.each(&block)
         end
 
+        def pop
+          @args.pop
+        end
+
         def initialize args
           @args = args
         end
