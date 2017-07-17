@@ -2,10 +2,10 @@ module Rubex
   module AST
     module TopStatement
       class CBindings
-        attr_reader :lib, :declarations
+        attr_reader :lib, :declarations, :location
 
-        def initialize lib, declarations=nil
-          @lib, @declarations = lib, declarations
+        def initialize lib, declarations, location
+          @lib, @declarations, @location = lib, declarations, location
         end
 
         def analyse_statement local_scope
@@ -45,11 +45,14 @@ module Rubex
         end
 
         def xfree
-          
+          args = Statement::ArgumentList.new(
+            Statement::ArgDeclaration.new({ dtype: 'void', variables: [{}] })
+          )
+          Statement::CFunctionDecl.new('void', '', 'xfree', args)
         end
 
         def alias_size_t
-          
+          Statement::Alias.new('size_t', 'unsigned int', @location)
         end
       end # class CBindings
 

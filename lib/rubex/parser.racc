@@ -13,7 +13,7 @@ token
   EOF     tDOT    tQMARK   tSYMBOL
 
   tPLUS tMINUS tSTAR tDIVIDE tEXPO      tMODULUS tASSIGN tEQ tLT tLTEQ tGT
-  tGTEQ tANDOP tOROP tBANG   tOP_ASSIGN tSTRING
+  tGTEQ tANDOP tOROP tBANG   tOP_ASSIGN tSTRING  kSIZEOF
   
   tBIT_AND tBIT_OR tBIT_XOR tBIT_LSHIFT tBIT_RSHIFT tBIT_NOT
 
@@ -24,6 +24,7 @@ prechigh
   right ADDRESS_OF
   right tEXPO
   right TYPECAST
+  right kSIZEOF
 
   right UMINUS
   left tSTAR tDIVIDE tMODULUS
@@ -85,9 +86,9 @@ rule
   c_bindings:
     kLIB tSTRING kDO eol c_declarations terms kEND
       {
-        result = TopStatement::CBindings.new val[1], val[4]
+        result = TopStatement::CBindings.new val[1], val[4], location
       }
-  | kLIB tSTRING { result = TopStatement::CBindings.new val[1] }
+  | kLIB tSTRING { result = TopStatement::CBindings.new val[1], nil, location }
 
   c_declarations:
     c_declaration { result = [val[0]] }
@@ -524,6 +525,10 @@ rule
         end
       }
   | command_call
+  | kSIZEOF tLPAREN dtype opt_star tRPAREN 
+      { 
+        result = Expression::SizeOf.new(val[2], val[3])
+      }
 
   command_call:
     method_or_attr command_opt_args
@@ -646,6 +651,8 @@ def check_for_keyword token
     return [:kELSE  , match]
   elsif match == "then"
     return [:kTHEN  , match]
+  elsif match == "sizeof"
+    return [:kSIZEOF, match]
   end
 
   return token
