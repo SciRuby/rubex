@@ -301,9 +301,25 @@ module Rubex
       def ulint?; true; end
 
       def p_formatter; "%lu"; end
+
+      def <=> other
+        if other.char? || other.int8? || other.int16? || other.int32? ||
+          other .int64? || other.uint8? || other.uint16? || other.uint32? ||
+          other.int?
+          return 1
+        elsif other.ulint? || other.ulint64?
+          return 0
+        else
+          return -1
+        end
+      end
     end
 
-    class SizeT < ULInt; end
+    class Size_t < ULInt
+      def to_s
+        "size_t"
+      end
+    end
 
     class LLInt
       include IntHelpers

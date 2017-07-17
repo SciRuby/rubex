@@ -1,7 +1,7 @@
 lib "rubex/ruby"
 
 def test_method
-  int *i = xmalloc(sizeof(int)*5)
+  int *i = <int*>xmalloc(sizeof(int)*5)
   int j = 0, num
 
   while j < 5 do

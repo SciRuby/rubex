@@ -34,7 +34,8 @@ module Rubex
     'f64'                    => Rubex::DataType::F64,
     'double'                 => Rubex::DataType::F64,
     'object'                 => Rubex::DataType::RubyObject,
-    'void'                   => Rubex::DataType::Void
+    'void'                   => Rubex::DataType::Void,
+    'size_t'                 => Rubex::DataType::Size_t
   }
 
   CUSTOM_TYPES = {}

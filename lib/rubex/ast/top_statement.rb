@@ -32,27 +32,25 @@ module Rubex
 
         def load_ruby_functions_and_types
           @declarations = []
-          @declarations << alias_size_t
           @declarations << xmalloc
           @declarations << xfree
         end
 
         def xmalloc
-          args = Statement::ArgumentList.new(
-            Statement::ArgDeclaration.new({ dtype: 'size_t', variables: [{}] })
-          )
+          args = Statement::ArgumentList.new([
+            Statement::ArgDeclaration.new({ 
+              dtype: 'size_t', variables: [{ident: 'dummy'}] })
+          ])
           Statement::CFunctionDecl.new('void', '*', 'xmalloc', args)  
         end
 
         def xfree
-          args = Statement::ArgumentList.new(
-            Statement::ArgDeclaration.new({ dtype: 'void', variables: [{}] })
-          )
+          args = Statement::ArgumentList.new([
+            Statement::ArgDeclaration.new({
+              dtype: 'void',
+              variables: [{ptr_level: '*', ident: 'dummy'}] })
+          ])
           Statement::CFunctionDecl.new('void', '', 'xfree', args)
-        end
-
-        def alias_size_t
-          Statement::Alias.new('size_t', 'unsigned int', @location)
         end
       end # class CBindings
 

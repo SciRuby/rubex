@@ -700,7 +700,6 @@ module Rubex
 
         def generate_code code, local_scope
           super
-          puts "#{@expr.command.method_name}"
           code << @expr.c_code(local_scope) + ";"
           code.nl
         end
@@ -716,7 +715,7 @@ module Rubex
         end
 
         def analyse_statement local_scope, extern: false
-          @arg_list.analyse_statement(local_scope) if @arg_list
+          @arg_list.analyse_statement(local_scope, extern: extern) if @arg_list
           c_name = extern ? @name : (Rubex::C_FUNC_PREFIX + @name)
           type   = Rubex::DataType::CFunction.new(@name, c_name, @arg_list, 
             Helpers.determine_dtype(@type, @return_ptr_level))
@@ -739,7 +738,7 @@ module Rubex
           @data_hash = data_hash
         end
 
-        def analyse_statement local_scope, inside_func_ptr: false
+        def analyse_statement local_scope, inside_func_ptr: false, extern: false
           # FIXME: Support array of function pointers and array in arguments.
           var       = @data_hash[:variables][0]
           dtype     = @data_hash[:dtype]
@@ -771,9 +770,11 @@ module Rubex
             @type = Helpers.determine_dtype(dtype, ptr_level)
           end
 
-          @entry = local_scope.add_arg(name: name, c_name: c_name, type: @type,
-            value: value) if !inside_func_ptr
-        end
+          if !extern && !inside_func_ptr
+            @entry = local_scope.add_arg(name: name, c_name: c_name, type: @type,
+              value: value)
+          end
+        end # def analyse_statement
       end # class ArgDeclaration
 
       # This node is used for both formal and actual arguments of functions/methods.
@@ -801,9 +802,10 @@ module Rubex
         # For eg - 
         #   cfunc int foo(int (*bar)(int, float)).
         #                            ^^^ This is an arg list inside a function.
-        def analyse_statement local_scope, inside_func_ptr: false
+        def analyse_statement local_scope, inside_func_ptr: false, extern: false
           @args.each do |arg|
-            arg.analyse_statement(local_scope, inside_func_ptr: inside_func_ptr)
+            arg.analyse_statement(local_scope, inside_func_ptr: inside_func_ptr,
+              extern: extern)
           end
         end
 
