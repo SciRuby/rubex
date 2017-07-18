@@ -165,12 +165,24 @@ module Rubex
           code.nl
 
           @statements.each do |top_stmt|
+            # define a class
             if top_stmt.is_a?(TopStatement::Klass) && top_stmt.name != 'Object'
               entry = top_stmt.entry
               ancestor_entry = @scope.find top_stmt.ancestor.name
               c_name = ancestor_entry ? ancestor_entry.c_name : 'rb_cObject'
               rhs = "rb_define_class(\"#{entry.name}\", #{c_name})"
               code.init_variable lhs: entry.c_name, rhs: rhs
+            end
+
+            # specify allocation method in case of attached class
+            if top_stmt.is_a?(TopStatement::AttachedKlass)
+              entry = top_stmt.entry
+              scope = top_stmt.scope
+              alloc = ""
+              alloc << "rb_define_alloc_func(#{entry.c_name}, "
+              alloc << "#{scope.find(TopStatement::AttachedKlass::ALLOC_FUNC_NAME).c_name});\n"
+
+              code << alloc
             end
           end
           code.nl

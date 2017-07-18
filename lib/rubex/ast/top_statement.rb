@@ -376,12 +376,12 @@ module Rubex
               args: Helpers.create_arg_arrays(@alloc_c_func.type.arg_list))
             code.block do
               lines = ""
-              lines << "#{@data_struct.entry.c_name} *data;\n"
-              lines << "return TypedDataMakeStruct(\n"
-              lines << "#{@alloc_c_func.type.arg_list[0].entry.c_name},\n"
-              lines << "#{@data_struct.entry.c_name}, &#{@data_type_t},\n"
+              lines << "#{@data_struct.entry.c_name} *data;\n\n"
+              lines << "return TypedDataMakeStruct("
+              lines << "#{@alloc_c_func.type.arg_list[0].entry.c_name},"
+              lines << "#{@data_struct.entry.c_name}, &#{@data_type_t},"
               lines << "data);"
-              
+
               code << lines
             end
           end
