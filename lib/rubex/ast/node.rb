@@ -58,7 +58,9 @@ module Rubex
           code << "#include #{name}\n"
         end
         write_usability_macros code
-        declare_types code, @scope
+        @statements.grep(Rubex::AST::TopStatement::Klass).each do |klass|
+          declare_types code, klass.scope
+        end
         write_function_declarations code
         code.nl
       end

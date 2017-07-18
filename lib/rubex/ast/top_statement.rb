@@ -312,20 +312,19 @@ module Rubex
           super(outer_scope, attach_klass: true)
           prepare_data_holding_struct
           prepare_rb_data_type_t_struct
+          check_auxillary_c_functions
           prepare_auxillary_c_functions
           @statements[1..-1].each do |stmt|
             if ruby_method_or_c_func?(stmt)
               rewrite_method_with_data_fetching stmt
             end
             stmt.analyse_statement @scope
-            check_auxillary_c_function stmt
           end
 
           detach_auxillary_c_functions_from_statements
         end
 
         def generate_code code
-          declare_types code, @scope
           write_auxillary_c_functions code
           write_data_type_t_struct code
 
@@ -554,16 +553,18 @@ module Rubex
           end
         end
 
-        def check_auxillary_c_function stmt
-          if stmt.is_a?(CFunctionDef)
-            if stmt.name == ALLOC_FUNC_NAME
-              @user_defined_alloc = true
-            elsif stmt.name == DEALLOC_FUNC_NAME
-              @user_defined_dealloc = true
-            elsif stmt.name == MEMCOUNT_FUNC_NAME
-              @user_defined_memcount = true
-            elsif stmt.name == GET_STRUCT_FUNC_NAME
-              @user_defined_get_struct = true
+        def check_auxillary_c_functions
+          @statements.each do |stmt|
+            if stmt.is_a?(CFunctionDef)
+              if stmt.name == ALLOC_FUNC_NAME
+                @user_defined_alloc = true
+              elsif stmt.name == DEALLOC_FUNC_NAME
+                @user_defined_dealloc = true
+              elsif stmt.name == MEMCOUNT_FUNC_NAME
+                @user_defined_memcount = true
+              elsif stmt.name == GET_STRUCT_FUNC_NAME
+                @user_defined_get_struct = true
+              end
             end
           end
         end
