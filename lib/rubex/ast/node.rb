@@ -70,19 +70,24 @@ module Rubex
       end
 
       def write_function_declarations code
-        @statements.grep(Rubex::AST::TopStatement::Klass).each do |klass|
-          klass.statements.grep(Rubex::AST::TopStatement::RubyMethodDef).each do |meth|
-            code.write_ruby_method_header(
-              type: meth.entry.type.type.to_s, c_name: meth.entry.c_name)
-            code.colon
-          end
+        @statements.each do |stmt|
+          if stmt.is_a?(Rubex::AST::TopStatement::Klass)
+            stmt.scope.ruby_method_entries.each do |entry|
+              code.write_ruby_method_header(
+                type: entry.type.type.to_s, c_name: entry.c_name)
+              code.colon
+            end
 
-          klass.statements.grep(Rubex::AST::TopStatement::CFunctionDef).each do |meth|
-            code.write_c_method_header(
-              type: meth.entry.type.type.to_s, 
-              c_name: meth.entry.c_name, 
-              args: Helpers.create_arg_arrays(meth.entry.type.scope))
-            code.colon
+            stmt.scope.c_method_entries.each do |entry|
+              if !entry.extern?
+                puts "#{entry.name}"
+                code.write_c_method_header(
+                  type: entry.type.type.to_s, 
+                  c_name: entry.c_name, 
+                  args: Helpers.create_arg_arrays(entry.type.arg_list))
+                code.colon
+              end
+            end
           end
         end
       end

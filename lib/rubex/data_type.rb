@@ -307,7 +307,7 @@ module Rubex
           other .int64? || other.uint8? || other.uint16? || other.uint32? ||
           other.int?
           return 1
-        elsif other.ulint? || other.ulint64?
+        elsif other.ulint?
           return 0
         else
           return -1

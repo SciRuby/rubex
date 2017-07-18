@@ -34,10 +34,11 @@ module Rubex
         end
       end
 
-      def create_arg_arrays scope
-        scope.arg_entries.inject([]) do |array, arg|
-          c_name = arg.type.base_type.c_function? ? "" : arg.c_name
-          array << [arg.type.to_s, c_name]
+      def create_arg_arrays arg_list
+        arg_list.inject([]) do |array, arg|
+          entry = arg.entry
+          c_name = entry.type.base_type.c_function? ? "" : entry.c_name
+          array << [entry.type.to_s, c_name]
           array
         end
       end

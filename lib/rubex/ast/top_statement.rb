@@ -217,7 +217,7 @@ module Rubex
 
         def generate_code code
           code.write_c_method_header(type: @entry.type.type.to_s, 
-            c_name: @entry.c_name, args: Helpers.create_arg_arrays(@scope))
+            c_name: @entry.c_name, args: Helpers.create_arg_arrays(@arg_list))
           super code, c_function: true
         end
       end # class CFunctionDef
@@ -310,15 +310,18 @@ module Rubex
 
         def analyse_statement outer_scope
           super(outer_scope, attach_klass: true)
-          prepare_data_holding_struct outer_scope
+          prepare_data_holding_struct
           prepare_rb_data_type_t_struct
           prepare_auxillary_c_functions
-          @statements.each do |stmt|
+          @statements[1..-1].each do |stmt|
             if ruby_method_or_c_func?(stmt)
               rewrite_method_with_data_fetching stmt
             end
             stmt.analyse_statement @scope
+            check_auxillary_c_function stmt
           end
+
+          detach_auxillary_c_functions_from_statements
         end
 
         def generate_code code
@@ -335,23 +338,82 @@ module Rubex
 
       private
 
+        def detach_auxillary_c_functions_from_statements
+          @auxillary_c_functions = {}
+
+          indexes = []
+          @statements.each_with_index do |stmt, idx|
+            if stmt.is_a?(CFunctionDef)
+              if stmt.name == ALLOC_FUNC_NAME
+                @auxillary_c_functions[ALLOC_FUNC_NAME] = stmt
+                indexes << idx
+              elsif stmt.name == DEALLOC_FUNC_NAME
+                @auxillary_c_functions[DEALLOC_FUNC_NAME] = stmt
+                indexes << idx
+              elsif stmt.name == MEMCOUNT_FUNC_NAME
+                @auxillary_c_functions[MEMCOUNT_FUNC_NAME] = stmt
+                indexes << idx
+              elsif stmt.name == GET_STRUCT_FUNC_NAME
+                @auxillary_c_functions[GET_STRUCT_FUNC_NAME] = stmt
+                indexes << idx
+              end
+            end 
+          end
+
+          indexes.each do |idx|
+            @statements.delete_at idx
+          end
+        end
+
         def write_auxillary_c_functions code
           write_alloc_c_function code
+          write_dealloc_c_function code
+          write_memcount_c_function code
+          write_get_struct_c_function code
         end
 
         def write_alloc_c_function code
-          
+          if user_defined_alloc?
+            @auxillary_c_functions[ALLOC_FUNC_NAME].generate_code code
+          else
+
+          end
+        end
+
+        def write_dealloc_c_function code
+          if user_defined_dealloc?
+            @auxillary_c_functions[DEALLOC_FUNC_NAME].generate_code code
+          else
+
+          end
+        end
+
+        def write_memcount_c_function code
+          if user_defined_memcount?
+
+          else
+
+          end
+        end
+
+        def write_get_struct_c_function code
+          if user_defined_get_struct?
+
+          else
+
+          end
         end
 
         def write_data_type_t_struct code
           
         end
 
-        def prepare_data_holding_struct local_scope
+        def prepare_data_holding_struct
           struct_name = @name + "_data_struct"
           declarations = declarations_for_data_struct
           @data_struct = Statement::CStructOrUnionDef.new(
             :struct, struct_name, declarations, @location)
+          @data_struct.analyse_statement(@scope)
           @statements.unshift @data_struct
         end
 
@@ -387,10 +449,7 @@ module Rubex
 
         def get_struct_func_call stmt
           Expression::CommandCall.new(nil, @get_struct_c_func.name, 
-            Statement::ArgumentList.new(
-              [Expression::Self.new]
-              )
-            )
+            Statement::ArgumentList.new([]))
         end
 
         def prepare_alloc_c_function
@@ -398,7 +457,18 @@ module Rubex
             @alloc_c_func = @scope.find(ALLOC_FUNC_NAME)
           else
             c_name = c_func_c_name(ALLOC_FUNC_NAME)
-            arg = Statement::ArgumentList.new([Expression::Self.new])
+            scope = Rubex::SymbolTable::Scope::Local.new(ALLOC_FUNC_NAME, @scope)
+            arg = Statement::ArgumentList.new([
+              Statement::ArgDeclaration.new({
+                dtype: 'object',
+                variables: [
+                  {
+                    ident: 'self'
+                  }
+                ]
+              })
+            ])
+            arg.analyse_statement(scope)
             type = Rubex::DataType::CFunction.new(
               ALLOC_FUNC_NAME, c_name, arg, DataType::RubyObject.new)
             @alloc_c_func = @scope.add_c_method(name: ALLOC_FUNC_NAME,
@@ -411,9 +481,10 @@ module Rubex
             @memcount_c_func = @scope.find(MEMCOUNT_FUNC_NAME)
           else
             c_name = c_func_c_name(MEMCOUNT_FUNC_NAME)
+            scope = Rubex::SymbolTable::Scope::Local.new(MEMCOUNT_FUNC_NAME, @scope)
             arg = Statement::ArgumentList.new([
               Statement::ArgDeclaration.new({ 
-                dtype: "struct #{@data_struct.name}", 
+                dtype: "#{@data_struct.name}", 
                 variables: [
                     {
                       ptr_level: "*",
@@ -422,6 +493,7 @@ module Rubex
                   ]
                 })
               ])
+            arg.analyse_statement(scope)
             type = Rubex::DataType::CFunction.new(
               MEMCOUNT_FUNC_NAME, c_name, arg, DataType::Size_t.new)
             @memcount_c_func = @scope.add_c_method(name: MEMCOUNT_FUNC_NAME,
@@ -434,6 +506,7 @@ module Rubex
             @dealloc_c_func = @scope.find(DEALLOC_FUNC_NAME)
           else
             c_name = c_func_c_name(DEALLOC_FUNC_NAME)
+            scope = Rubex::SymbolTable::Scope::Local.new(DEALLOC_FUNC_NAME, @scope)
             arg = Statement::ArgumentList.new([
               Statement::ArgDeclaration.new({
                 dtype: "void",
@@ -445,6 +518,7 @@ module Rubex
                   ]
                 })
               ])
+            arg.analyse_statement(scope)
             type = Rubex::DataType::CFunction.new(
               DEALLOC_FUNC_NAME, c_name, arg, DataType::Void.new)
             @dealloc_c_func = @scope.add_c_method(name: DEALLOC_FUNC_NAME,
@@ -457,6 +531,8 @@ module Rubex
             @get_struct_c_func = @scope.find(GET_STRUCT_FUNC_NAME)
           else
             c_name = c_func_c_name(GET_STRUCT_FUNC_NAME)
+            scope = Rubex::SymbolTable::Scope::Local.new(
+              GET_STRUCT_FUNC_NAME, @scope)
             arg = Statement::ArgumentList.new([
               Statement::ArgDeclaration.new({
                   dtype: "object",
@@ -467,30 +543,45 @@ module Rubex
                   ]
                 })
               ])
+            arg.analyse_statement(scope)
             type = Rubex::DataType::CFunction.new(
               GET_STRUCT_FUNC_NAME, c_name, arg, 
               DataType::CStructOrUnion.new(
-                :struct, @data_struct.name, @data_struct.name, nil)
+                :struct, @data_struct.name, @data_struct.entry.c_name, nil)
               )
             @get_struct_c_func = @scope.add_c_method(name: GET_STRUCT_FUNC_NAME,
               c_name: c_name, type: type)
           end
         end
 
+        def check_auxillary_c_function stmt
+          if stmt.is_a?(CFunctionDef)
+            if stmt.name == ALLOC_FUNC_NAME
+              @user_defined_alloc = true
+            elsif stmt.name == DEALLOC_FUNC_NAME
+              @user_defined_dealloc = true
+            elsif stmt.name == MEMCOUNT_FUNC_NAME
+              @user_defined_memcount = true
+            elsif stmt.name == GET_STRUCT_FUNC_NAME
+              @user_defined_get_struct = true
+            end
+          end
+        end
+
         def user_defined_dealloc?
-          !!@scope.find(DEALLOC_FUNC_NAME)
+          @user_defined_dealloc
         end
 
         def user_defined_alloc?
-          !!@scope.find(ALLOC_FUNC_NAME)
+          @user_defined_alloc
         end
 
         def user_defined_memcount?
-          !!@scope.find(MEMCOUNT_FUNC_NAME)
+          @user_defined_memcount
         end
 
         def user_defined_get_struct?
-          !!@scope.find(GET_STRUCT_FUNC_NAME)
+          @user_defined_get_struct
         end
       end # class AttachedKlass
     end # module TopStatement

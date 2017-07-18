@@ -165,6 +165,15 @@ module Rubex
           @klass_name = @name
           @include_files = []
         end
+
+        def object_scope
+          temp = self
+          while temp.outer_scope != nil
+            temp = temp.outer_scope
+          end
+
+          temp
+        end
       end # class Klass
 
       class Local
