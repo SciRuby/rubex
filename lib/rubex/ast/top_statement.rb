@@ -327,11 +327,6 @@ module Rubex
         def generate_code code
           write_auxillary_c_functions code
           write_data_type_t_struct code
-
-          # write the data struct
-          # write alloc, dealloc, memcount and get_struct functions in that order.
-          # write the data_type struct
-          # write rest of the user defined functions like initialize etc. 
           super
         end
 
@@ -389,22 +384,37 @@ module Rubex
 
         def write_memcount_c_function code
           if user_defined_memcount?
-
+            @auxillary_c_functions[MEMCOUNT_FUNC_NAME].generate_code code
           else
-
+            code.write_c_method_header(
+              type: @memcount_c_func.type.type.to_s, 
+              c_name: @memcount_c_func.c_name, 
+              args: Helpers.create_arg_arrays(@memcount_c_func.type.arg_list))
+            code.block do
+              code << "return sizeof(#{@memcount_c_func.type.arg_list[0].entry.c_name})"
+              code.colon
+            end
           end
         end
 
         def write_get_struct_c_function code
           if user_defined_get_struct?
-
+            @auxillary_c_functions[GET_STRUCT_FUNC_NAME].generate_code code
           else
 
           end
         end
 
         def write_data_type_t_struct code
-          
+          decl = ""
+          decl << "static const rb_data_type_t #{@data_type_t} = {\n"
+          decl << "  \"#{@name}\",\n"
+          decl << "  {0, #{@dealloc_c_func.c_name}, #{@memcount_c_func.c_name},\n"
+          decl << "  0}, 0, 0, RUBY_TYPED_FREE_IMMEDIATELY\n"
+          decl << "};\n"
+
+          code << decl
+          code.new_line
         end
 
         def prepare_data_holding_struct
@@ -426,7 +436,7 @@ module Rubex
         end
 
         def prepare_rb_data_type_t_struct
-          @data_type_t = Rubex::ATTACH_CLASS_PREFIX + @name + "_data_type_t"
+          @data_type_t = Rubex::ATTACH_CLASS_PREFIX + "_" + @name + "_data_type_t"
         end
 
         def prepare_auxillary_c_functions

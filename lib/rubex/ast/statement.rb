@@ -828,6 +828,10 @@ module Rubex
         def empty?
           @args.empty?
         end
+
+        def [] idx
+          @args[idx]
+        end
       end # class ArgumentList
     end # module Statement
   end # module AST
