@@ -23,7 +23,7 @@ def maths(double a, double b, c)
 
   struct new_struct
     double a,b,c
-    char* str
+    char* string
   end
 
   new_struct s
@@ -31,7 +31,7 @@ def maths(double a, double b, c)
   s.b = b
 
   if (s.a > s.b)
-    s.str = c
+    s.string = c
   end
 
   return pow(6.7, s.a)

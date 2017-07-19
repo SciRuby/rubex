@@ -102,7 +102,7 @@ rule
   c_function_declaration:
     dtype opt_star tIDENTIFIER opt_c_func_arg_list
       { 
-        val[4].pop # HACK: because declared external C functions don't have implicit self argument.
+        val[3].pop # HACK: because declared external C functions don't have implicit self argument.
         result = Statement::CFunctionDecl.new val[0], val[1], val[2], val[4]
       }
 

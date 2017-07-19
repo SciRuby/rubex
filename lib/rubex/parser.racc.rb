@@ -1247,7 +1247,7 @@ module_eval(<<'.,.,', 'parser.racc', 94)
 
 module_eval(<<'.,.,', 'parser.racc', 104)
   def _reduce_24(val, _values, result)
-            val[4].pop # HACK: because declared external C functions don't have implicit self argument.
+            val[3].pop # HACK: because declared external C functions don't have implicit self argument.
         result = Statement::CFunctionDecl.new val[0], val[1], val[2], val[4]
       
     result

@@ -10,7 +10,7 @@ def structure(a, i32 b, i32 c)
 
   struct other_node
     i64 a, b
-    char *str
+    char *string
   end
 
   node n
@@ -20,7 +20,7 @@ def structure(a, i32 b, i32 c)
 
   other_node shell
 
-  shell.str = a
+  shell.string = a
   shell.a = 666
   shell.b = 555
 
