@@ -29,10 +29,10 @@ class Music attach mp3info
   end
 
   def artist
-    return data.mp3info.artist # implicit conversion of char* to Ruby string
+    return <str>data.mp3info.artist # typecast to ruby string
   end
 
   def title
-    return data.mp3info.title # implicit conversion of char* to Ruby string
+    return <str>data.mp3info.title # typecast to ruby string
   end
 end

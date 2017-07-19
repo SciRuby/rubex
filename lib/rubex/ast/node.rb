@@ -82,7 +82,6 @@ module Rubex
 
             stmt.scope.c_method_entries.each do |entry|
               if !entry.extern?
-                puts "#{entry.name}"
                 code.write_c_method_header(
                   type: entry.type.type.to_s, 
                   c_name: entry.c_name, 
@@ -153,8 +152,8 @@ module Rubex
       def generate_init_method target_name, code
         name = "Init_#{target_name}"
         code.new_line
-        code.write_func_declaration type: "void", c_name: name, args: []
-        code.write_c_method_header type: "void", c_name: name, args: []
+        code.write_func_declaration type: "void", c_name: name, args: [], static: false
+        code.write_c_method_header type: "void", c_name: name, args: [], static: false
         code.block do
           @statements.each do |top_stmt|
             if top_stmt.is_a?(TopStatement::Klass) && top_stmt.name != 'Object'

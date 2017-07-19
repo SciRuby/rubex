@@ -13,7 +13,8 @@ module Rubex
         :char?, :object?, :bool?, :carray?, :cbool?,
         :cptr?, :nil_type?, :struct_or_union?,
         :alias_type?, :string?, :cstr?, :ruby_class?,
-        :ruby_method?, :c_function?, :ruby_constant?, :void?
+        :ruby_method?, :c_function?, :ruby_constant?, :void?,
+        :ruby_string?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -71,9 +72,11 @@ module Rubex
     end
 
     class RubySymbol < RubyObject
-      include Helpers
-
       def ruby_symbol?; true; end
+    end
+
+    class RubyString < RubyObject
+      def ruby_string?; true; end
     end
 
     class Char

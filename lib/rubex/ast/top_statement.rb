@@ -391,7 +391,7 @@ module Rubex
           if user_defined_dealloc?
             @auxillary_c_functions[DEALLOC_FUNC_NAME].generate_code code
           else
-
+            # TODO: define dealloc if user hasnt supplied.
           end
         end
 
@@ -406,6 +406,7 @@ module Rubex
             code.block do
               code << "return sizeof(#{@memcount_c_func.type.arg_list[0].entry.c_name})"
               code.colon
+              code.nl
             end
           end
         end
@@ -414,7 +415,20 @@ module Rubex
           if user_defined_get_struct?
             @auxillary_c_functions[GET_STRUCT_FUNC_NAME].generate_code code
           else
+            code.write_c_method_header(
+              type: @get_struct_c_func.type.type.to_s, 
+              c_name: @get_struct_c_func.c_name, 
+              args: Helpers.create_arg_arrays(@get_struct_c_func.type.arg_list))
+            code.block do
+              lines = ""
+              lines << "#{@data_struct.entry.c_name} *data;\n\n"
+              lines << "TypedDataGetStruct("
+              lines << "#{@get_struct_c_func.type.arg_list[0].entry.c_name}, "
+              lines << "#{@data_struct.entry.c_name}, &#{@data_type_t}, data);\n"
+              lines << "return data;\n"
 
+              code << lines
+            end
           end
         end
 
@@ -568,8 +582,9 @@ module Rubex
             arg.analyse_statement(scope)
             type = Rubex::DataType::CFunction.new(
               GET_STRUCT_FUNC_NAME, c_name, arg, 
-              DataType::CStructOrUnion.new(
-                :struct, @data_struct.name, @data_struct.entry.c_name, nil)
+              DataType::CPtr.new(
+                DataType::CStructOrUnion.new(
+                  :struct, @data_struct.name, @data_struct.entry.c_name, nil))
               )
             @get_struct_c_func = @scope.add_c_method(name: GET_STRUCT_FUNC_NAME,
               c_name: c_name, type: type)

@@ -13,8 +13,8 @@ module Rubex
     # type - Return type of the method.
     # c_name - C Name.
     # args - Array of Arrays containing data type and variable name.
-    def write_func_declaration type:, c_name:, args: []
-      write_func_prototype type, c_name, args
+    def write_func_declaration type:, c_name:, args: [], static: true
+      write_func_prototype type, c_name, args, static: static
       @code << ";"
       new_line
     end
@@ -29,8 +29,8 @@ module Rubex
       new_line
     end
 
-    def write_c_method_header type: , c_name: , args: []
-      write_func_prototype type, c_name, args
+    def write_c_method_header type: , c_name: , args: [], static: true
+      write_func_prototype type, c_name, args, static: static
     end
 
     def write_ruby_method_header type: , c_name:
@@ -134,8 +134,8 @@ module Rubex
 
   private
 
-    def write_func_prototype return_type, c_name, args
-      @code << "#{return_type} #{c_name} "
+    def write_func_prototype return_type, c_name, args, static: true
+      @code << "#{static ? "static " : ""}#{return_type} #{c_name} "
       @code << "("
       @code << args.map { |type_arg| type_arg.join(" ") }.join(",")
       @code << ")"

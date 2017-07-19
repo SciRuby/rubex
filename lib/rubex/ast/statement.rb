@@ -457,6 +457,8 @@ module Rubex
               (lt.alias_type? && lt.old_type.base_type.c_function?)) &&
               @rhs.is_a?(Rubex::AST::Expression::Name)
               str << "#{@rhs.entry.c_name}"
+            elsif lt.int? && rt.object?
+              str << "#{lt.from_ruby_object(@rhs.c_code(local_scope))}"
             else
               str << "#{@rhs.c_code(local_scope)}"  
             end
