@@ -58,8 +58,9 @@ module Rubex
         include Rubex::Helpers::Writers
         # Ruby name of the method.
         attr_reader :name
-        # Method arguments.
-        attr_reader :arg_list
+        # Method arguments. Accessor because arguments need to be modified in
+        # case of auxillary C functions of attach classes.
+        attr_accessor :arg_list
         # The statments/expressions contained within the method.
         attr_reader :statements
         # Symbol Table entry.
@@ -312,25 +313,32 @@ module Rubex
           super(outer_scope, attach_klass: true)
           prepare_data_holding_struct
           prepare_rb_data_type_t_struct
-          check_auxillary_c_functions
+          check_or_modify_auxillary_c_functions
           prepare_auxillary_c_functions
-          @statements[1..-1].each do |stmt|
+          detach_auxillary_c_functions_from_statements
+          @statements[1..-1].each do |stmt| # 0th stmt is the data struct
             if ruby_method_or_c_func?(stmt)
               rewrite_method_with_data_fetching stmt
             end
             stmt.analyse_statement @scope
           end
-
-          detach_auxillary_c_functions_from_statements
+          analyse_auxillary_c_functions
         end
 
         def generate_code code
           write_auxillary_c_functions code
           write_data_type_t_struct code
+          write_get_struct_c_function code
+          write_alloc_c_function code
           super
         end
 
       private
+        def analyse_auxillary_c_functions
+          @auxillary_c_functions.each_value do |func|
+            func.analyse_statement(@scope)
+          end
+        end
 
         def detach_auxillary_c_functions_from_statements
           @auxillary_c_functions = {}
@@ -360,10 +368,8 @@ module Rubex
         end
 
         def write_auxillary_c_functions code
-          write_alloc_c_function code
           write_dealloc_c_function code
           write_memcount_c_function code
-          write_get_struct_c_function code
         end
 
         def write_alloc_c_function code
@@ -377,14 +383,25 @@ module Rubex
             code.block do
               lines = ""
               lines << "#{@data_struct.entry.c_name} *data;\n\n"
-              lines << "return TypedDataMakeStruct("
+
+              lines << "data = (#{@data_struct.entry.c_name}*)xmalloc("
+              lines << "sizeof(#{@data_struct.entry.c_name}));\n"
+
+              lines << member_struct_allocations
+
+              lines << "return TypedData_Wrap_Struct("
               lines << "#{@alloc_c_func.type.arg_list[0].entry.c_name},"
-              lines << "#{@data_struct.entry.c_name}, &#{@data_type_t},"
-              lines << "data);"
+              lines << "&#{@data_type_t}, data);\n"
 
               code << lines
             end
           end
+        end
+
+        #TODO: modify for supporting inheritance
+        def member_struct_allocations
+          c_name = @scope.find(@attached_type).c_name
+          "data->#{Rubex::POINTER_PREFIX + @attached_type} = (#{c_name}*)xmalloc(sizeof(#{c_name}));\n"
         end
 
         def write_dealloc_c_function code
@@ -422,7 +439,7 @@ module Rubex
             code.block do
               lines = ""
               lines << "#{@data_struct.entry.c_name} *data;\n\n"
-              lines << "TypedDataGetStruct("
+              lines << "TypedData_Get_Struct("
               lines << "#{@get_struct_c_func.type.arg_list[0].entry.c_name}, "
               lines << "#{@data_struct.entry.c_name}, &#{@data_type_t}, data);\n"
               lines << "return data;\n"
@@ -456,8 +473,8 @@ module Rubex
         # TODO: support inherited attached structs.
         def declarations_for_data_struct
           stmts = []
-          stmts << Statement::VarDecl.new(@attached_type, @attached_type, nil,
-            @location)
+          stmts << Statement::CPtrDecl.new(@attached_type, @attached_type, nil, 
+            "*", @location)
 
           stmts
         end
@@ -478,8 +495,8 @@ module Rubex
         end
 
         def rewrite_method_with_data_fetching stmt
-          data_stmt = Statement::VarDecl.new(@data_struct.name, 'data', 
-            get_struct_func_call(stmt), @location)
+          data_stmt = Statement::CPtrDecl.new(@data_struct.name, 'data', 
+            get_struct_func_call(stmt), "*", @location)
           stmt.statements.unshift data_stmt
         end
 
@@ -520,11 +537,11 @@ module Rubex
             scope = Rubex::SymbolTable::Scope::Local.new(MEMCOUNT_FUNC_NAME, @scope)
             arg = Statement::ArgumentList.new([
               Statement::ArgDeclaration.new({ 
-                dtype: "#{@data_struct.name}", 
+                dtype: "void", 
                 variables: [
                     {
                       ptr_level: "*",
-                      ident: "data"
+                      ident: "raw_data"
                     }
                   ]
                 })
@@ -549,7 +566,7 @@ module Rubex
                 variables: [
                     {
                       ptr_level: "*",
-                      ident: "arg"
+                      ident: "raw_data"
                     }
                   ]
                 })
@@ -581,23 +598,25 @@ module Rubex
               ])
             arg.analyse_statement(scope)
             type = Rubex::DataType::CFunction.new(
-              GET_STRUCT_FUNC_NAME, c_name, arg, 
-              DataType::CPtr.new(
-                DataType::CStructOrUnion.new(
-                  :struct, @data_struct.name, @data_struct.entry.c_name, nil))
+              GET_STRUCT_FUNC_NAME, c_name, arg,
+                DataType::CPtr.new(
+                  DataType::CStructOrUnion.new(
+                    :struct, @data_struct.name, @data_struct.entry.c_name, nil)
+                )
               )
             @get_struct_c_func = @scope.add_c_method(name: GET_STRUCT_FUNC_NAME,
               c_name: c_name, type: type)
           end
         end
 
-        def check_auxillary_c_functions
+        def check_or_modify_auxillary_c_functions
           @statements.each do |stmt|
             if stmt.is_a?(CFunctionDef)
               if stmt.name == ALLOC_FUNC_NAME
                 @user_defined_alloc = true
               elsif stmt.name == DEALLOC_FUNC_NAME
                 @user_defined_dealloc = true
+                modify_dealloc_func stmt
               elsif stmt.name == MEMCOUNT_FUNC_NAME
                 @user_defined_memcount = true
               elsif stmt.name == GET_STRUCT_FUNC_NAME
@@ -605,6 +624,25 @@ module Rubex
               end
             end
           end
+        end
+
+        def modify_dealloc_func func
+          func.arg_list = Statement::ArgumentList.new([
+              Statement::ArgDeclaration.new({
+                dtype: "void",
+                variables: [
+                    {
+                      ptr_level: "*",
+                      ident: "raw_data"
+                    }
+                  ]
+                })
+              ])
+          value = Expression::Name.new('raw_data')
+          value.typecast = Expression::Typecast.new(@data_struct.name, "*")
+          data_var = Statement::CPtrDecl.new(@data_struct.name, 'data', value, 
+            "*", @location)
+          func.statements.unshift data_var
         end
 
         def user_defined_dealloc?
