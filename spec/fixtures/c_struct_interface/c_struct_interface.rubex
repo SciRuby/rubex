@@ -26,11 +26,11 @@ class Music attach mp3info
   end
 
   def artist
-    return <str>data[0].mp3info[0].artist # typecast to ruby string
+    return data[0].mp3info[0].artist # typecast to ruby string
   end
 
   def title
-    return <str>data[0].mp3info[0].title # typecast to ruby string
+    return data[0].mp3info[0].title # typecast to ruby string
   end
 
   def id

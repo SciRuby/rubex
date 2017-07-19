@@ -18,7 +18,6 @@ describe Rubex do
     context ".compile", focus: true do
       it "generates valid C code" do
         t, c, e = Rubex.compile @path + ".rubex", test: true
-        puts c
       end
     end
 
@@ -29,8 +28,8 @@ describe Rubex do
           id = 44
           m = Music.new("Animals as Leaders", "CAFO", id)
 
-          # expect(m.artist).to eq("Animals as Leaders")
-          # expect(m.title) .to eq("CAFO")
+          expect(m.artist).to eq("Animals as Leaders")
+          expect(m.title) .to eq("CAFO")
           expect(m.id)    .to eq(id)
         end
       end

@@ -371,6 +371,7 @@ module Rubex
         def analyse_statement local_scope
           @expression.analyse_statement local_scope
           t = @expression.type
+
           @type =
           if t.c_function? || t.alias_type?
             t.type

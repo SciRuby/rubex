@@ -479,6 +479,11 @@ module Rubex
         arg
       end
 
+      def to_ruby_object arg
+        return "rb_str_new2(#{arg})" if @type.char?
+        arg
+      end
+
       def <=> other
         return -1
       end

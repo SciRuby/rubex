@@ -444,7 +444,7 @@ module Rubex
             entry.type.arg_list = @arg_list
           end
 
-          if method_not_within_scope local_scope
+          if method_not_within_scope? local_scope
             raise Rubex::NoMethodError, "Cannot call #{@name} from this method."
           end
 
@@ -496,7 +496,7 @@ module Rubex
         # of the compiled Rubex file are singletons or not, Rubex will assume
         # that they belong to the correct scope and will compile a call to those
         # methods anyway. Error, if any, will be caught only at runtime.
-        def method_not_within_scope local_scope
+        def method_not_within_scope? local_scope
           entry = local_scope.find @method_name
           caller_entry = local_scope.find local_scope.name
           if ( caller_entry.singleton? &&  entry.singleton?) || 
