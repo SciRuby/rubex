@@ -13,6 +13,9 @@ def structure(a, i32 b, i32 c)
     char *string
   end
 
+  struct empty_struct
+  end
+
   node n
 
   n.a = b

@@ -10,7 +10,7 @@ require 'rubex/parser.racc.rb'
 module Rubex
   class << self
     def compile path, test: false, directory: nil
-      tree = ast path
+      tree = ast path, test: test
       target_name = extract_target_name path
       code = generate_code tree, target_name
       ext = extconf target_name, directory: directory
@@ -19,17 +19,21 @@ module Rubex
       write_files target_name, code, ext, directory: directory
     end
 
-    def ast path
+    def ast path, test: false
       begin
         parser = Rubex::Parser.new
         parser.parse(path)
-        parser.do_parse        
+        parser.do_parse
       rescue Racc::ParseError => e
-        error_msg = "PARSE ERROR:\n"
-        error_msg << "Line: #{parser.string.split("\n")[parser.lineno]}\n"
-        error_msg << "Location: #{parser.location}\n"
-        error_msg << "Error:\n#{e}"
-        STDERR.puts error_msg
+        if test
+          raise Racc::ParseError, e
+        else
+          error_msg = "PARSE ERROR:\n"
+          error_msg << "Line: #{parser.string.split("\n")[parser.lineno]}\n"
+          error_msg << "Location: #{parser.location}\n"
+          error_msg << "Error:\n#{e}"
+          STDERR.puts error_msg
+        end
       end
     end
 
