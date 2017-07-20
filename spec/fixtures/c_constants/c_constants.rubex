@@ -1,0 +1,7 @@
+lib "<ruby.h>" do
+  double LONG_MAX
+end
+
+def long_max
+  return LONG_MAX
+end

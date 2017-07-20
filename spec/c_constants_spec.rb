@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Rubex do
-  test_case = "ruby_strings"
+  test_case = "c_constants"
 
   context "Case: #{test_case}" do
     before do
@@ -9,23 +9,23 @@ describe Rubex do
     end
 
     context ".ast" do
-      it "generates the AST" do
+      it "generates a valid AST" do
         t = Rubex.ast(@path + '.rubex')
       end
     end
 
-    context ".compile" do
-      it "compiles to valid C file" do
+    context ".compile", focus: true do
+      it "compiles to valid C code" do
         t,c,e = Rubex.compile(@path + '.rubex', test: true)
       end
     end
 
-    context "Black box testing" do
+    context "Black Box testing" do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.so"
 
-          expect(blank?("    ")).to eq(true)
+          expect(long_max).to eq(2147483647)
         end
       end
     end

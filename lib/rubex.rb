@@ -24,9 +24,9 @@ module Rubex
         parser = Rubex::Parser.new
         parser.parse(path)
         parser.do_parse
-      rescue Racc::ParseError => e
+      rescue StandardError => e
         if test
-          raise Racc::ParseError, e
+          raise e
         else
           error_msg = "PARSE ERROR:\n"
           error_msg << "Line: #{parser.string.split("\n")[parser.lineno]}\n"

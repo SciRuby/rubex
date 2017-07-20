@@ -377,6 +377,8 @@ class CFunctionPtrs
 end
 ```
 
+## Interfacing with C structs
+
 # Roadmap for v0.1
 
 See the [wiki](https://github.com/v0dro/rubex/wiki/Rubex-v0.1-goals) for a roadmap of Rubex for v0.1
