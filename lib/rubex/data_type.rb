@@ -14,7 +14,7 @@ module Rubex
         :cptr?, :nil_type?, :struct_or_union?,
         :alias_type?, :string?, :cstr?, :ruby_class?,
         :ruby_method?, :c_function?, :ruby_constant?, :void?,
-        :ruby_string?
+        :ruby_string?, :uchar?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -97,6 +97,26 @@ module Rubex
 
       def <=> other
         if other.char?
+          return 0
+        else
+          return 1
+        end
+      end
+    end
+
+    class UChar
+      include Helpers
+
+      def to_s; "unsigned char"; end
+
+      def from_ruby_object(arg); "(unsigned char)NUM2INT(#{arg})"; end
+
+      def p_formatter; "%d"; end
+
+      def uchar?; true; end
+
+      def <=> other
+        if other.char? || other.uchar?
           return 0
         else
           return 1

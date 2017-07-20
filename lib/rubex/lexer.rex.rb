@@ -177,6 +177,8 @@ class Rubex::Lexer
             action { [:kDTYPE_ULINT, text] }
           when text = ss.scan(/unsigned int/) then
             action { [:kDTYPE_UINT, text] }
+          when text = ss.scan(/unsigned char/) then
+            action { [:kDTYPE_UCHAR, text] }
           when text = ss.scan(/long int/) then
             action { [:kDTYPE_LINT, text] }
           when text = ss.scan(/long long int/) then

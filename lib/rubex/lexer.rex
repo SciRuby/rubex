@@ -127,6 +127,7 @@ rules
   /unsigned long long int/ { [:kDTYPE_ULLINT, text] }
   /unsigned long int/      { [:kDTYPE_ULINT, text] }
   /unsigned int/           { [:kDTYPE_UINT, text] }
+  /unsigned char/          { [:kDTYPE_UCHAR, text] }
   /long int/               { [:kDTYPE_LINT, text] }
   /long long int/          { [:kDTYPE_LLINT, text] }
   # /long double/            { [:kDTYPE_LF64, text] }

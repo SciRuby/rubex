@@ -15,6 +15,7 @@ module Rubex
 
   TYPE_MAPPINGS = {
     'char'                   => Rubex::DataType::Char,
+    'unsigned char'          => Rubex::DataType::UChar,
     'i8'                     => Rubex::DataType::Int8,
     'i16'                    => Rubex::DataType::Int16,
     'i32'                    => Rubex::DataType::Int32,

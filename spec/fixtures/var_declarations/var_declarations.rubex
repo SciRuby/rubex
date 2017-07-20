@@ -5,6 +5,7 @@ def additive(float a, u64 b, i32 qq)
   char q = 'e'
   yy = 't'
   i64 ww = -342, rew = 2342
+  unsigned char delhi = 55
 
   print q
 
