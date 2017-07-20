@@ -1,0 +1,9 @@
+def default_method(hello, bye=nil ,opts={})
+  if bye && opts[:a]
+    return 7
+  elsif opts[:a]
+    return 5
+  else
+    return opts[:a]
+  end
+end

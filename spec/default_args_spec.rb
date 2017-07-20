@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Rubex do
-  test_case = "var_declarations"
+  test_case = "default_method"
 
   context "Case: #{test_case}" do
     before do
@@ -25,7 +25,9 @@ describe Rubex do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.so"
 
-          expect(additive(1,5,2)).to be_within(0.001).of(6.6)
+          expect(default_method(1)).to be(nil)
+          expect(default_method(1, true, {a: 33})).to be(7)
+          expect(default_method(1, nil, {a: 44})).to be(5)
         end
       end
     end

@@ -4,7 +4,9 @@ end
 
 lib "csv.h" do
   struct csv_parser
-    
+  end
+
+  struct FILE
   end
 
   int CSV_STRICT_FINI
@@ -14,12 +16,12 @@ lib "csv.h" do
   int csv_fini(csv_parser, void (*cb1)(void *, size_t, void *), void (*cb2)(int, void *), void *)
   void csv_free(csv_parser *)
   int csv_error(csv_parser *)
-  const char * csv_strerror(int)
-  size_t csv_parse(csv_parser *p, const void *, size_t, void (*cb1)(void *, size_t, void *), void (*cb2)(int, void *), void *)
-  size_t csv_write(void *, size_t, const void *, size_t)
-  int csv_fwrite(FILE *, const void *, size_t)
-  size_t csv_write2(void *, size_t, const void *, size_t, unsigned char)
-  int csv_fwrite2(FILE *, const void *, size_t, unsigned char)
+  char * csv_strerror(int)
+  size_t csv_parse(csv_parser *p, void *, size_t, void (*cb1)(void *, size_t, void *), void (*cb2)(int, void *), void *)
+  size_t csv_write(void *, size_t, void *, size_t)
+  int csv_fwrite(FILE *, void *, size_t)
+  size_t csv_write2(void *, size_t, void *, size_t, unsigned char)
+  int csv_fwrite2(FILE *, void *, size_t, unsigned char)
   int csv_get_opts(csv_parser *)
   int csv_set_opts(csv_parser *, unsigned char)
   void csv_set_delim(csv_parser *, unsigned char)
@@ -28,8 +30,8 @@ lib "csv.h" do
   unsigned char csv_get_quote(csv_parser *)
   void csv_set_space_func(csv_parser *, int (*f)(unsigned char))
   void csv_set_term_func(csv_parser *, int (*f)(unsigned char))
-  void csv_set_realloc_func(csv_parser *, void *(*)(void *, size_t))
-  void csv_set_free_func(csv_parser *, void (*)(void *))
+  void csv_set_realloc_func(csv_parser *, void *(*cb)(void *, size_t))
+  void csv_set_free_func(csv_parser *, void (*cb)(void *))
   void csv_set_blk_size(csv_parser *, size_t)
   size_t csv_get_buffer_size(csv_parser *)
 end
@@ -67,7 +69,7 @@ class RcsvParseError < StandardError
 end
 
 class Rcsv
-  def self.parse(str file_name, hash opts={})
+  def self.parse(file_name, opts={})
     rcsv_metadata meta
     object csvio, options, option
     csv_parser cp

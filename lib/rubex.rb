@@ -31,7 +31,7 @@ module Rubex
           parser.do_parse
         rescue Racc::ParseError => e
           error_msg = "PARSE ERROR:\n"
-          error_msg << "Line: #{parser.string.split("\n")[parser.lineno]}\n"
+          error_msg << "Line: #{parser.string.split("\n")[parser.lineno-1]}\n"
           error_msg << "Location: #{parser.location}\n"
           error_msg << "Error:\n#{e}"
           STDERR.puts error_msg
