@@ -1,7 +1,7 @@
 lib "<ruby.h>" do
-  double LONG_MAX
+  int HAVE_RUBY_DEFINES_H
 end
 
-def long_max
-  return LONG_MAX
+def have_ruby_h
+  return HAVE_RUBY_DEFINES_H
 end

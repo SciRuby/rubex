@@ -20,14 +20,16 @@ module Rubex
     end
 
     def ast path, test: false
-      begin
+      if test
         parser = Rubex::Parser.new
         parser.parse(path)
         parser.do_parse
-      rescue StandardError => e
-        if test
-          raise e
-        else
+      else
+        begin
+          parser = Rubex::Parser.new
+          parser.parse(path)
+          parser.do_parse
+        rescue Racc::ParseError => e
           error_msg = "PARSE ERROR:\n"
           error_msg << "Line: #{parser.string.split("\n")[parser.lineno]}\n"
           error_msg << "Location: #{parser.location}\n"
