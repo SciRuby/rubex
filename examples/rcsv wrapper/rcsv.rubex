@@ -1,11 +1,10 @@
-alias size_t = int
-
 lib "stdbool.h" do
-  alias bool = bool
+  alias bool = int
 end
 
 lib "csv.h" do
   struct csv_parser
+    
   end
 
   int CSV_STRICT_FINI

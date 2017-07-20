@@ -20,9 +20,17 @@ module Rubex
     end
 
     def ast path
-      parser = Rubex::Parser.new
-      parser.parse(path)
-      parser.do_parse
+      begin
+        parser = Rubex::Parser.new
+        parser.parse(path)
+        parser.do_parse        
+      rescue Racc::ParseError => e
+        error_msg = "PARSE ERROR:\n"
+        error_msg << "Line: #{parser.string.split("\n")[parser.lineno]}\n"
+        error_msg << "Location: #{parser.location}\n"
+        error_msg << "Error:\n#{e}"
+        STDERR.puts error_msg
+      end
     end
 
     def extconf target_name, directory: nil

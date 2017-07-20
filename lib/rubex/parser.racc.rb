@@ -16,6 +16,8 @@ module Rubex
 
 module_eval(<<'...end parser.racc/module_eval...', 'parser.racc', 597)
 
+attr_reader :lineno, :location, :string
+
 def parse file_name
   @lexer = Rubex::Lexer.new
   @yydebug = true
@@ -24,12 +26,23 @@ def parse file_name
   @lexer.parse_file file_name
 end
 
-def location
-  @location
+def set_location
+  @location = @lexer.location
+end
+
+def set_string
+  @string = @lexer.ss.string
+end
+
+def set_lineno
+  @lineno = @lexer.lineno
 end
 
 def next_token
   set_location
+  set_string
+  set_lineno
+
   t = @lexer.next_token
 
   if !t.nil?
@@ -169,10 +182,6 @@ end
 
 def add_dtype_to_lexer dtype
   @custom_dtypes[dtype] = true
-end
-
-def set_location
-  @location = @lexer.location
 end
 ...end parser.racc/module_eval...
 ##### State transition tables begin ###
