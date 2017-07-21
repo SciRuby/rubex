@@ -34,6 +34,8 @@ macros
   RPAREN          /\)/
   LSQUARE         /\[/
   RSQUARE         /\]/
+  LBRACE          /{/
+  RBRACE          /}/
   NL              /\n/
   COMMA           /,/
   SQUOTE          /'/
@@ -141,6 +143,8 @@ rules
 
   /:#{IDENTIFIER}/        { [:tSYMBOL, text] }
   /#{IDENTIFIER}/         { [:tIDENTIFIER, text] }
+  /#{LBRACE}/             { [:tLBRACE, text] }
+  /#{RBRACE}/             { [:tRBRACE, text] }
   /#{LPAREN}/             { [:tLPAREN, text] }
   /#{RPAREN}/             { [:tRPAREN, text] }
   /#{LSQUARE}/            { [:tLSQUARE, text] }

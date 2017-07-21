@@ -11,7 +11,7 @@ token
   tCUSTOM_DTYPE
 
   tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON
-  EOF     tDOT    tQMARK   tSYMBOL
+  EOF     tDOT    tQMARK   tSYMBOL  tLBRACE     tRBRACE
 
   tPLUS tMINUS tSTAR tDIVIDE tEXPO      tMODULUS tASSIGN tEQ tLT tLTEQ tGT
   tGTEQ tANDOP tOROP tBANG   tOP_ASSIGN tSTRING  kSIZEOF
@@ -392,15 +392,14 @@ rule
   actual_normal_decl: tIDENTIFIER | array_ref
 
   var_init:
-    normal_decl tASSIGN expr_or_array
+    normal_decl tASSIGN expr
       {
         result = val[0]
-        result[:value] = val[2]
-      }
+        value = val[2]
 
-  expr_or_array:
-    expr
-  | tLSQUARE array_list tRSQUARE { result = val[1] }
+        value.c_array = true if value.is_a?(Expression::Literal::ArrayLit)
+        result[:value] = value
+      }
 
   opt_star:
     { result = nil }
@@ -432,6 +431,21 @@ rule
   | kNIL         { result = Expression::Literal::Nil.new 'Qnil' }
   | tSYMBOL      { result = Expression::Literal::RubySymbol.new val[0] }
   | kNULL        { result = Expression::Literal::CNull.new val[0] }
+  | tLSQUARE opt_eols array_list tRSQUARE 
+      { result = Expression::Literal::ArrayLit.new val[2] }
+  | tLBRACE opt_eols hash_data opt_eols tRBRACE
+      { result = Expression::Literal::HashLit.new val[2] }
+
+  hash_data:
+    {}
+  | hash_data_k_v { result = [val[0]] }
+  | hash_data tCOMMA opt_eols hash_data_k_v { result = [*val[0], val[3]] }
+
+  hash_data_k_v:
+    atomic_value rocket atomic_value { result = [val[0], val[2]] }
+
+  rocket:
+    tASSIGN tGT
 
   f_name:
     tIDENTIFIER tQMARK { result = "#{val[0]}#{val[1]}" }
@@ -593,6 +607,14 @@ rule
   term:
     tNL {}
   | tSCOLON
+
+  opt_eols:
+    {}
+  | eols
+
+  eols:
+    eol
+  | eols eol
 
   eol:
     tNL {result = val[0]}

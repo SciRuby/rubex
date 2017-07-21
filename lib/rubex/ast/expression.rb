@@ -229,6 +229,29 @@ module Rubex
           self.class == other.class && @name == other.name
         end
 
+        class ArrayLit
+          include Rubex::AST::Expression::Literal
+          include Enumerable
+
+          attr_accessor :c_array
+
+          def each &block
+            @array_list.each(&block)
+          end
+
+          def initialize array_list
+            @array_list = array_list
+          end
+        end
+
+        class HashLit
+          include Rubex::AST::Expression::Literal
+
+          def initialize data_hash
+            @data_hash = data_hash
+          end
+        end
+
         class RubySymbol
           include Rubex::AST::Expression::Literal
 

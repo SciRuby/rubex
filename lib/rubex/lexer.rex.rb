@@ -37,6 +37,8 @@ class Rubex::Lexer
   RPAREN            = /\)/
   LSQUARE           = /\[/
   RSQUARE           = /\]/
+  LBRACE            = /{/
+  RBRACE            = /}/
   NL                = /\n/
   COMMA             = /,/
   SQUOTE            = /'/
@@ -193,6 +195,10 @@ class Rubex::Lexer
             action { [:tSYMBOL, text] }
           when text = ss.scan(/#{IDENTIFIER}/) then
             action { [:tIDENTIFIER, text] }
+          when text = ss.scan(/#{LBRACE}/) then
+            action { [:tLBRACE, text] }
+          when text = ss.scan(/#{RBRACE}/) then
+            action { [:tRBRACE, text] }
           when text = ss.scan(/#{LPAREN}/) then
             action { [:tLPAREN, text] }
           when text = ss.scan(/#{RPAREN}/) then
