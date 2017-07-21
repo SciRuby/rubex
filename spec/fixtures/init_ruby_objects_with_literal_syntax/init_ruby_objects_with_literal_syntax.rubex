@@ -1,12 +1,13 @@
 class DataInit
   def init_this(a, b, c)
-    arr = [1,2,3,4,5,6]
-    str = "Hello world! Lets have a picnic!"
+    array = [1,2,3,4,5,6]
+    string = "Hello world! Lets have a picnic!"
     h = {
-      "hello" => arr,
+      "hello" => array,
       "world" => 666,
-      "message" => str
+      "message" => string
     }
+    emp = []
 
     print h["hello"]
 

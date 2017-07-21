@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Rubex do
-  test_case = "default_args"
+  test_case = "init_ruby_objects_with_literal_syntax"
 
   context "Case: #{test_case}" do
     before do
@@ -14,7 +14,7 @@ describe Rubex do
       end
     end
 
-    context ".compile" do
+    context ".compile", focus: true do
       it "compiles to valid C code" do
         t,c,e = Rubex.compile(@path + '.rubex', test: true)
       end
@@ -24,10 +24,14 @@ describe Rubex do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.so"
-
-          expect(default_method(1)).to be(nil)
-          expect(default_method(1, true, {a: 33})).to be(7)
-          expect(default_method(1, nil, {a: 44})).to be(5)
+          array = [1,2,3,4,5,6]
+          string = "Hello world! Lets have a picnic!"
+          h = {
+            "hello" => array,
+            "world" => 666,
+            "message" => string
+          }
+          expect(init_this).to be(h)
         end
       end
     end
