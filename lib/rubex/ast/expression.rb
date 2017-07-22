@@ -1,24 +1,26 @@
 module Rubex
   module AST
     module Expression
-      attr_accessor :typecast
+      class Base
+        attr_accessor :typecast
 
-      # If the typecast exists, the typecast is made the overall type of
-      # the expression.
-      def analyse_statement local_scope
-        if @typecast
-          @typecast.analyse_statement(local_scope) 
-          @type = @typecast.type
+        # If the typecast exists, the typecast is made the overall type of
+        # the expression.
+        def analyse_statement local_scope
+          if @typecast
+            @typecast.analyse_statement(local_scope) 
+            @type = @typecast.type
+          end
+        end
+
+        def expression?; true; end
+
+        def c_code local_scope
+          @typecast ? @typecast.c_code(local_scope) : ""
         end
       end
 
-      def expression?; true; end
-
-      def c_code local_scope
-        @typecast ? @typecast.c_code(local_scope) : ""
-      end
-
-      class Typecast
+      class Typecast < Base
         attr_reader :type
 
         def initialize dtype, ptr_level
@@ -34,8 +36,7 @@ module Rubex
         end
       end # class Typecast
 
-      class SizeOf
-        include Rubex::AST::Expression
+      class SizeOf < Base
         attr_reader :type
 
         def initialize type, ptr_level
@@ -52,8 +53,7 @@ module Rubex
         end
       end # class SizeOf
 
-      class Binary
-        include Rubex::AST::Expression
+      class Binary < Base
         include Rubex::Helpers::NodeTypeMethods
 
         attr_reader :operator
@@ -147,8 +147,7 @@ module Rubex
         end
       end # class Binary
 
-      class Unary
-        include Rubex::AST::Expression
+      class Unary < Base
         attr_reader :operator, :expr, :type
 
         def initialize operator, expr
@@ -172,8 +171,7 @@ module Rubex
         end
       end # class Unary
 
-      class ElementRef
-        include Rubex::AST::Expression
+      class ElementRef < Base
         attr_reader :entry, :pos, :type, :name
 
         def initialize name, pos
@@ -206,146 +204,7 @@ module Rubex
         end
       end # class ElementRef
 
-      module Literal
-        include Rubex::AST::Expression
-        attr_reader :name, :type
-
-        def initialize name
-          @name = name
-        end
-
-        def c_code local_scope
-          code = super
-          code << @name
-        end
-
-        def c_name
-          @name
-        end
-
-        def literal?; true; end
-
-        def == other
-          self.class == other.class && @name == other.name
-        end
-
-        class ArrayLit
-          include Rubex::AST::Expression::Literal
-          include Enumerable
-
-          attr_accessor :c_array
-
-          def each &block
-            @array_list.each(&block)
-          end
-
-          def initialize array_list
-            @array_list = array_list
-          end
-        end
-
-        class HashLit
-          include Rubex::AST::Expression::Literal
-
-          def initialize data_hash
-            @data_hash = data_hash
-          end
-        end
-
-        class RubySymbol
-          include Rubex::AST::Expression::Literal
-
-          def initialize name
-            super(name[1..-1])
-            @type = Rubex::DataType::RubySymbol.new
-          end
-
-          def c_code local_scope
-            "ID2SYM(rb_intern(\"#{@name}\"))"
-          end
-        end
-
-        class Double
-          include Rubex::AST::Expression::Literal
-
-          def initialize name
-            super
-            @type = Rubex::DataType::F64.new
-          end
-        end
-
-        class Int
-          include Rubex::AST::Expression::Literal
-
-          def initialize name
-            super
-            @type = Rubex::DataType::Int.new
-          end
-        end
-
-        class Str
-          include Rubex::AST::Expression::Literal
-
-          def initialize name
-            super
-            @type = Rubex::DataType::CStr.new
-          end
-
-          def c_code local_scope
-            "\"#{@name}\""
-          end
-        end
-
-        class Char
-          include Rubex::AST::Expression::Literal
-
-          def initialize name
-            super
-            @type = Rubex::DataType::Char.new
-          end
-        end # class Char
-
-        class True
-          include Rubex::AST::Expression::Literal
-
-          def initialize name
-            super
-            @type = Rubex::DataType::TrueType.new
-          end
-        end # class True
-
-        class False
-          include Rubex::AST::Expression::Literal
-
-          def initialize name
-            super
-            @type = Rubex::DataType::FalseType.new
-          end
-        end # class False
-
-        class Nil
-          include Rubex::AST::Expression::Literal
-
-          def initialize name
-            super
-            @type = Rubex::DataType::NilType.new
-          end
-        end # class Nil
-
-        class CNull
-          include Rubex::AST::Expression::Literal
-
-          def initialize name
-            # Rubex treats NULL's dtype as void*
-            super
-            @type = Rubex::DataType::CPtr.new(Rubex::DataType::Void.new)
-          end
-        end # class CNull
-      end # module Literal
-
-      class Self
-        include Rubex::AST::Expression
-
+      class Self < Base
         def c_code local_scope
           local_scope.self_name
         end
@@ -353,9 +212,9 @@ module Rubex
         def type
           Rubex::DataType::RubyObject.new
         end
-      end
+      end # class Self
 
-      class RubyConstant
+      class RubyConstant < Base
         include Rubex::AST::Expression
         attr_reader :name, :entry
 
@@ -379,8 +238,7 @@ module Rubex
       end # class RubyConstant
 
       # Singular name node with no sub expressions.
-      class Name
-        include Rubex::AST::Expression
+      class Name < Base
         attr_reader :name, :entry, :type
 
         def initialize name
@@ -444,8 +302,7 @@ module Rubex
         end
       end # class Name
 
-      class MethodCall
-        include Rubex::AST::Expression
+      class MethodCall < Base
         attr_reader :method_name, :type
 
         def initialize method_name, invoker, arg_list
@@ -574,8 +431,7 @@ module Rubex
         end
       end # class MethodCall
 
-      class CommandCall
-        include Rubex::AST::Expression
+      class CommandCall < Base
         attr_reader :expr, :command, :arg_list, :type
 
         def initialize expr, command, arg_list
@@ -638,6 +494,123 @@ module Rubex
           @type = @command.type
         end
       end # class CommandCall
+
+      module Literal
+        class Base
+          attr_reader :name, :type
+
+          def initialize name
+            @name = name
+          end
+
+          def c_code local_scope
+            code = super
+            code << @name
+          end
+
+          def c_name
+            @name
+          end
+
+          def literal?; true; end
+
+          def == other
+            self.class == other.class && @name == other.name
+          end
+        end
+
+        class ArrayLit < Literal::Base
+          include Enumerable
+
+          attr_accessor :c_array
+
+          def each &block
+            @array_list.each(&block)
+          end
+
+          def initialize array_list
+            @array_list = array_list
+          end
+        end
+
+        class HashLit < Literal::Base
+          def initialize data_hash
+            @data_hash = data_hash
+          end
+        end
+
+        class RubySymbol < Literal::Base
+          def initialize name
+            super(name[1..-1])
+            @type = Rubex::DataType::RubySymbol.new
+          end
+
+          def c_code local_scope
+            "ID2SYM(rb_intern(\"#{@name}\"))"
+          end
+        end
+
+        class Double < Literal::Base
+          def initialize name
+            super
+            @type = Rubex::DataType::F64.new
+          end
+        end
+
+        class Int < Literal::Base
+          def initialize name
+            super
+            @type = Rubex::DataType::Int.new
+          end
+        end
+
+        class Str < Literal::Base
+          def initialize name
+            super
+            @type = Rubex::DataType::CStr.new
+          end
+
+          def c_code local_scope
+            "\"#{@name}\""
+          end
+        end
+
+        class Char < Literal::Base
+          def initialize name
+            super
+            @type = Rubex::DataType::Char.new
+          end
+        end # class Char
+
+        class True < Literal::Base
+          def initialize name
+            super
+            @type = Rubex::DataType::TrueType.new
+          end
+        end # class True
+
+        class False < Literal::Base
+          def initialize name
+            super
+            @type = Rubex::DataType::FalseType.new
+          end
+        end # class False
+
+        class Nil < Literal::Base
+          def initialize name
+            super
+            @type = Rubex::DataType::NilType.new
+          end
+        end # class Nil
+
+        class CNull < Literal::Base
+          def initialize name
+            # Rubex treats NULL's dtype as void*
+            super
+            @type = Rubex::DataType::CPtr.new(Rubex::DataType::Void.new)
+          end
+        end # class CNull
+      end # module Literal
     end # module Expression
   end # module AST
 end # module Rubex

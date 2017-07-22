@@ -1,27 +1,30 @@
+include Rubex::DataType
+
 module Rubex
   module AST
     module Statement
-      include Rubex::Helpers::NodeTypeMethods
-      include Rubex::DataType
+      class Base
+        include Rubex::Helpers::NodeTypeMethods
 
-      # File name and line number of statement in "file_name:lineno" format.
-      attr_reader :location
+        # File name and line number of statement in "file_name:lineno" format.
+        attr_reader :location
 
-      def initialize location
-        @location = location
-      end
+        def initialize location
+          @location = location
+        end
 
-      def statement?; true; end
+        def statement?; true; end
 
-      def == other
-        self.class == other.class
-      end
+        def == other
+          self.class == other.class
+        end
 
-      def generate_code code, local_scope
-        code.write_location @location
-      end
+        def generate_code code, local_scope
+          code.write_location @location
+        end
+      end # class Base
 
-      class CBaseType
+      class CBaseType < Base
         attr_reader :type, :name, :value
 
         def initialize type, name, value=nil
@@ -40,8 +43,7 @@ module Rubex
         end
       end # class CBaseType
 
-      class VarDecl
-        include Rubex::AST::Statement
+      class VarDecl < Base
         # The name with which this particular variable can be identified with
         #   in the symbol table.
         attr_reader :name
@@ -84,9 +86,7 @@ module Rubex
         end
       end
 
-      class CPtrDecl
-        include Rubex::AST::Statement
-
+      class CPtrDecl < Base
         attr_reader :entry
 
         # type - Specifies the type of the pointer. Is a string in case of a
@@ -130,8 +130,7 @@ module Rubex
         end
       end
 
-      class CArrayDecl
-        include Rubex::AST::Statement
+      class CArrayDecl < Base
         attr_reader :type, :array_list, :name, :dimension
 
         def initialize type, array_ref, array_list, location
@@ -182,8 +181,7 @@ module Rubex
         end
       end # class CArrayDecl
 
-      class CStructOrUnionDef
-        include Rubex::AST::Statement
+      class CStructOrUnionDef < Base
         attr_reader :name, :declarations, :type, :kind, :entry
 
         def initialize kind, name, declarations, location
@@ -229,8 +227,7 @@ module Rubex
         end
       end
 
-      class ForwardDecl
-        include Rubex::AST::Statement
+      class ForwardDecl < Base
         attr_reader :kind, :name, :type, :c_name
 
         def initialize kind, name, location
@@ -260,9 +257,7 @@ module Rubex
         end
       end # class ForwardDecl
 
-      class Print
-        include Rubex::AST::Statement
-
+      class Print < Base
         # An Array containing expressions that are passed to the print statement.
         #   Can either contain a single string containing interpolated exprs or
         #   a set of comma separated exprs. For example, the print statement can
@@ -359,8 +354,7 @@ module Rubex
         end
       end # class Print
 
-      class Return
-        include Rubex::AST::Statement
+      class Return < Base
         attr_reader :expression, :type
 
         def initialize expression, location
@@ -395,8 +389,7 @@ module Rubex
         end
       end # class Return
 
-      class Assign
-        include Rubex::AST::Statement
+      class Assign < Base
         attr_reader :lhs, :rhs
 
         def initialize lhs, rhs, location
@@ -470,7 +463,7 @@ module Rubex
         end
       end # class Assign
 
-      class IfBlock
+      class IfBlock < Base
         module Helper
           def analyse_statement local_scope
             @expr.analyse_statement(local_scope)
@@ -512,7 +505,6 @@ module Rubex
         end # module Helper
 
         attr_reader :expr, :statements, :if_tail
-        include Rubex::AST::Statement
         include Rubex::AST::Statement::IfBlock::Helper
 
         def initialize expr, statements, if_tail, location
@@ -524,9 +516,8 @@ module Rubex
           generate_code_for_statement "if", code, local_scope
         end
 
-        class Elsif
+        class Elsif < Base
           attr_reader :expr, :statements, :if_tail
-          include Rubex::AST::Statement
           include Rubex::AST::Statement::IfBlock::Helper
 
           def initialize expr, statements, if_tail, location
@@ -539,9 +530,8 @@ module Rubex
           end
         end # class Elsif
 
-        class Else
+        class Else < Base
           attr_reader :statements
-          include Rubex::AST::Statement
           include Rubex::AST::Statement::IfBlock::Helper
 
           def initialize statements, location
@@ -561,8 +551,7 @@ module Rubex
         end # class Else
       end # class IfBlock
 
-      class For
-        include Rubex::AST::Statement
+      class For < Base
         attr_reader :left_expr, :left_op, :middle, :right_op, :right_expr,
                     :statements, :order
 
@@ -619,8 +608,7 @@ module Rubex
         end
       end # class For
 
-      class While
-        include Rubex::AST::Statement
+      class While < Base
         attr_reader :expr, :statements
 
         def initialize expr, statements, location
@@ -646,8 +634,7 @@ module Rubex
         end
       end # class While
 
-      class Alias
-        include Rubex::AST::Statement
+      class Alias < Base
         attr_reader :new_name, :type, :old_name
 
         def initialize new_name, old_name, location
@@ -687,8 +674,7 @@ module Rubex
         end
       end # class Alias
 
-      class Expression
-        include Rubex::AST::Statement
+      class Expression < Base
         attr_reader :expr
         attr_accessor :typecast
 
@@ -708,8 +694,7 @@ module Rubex
         end
       end # class Expression
 
-      class CFunctionDecl
-        include Rubex::AST::Statement
+      class CFunctionDecl < Base
         attr_reader :entry
 
         def initialize type, return_ptr_level, name, arg_list
@@ -732,8 +717,7 @@ module Rubex
         end
       end # class CFunctionDecl
 
-      class ArgDeclaration
-        include Rubex::AST::Statement
+      class ArgDeclaration < Base
         attr_reader :entry, :type
 
         # data_hash - a Hash containing data about the variable.
@@ -781,8 +765,7 @@ module Rubex
       end # class ArgDeclaration
 
       # This node is used for both formal and actual arguments of functions/methods.
-      class ArgumentList
-        include Rubex::AST::Statement
+      class ArgumentList < Base
         include Enumerable
 
         # args - [ArgDeclaration]
