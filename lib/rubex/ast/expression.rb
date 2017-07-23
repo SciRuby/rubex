@@ -18,6 +18,10 @@ module Rubex
         def c_code local_scope
           @typecast ? @typecast.c_code(local_scope) : ""
         end
+
+        def to_ruby_object
+          ToRubyObject.new self
+        end
       end
 
       class Typecast < Base
@@ -289,6 +293,12 @@ module Rubex
           super
         end
 
+        def generate_assignment_code rhs, code, local_scope
+          code << "#{self.c_code(local_scope)} = #{rhs.c_code(local_scope)}"
+          code.nl
+          rhs.generate_disposal_code code
+        end
+
         def c_code local_scope
           code = super
           if @entry.type.ruby_method? || @entry.type.c_function? ||
@@ -495,8 +505,19 @@ module Rubex
         end
       end # class CommandCall
 
+      # internal node for converting to ruby object.
+      class ToRubyObject < Base
+        def initialize expr
+          @expr = expr
+        end
+
+        def c_code local_scope
+          "#{@expr.type.to_ruby_object(@expr.c_code(local_scope))}"
+        end
+      end
+
       module Literal
-        class Base
+        class Base < Rubex::AST::Expression::Base
           attr_reader :name, :type
 
           def initialize name
@@ -530,6 +551,34 @@ module Rubex
 
           def initialize array_list
             @array_list = array_list
+          end
+
+          def analyse_statement local_scope
+            @type = DataType::RubyObject.new
+            @c_code = local_scope.allocate_temp @type
+            @array_list.each do |e|
+              e.analyse_statement local_scope
+              e = e.to_ruby_object
+            end
+            local_scope.release_temp @c_code
+          end
+
+          def generate_evaluation_code code, local_scope
+            code << "#{@result_code} = rb_ary_new_2(#{@array_list.size});"
+            code.nl
+            @array_list.each do |e|
+              code <<"rb_ary_push(#{@result_code}, #{e.c_code(local_scope)});"
+              code.nl
+            end
+          end
+
+          def generate_disposal_code code
+            code << "#{@result_code} = 0;"
+            code.nl
+          end
+
+          def c_code local_scope
+            @result_code
           end
         end
 

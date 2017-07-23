@@ -406,12 +406,18 @@ rule
   | opt_star tSTAR { result = val.join }
 
   array_list:
-    {}
+    { result = [] }
   | expr { result = [*val[0]] }
   | array_list tCOMMA expr { result = [*val[0], val[2]] }
 
   normal_init:
-    tIDENTIFIER tASSIGN expr { result = { name: val[0], value: val[2] } }
+    tIDENTIFIER tASSIGN expr 
+      { 
+        result = { 
+          name: Expression::Name.new(val[0]),
+          value: val[2]
+        } 
+      }
   | array_ref tASSIGN expr   { result = { name: val[0], value: val[2] } }
   | method_or_attr tASSIGN expr
     {

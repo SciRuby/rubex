@@ -15,6 +15,8 @@ module Rubex
       attr_accessor :ruby_method_entries
       attr_accessor :ruby_constant_entries
       attr_accessor :self_name
+      attr_accessor :temp_entries
+      attr_accessor :free_temp_entries
       attr_reader   :klass_name, :name
 
       def initialize outer_scope=nil
@@ -33,6 +35,9 @@ module Rubex
         @ruby_constant_entries = []
         @self_name = ""
         @klass_name = ""
+        @temp_entries = []
+        @free_temp_entries = []
+        @temp_counter = 0
       end
 
       def check_entry name
@@ -120,6 +125,28 @@ module Rubex
         @ruby_method_entries << entry unless extern
 
         entry
+      end
+
+      # allocate a temp and return its c_name
+      def allocate_temp type
+        if @free_temp_entries.empty?
+          @temp_counter += 1
+          c_name = Rubex::TEMP_PREFIX + @temp_counter.to_s
+          entry = Rubex::SymbolTable::Entry.new c_name, c_name, type, 
+            Expression::Literal::CNull.new('NULL')
+          @entries[c_name] = entry
+          @temp_entries << entry
+        else
+          entry = @free_temp_entries.pop
+          c_name = entry.c_name
+        end
+
+        c_name
+      end
+
+      # release a temp of name 'c_name' for reuse
+      def release_temp c_name
+        @free_temp_entries << @entries[c_name]
       end
 
       def [] entry

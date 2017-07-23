@@ -399,19 +399,19 @@ module Rubex
 
         def analyse_statement local_scope
           # LHS symbol has been declared.
-          @rhs.analyse_statement(local_scope) if @rhs.is_a? Rubex::AST::Expression
+          @rhs.analyse_statement(local_scope) if @rhs.is_a? Rubex::AST::Expression::Base
 
           # FIXME: @lhs is always going to be Expression. How to remove this conditional?
-          if @lhs.is_a? Rubex::AST::Expression
+          if @lhs.is_a? Rubex::AST::Expression::Base
             @lhs.analyse_statement(local_scope)
           elsif local_scope.has_entry? @lhs
-            @lhs = local_scope[@lhs]
+            @lhs_entry = local_scope[@lhs]
           else
             # If LHS is not found in the symtab assume that its a Ruby object
             #   being assigned.
             local_scope.add_ruby_obj(name: @lhs,
               c_name: Rubex::VAR_PREFIX + @lhs, value: @rhs)
-            @lhs = local_scope[@lhs]
+            @lhs_entry = local_scope[@lhs]
             @ruby_obj_init = true
           end
         end
@@ -420,13 +420,16 @@ module Rubex
           super
           if @lhs.is_a?(AST::Expression::ElementRef) && @lhs.type.object?
             generate_code_for_ruby_element_assign code, local_scope
+          elsif @lhs.type.object? && @rhs.is_a?(AST::Expression::Literal::ArrayLit)
+            @rhs.generate_evaluation_code code, local_scope
+            @lhs.generate_assignment_code @rhs, code, local_scope
           else
             generate_code_for_element_assign code, local_scope
           end
         end
 
         def generate_code_for_ruby_element_assign code, local_scope
-          args = [@lhs.pos,@rhs].map do |arg|
+          args = [@lhs_entry.pos,@rhs].map do |arg|
             "#{arg.type.to_ruby_object(arg.c_code(local_scope))}"
           end.join(",")
           code << "rb_funcall(#{@lhs.entry.c_name}, rb_intern(\"[]=\"), 2, #{args});"
@@ -434,7 +437,7 @@ module Rubex
         end
 
         def generate_code_for_element_assign code, local_scope
-          str = "#{@lhs.c_code(local_scope)} = "
+          str = "#{@lhs_entry.c_code(local_scope)} = "
           if @ruby_obj_init
             if @rhs.is_a?(Rubex::AST::Expression::Literal::Char)
               str << "#{@rhs.type.to_ruby_object(@rhs.c_code(local_scope), true)}"
@@ -443,7 +446,7 @@ module Rubex
             end
           else
             rt = @rhs.type
-            lt = @lhs.type
+            lt = @lhs_entry.type
             if lt.cptr? && lt.type.char? && @rhs.type.object?
               # FIXME: This should happen only if object is declared as Ruby string.
               str << "StringValueCStr(#{@rhs.c_code(local_scope)})"

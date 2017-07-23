@@ -1,6 +1,7 @@
 module Rubex
   RUBEX_PREFIX = "__rubex_"
 
+  TEMP_PREFIX = RUBEX_PREFIX + "temp_"
   RUBY_FUNC_PREFIX = RUBEX_PREFIX + "rb_f_"
   C_FUNC_PREFIX = RUBEX_PREFIX + "c_f_"
   VAR_PREFIX  = RUBEX_PREFIX + "v_"
