@@ -28,6 +28,15 @@ module Rubex
       def from_ruby_object(arg); arg; end
 
       def base_type; self; end
+
+      # Helper function to know if a dtype is a char pointer.
+      def char_ptr?
+        if self.cptr? && self.base_type.char?
+          true
+        else
+          false
+        end
+      end
     end
 
     module IntHelpers

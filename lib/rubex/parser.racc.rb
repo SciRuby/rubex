@@ -1970,7 +1970,7 @@ module_eval(<<'.,.,', 'parser.racc', 432)
 
 module_eval(<<'.,.,', 'parser.racc', 433)
   def _reduce_106(val, _values, result)
-     result = Expression::Literal::Str.new val[0] 
+     result = Expression::Literal::StringLit.new val[0] 
     result
   end
 .,.,

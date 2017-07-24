@@ -145,10 +145,9 @@ module Rubex
         end
 
         def init_variable code, var
+          rhs = rhs.to_ruby_object if var.value.type.object?
+          var.value.generate_evaluation_code code, @scope
           rhs = var.value.c_code(@scope)
-          if var.value.type.object?
-            rhs = "#{var.type.from_ruby_object(rhs)}"
-          end
           rhs = "(#{var.type.to_s})(#{rhs})"
           lhs = var.c_name
 

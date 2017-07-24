@@ -109,7 +109,7 @@ module Rubex
               Helpers.determine_dtype(@type[:dtype], ident[:return_ptr_level]))
           end
           @type = Helpers.determine_dtype @type, @ptr_level
-          @value.analyse_statement(local_scope) if @value
+          @value.analyse_for_target_type(@type, local_scope) if @value
 
           @entry = local_scope.declare_var name: @name, c_name: c_name,
             type: @type, value: @value, extern: extern
@@ -398,29 +398,20 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          # LHS symbol has been declared.
-          @rhs.analyse_statement(local_scope) if @rhs.is_a? Rubex::AST::Expression::Base
-
-          # FIXME: @lhs is always going to be Expression. How to remove this conditional?
-          if @lhs.is_a? Rubex::AST::Expression::Base
-            @lhs.analyse_statement(local_scope)
-          elsif local_scope.has_entry? @lhs
-            @lhs_entry = local_scope[@lhs]
+          if @lhs.is_a?(Rubex::AST::Expression::Name)
+            @lhs.analyse_declaration @rhs, local_scope
           else
-            # If LHS is not found in the symtab assume that its a Ruby object
-            #   being assigned.
-            local_scope.add_ruby_obj(name: @lhs,
-              c_name: Rubex::VAR_PREFIX + @lhs, value: @rhs)
-            @lhs_entry = local_scope[@lhs]
-            @ruby_obj_init = true
+            @lhs.analyse_statement(local_scope)
           end
+          @lhs_entry = local_scope[@lhs.name]
+          @rhs.analyse_for_target_type(@lhs_entry.type, local_scope)
         end
 
         def generate_code code, local_scope
           super
-          if @lhs.is_a?(AST::Expression::ElementRef) && @lhs.type.object?
+          if @lhs.is_a?(AST::Expression::ElementRef) && @lhs_entry.type.object?
             generate_code_for_ruby_element_assign code, local_scope
-          elsif @lhs.type.object? && @rhs.is_a?(AST::Expression::Literal::ArrayLit)
+          elsif @lhs_entry.type.object? && @rhs.is_a?(AST::Expression::Literal::Base)
             @rhs.generate_evaluation_code code, local_scope
             @lhs.generate_assignment_code @rhs, code, local_scope
           else

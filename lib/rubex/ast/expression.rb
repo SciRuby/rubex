@@ -4,6 +4,13 @@ module Rubex
       class Base
         attr_accessor :typecast
 
+        # In case an expr has to be of a certain type, like a string literal
+        #   assigned to a char*, this method will analyse the literal in context
+        #   to the target dtype.
+        def analyse_for_target_type target_type, local_scope
+          analyse_statement local_scope
+        end
+
         # If the typecast exists, the typecast is made the overall type of
         # the expression.
         def analyse_statement local_scope
@@ -21,6 +28,10 @@ module Rubex
 
         def to_ruby_object
           ToRubyObject.new self
+        end
+
+        def from_ruby_object
+          FromRubyObject.new self
         end
       end
 
@@ -247,6 +258,17 @@ module Rubex
 
         def initialize name
           @name = name
+        end
+
+        def analyse_declaration rhs, local_scope
+          @entry = local_scope.find @name
+
+          unless @entry
+            local_scope.add_ruby_obj(name: @name,
+              c_name: Rubex::VAR_PREFIX + @name, value: @rhs)
+            @entry = local_scope[@name]
+            @ruby_obj_init = true
+          end
         end
 
         # Analyse a Name node. This can either be a variable name or a method call
@@ -516,6 +538,17 @@ module Rubex
         end
       end
 
+      # internal node for converting from ruby object.
+      class FromRubyObject < Base
+        def initialize expr
+          @expr = expr
+        end
+
+        def c_code local_scope
+          "#{@expr.type.from_ruby_object(@expr.c_code(local_scope))}"
+        end
+      end
+
       module Literal
         class Base < Rubex::AST::Expression::Base
           attr_reader :name, :type
@@ -556,29 +589,29 @@ module Rubex
           def analyse_statement local_scope
             @type = DataType::RubyObject.new
             @c_code = local_scope.allocate_temp @type
-            @array_list.each do |e|
+            @array_list.map! do |e|
               e.analyse_statement local_scope
-              e = e.to_ruby_object
+              e.to_ruby_object
             end
             local_scope.release_temp @c_code
           end
 
           def generate_evaluation_code code, local_scope
-            code << "#{@result_code} = rb_ary_new_2(#{@array_list.size});"
+            code << "#{@c_code} = rb_ary_new_2(#{@array_list.size});"
             code.nl
             @array_list.each do |e|
-              code <<"rb_ary_push(#{@result_code}, #{e.c_code(local_scope)});"
+              code <<"rb_ary_push(#{@c_code}, #{e.c_code(local_scope)});"
               code.nl
             end
           end
 
           def generate_disposal_code code
-            code << "#{@result_code} = 0;"
+            code << "#{@c_code} = 0;"
             code.nl
           end
 
           def c_code local_scope
-            @result_code
+            @c_code
           end
         end
 
@@ -613,14 +646,43 @@ module Rubex
           end
         end
 
-        class Str < Literal::Base
+        class StringLit < Literal::Base
           def initialize name
-            super
-            @type = Rubex::DataType::CStr.new
+            super           
+          end
+
+          def analyse_for_target_type target_type, local_scope
+            if target_type.char_ptr?
+              @type = Rubex::DataType::CStr.new
+            elsif target_type.object?
+              @type = Rubex::DataType::RubyString.new
+              analyse_statement local_scope
+            else
+              raise Rubex::TypeError, "Cannot assign #{target_type} to string."
+            end
+          end
+
+          def analyse_statement local_scope
+            @c_code = local_scope.allocate_temp @type
+            local_scope.release_temp @c_code
+          end
+
+          def generate_evaluation_code code, local_scope
+            if @type.cstr?
+              @c_code = "\"#{@name}\""
+            else
+              code << "#{@c_code} = rb_str_new2(\"#{@name}\");"
+              code.nl
+            end
+          end
+
+          def generate_disposal_code code
+            code << "#{@c_code} = 0;"
+            code.nl
           end
 
           def c_code local_scope
-            "\"#{@name}\""
+            @c_code
           end
         end
 
