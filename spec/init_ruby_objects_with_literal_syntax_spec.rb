@@ -17,11 +17,10 @@ describe Rubex do
     context ".compile", focus: true do
       it "compiles to valid C code" do
         t,c,e = Rubex.compile(@path + '.rubex', test: true)
-        puts c
       end
     end
 
-    context "Black Box testing" do
+    context "Black Box testing", focus: true  do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.so"
@@ -32,7 +31,7 @@ describe Rubex do
             "world" => 666,
             "message" => string
           }
-          expect(init_this).to be(h)
+          expect(DataInit.new.init_this(1,2,2)).to eq(h)
         end
       end
     end

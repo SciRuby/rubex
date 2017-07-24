@@ -111,6 +111,7 @@ module Rubex
           declare_vars code, @scope
           declare_carrays code, @scope
           declare_ruby_objects code, @scope
+          declare_temps code, @scope
           generate_arg_checking code unless c_function
           init_args code unless c_function
           init_vars code

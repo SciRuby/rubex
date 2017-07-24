@@ -1,6 +1,5 @@
 class DataInit
   def init_this(a, b, c)
-    char *s = "hi!"
     array = [1,2,3,4,5,6]
     string = "Hello world! Lets have a picnic!"
     h = {
@@ -10,8 +9,8 @@ class DataInit
     }
     emp = []
 
-   # print h["hello"]
+    print h["hello"]
 
-    return array
+    return h
   end
 end

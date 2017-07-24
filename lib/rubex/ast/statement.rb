@@ -279,19 +279,24 @@ module Rubex
         end
 
         def generate_code code, local_scope
-          # if @expressions.size == 1 && @expressions[0].type.cstr?
-          #   exprs = resolve_cstring_interpolations_if_any
-          #   #TODO: figure out a way to parse the individual strings into AST nodes.
-          # else
           super
+          @expressions.each do |expr|
+            expr.generate_evaluation_code code, local_scope
+          end
+
           str = "printf("
           str << "\"#{prepare_format_string}\""
           @expressions.each do |expr|
             str << ", #{inspected_expr(expr, local_scope)}"
           end
           str << ");"
-
           code << str
+          code.nl
+
+          @expressions.each do |expr|
+            expr.generate_disposal_code code
+          end
+          
           code.nl
         end
 
@@ -315,7 +320,7 @@ module Rubex
           format_string
         end
 
-        # Method not currently in use. Will be after string interpolation using
+        # FIXME: Method not currently in use. Will be after string interpolation using
         # a Ruby-like #{} syntax is figured out.
         def resolve_cstring_interpolations_if_any
           string = @expressions[0].name

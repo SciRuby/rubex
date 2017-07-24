@@ -45,6 +45,12 @@ module Rubex
     end
 
     module Writers
+      def declare_temps code, scope
+        scope.temp_entries.each do |var|
+          code.declare_variable type: var.type.to_s, c_name: var.c_name
+        end  
+      end
+
       def declare_vars code, scope
         scope.var_entries.each do |var|
           if var.type.base_type.c_function?

@@ -35,7 +35,7 @@ module Rubex
         end
 
         def generate_evaluation_code code, local_scope
-          c_code(local_scope)
+          
         end
 
         def generate_disposal_code code
@@ -214,15 +214,23 @@ module Rubex
           end
 
           @type = @entry.type.object? ? @entry.type : @entry.type.type
+          @pos = @pos.to_ruby_object if @type.object?
           super(local_scope)
+        end
+
+        def generate_evaluation_code code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+        end
+
+        def generate_disposal_code code
+          @pos.generate_disposal_code code
         end
 
         def c_code local_scope
           code = super
-          pos_code = @pos.c_code(local_scope)
           if @type.object?
-            pos_code = @pos.type.to_ruby_object(pos_code)
-            code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, #{pos_code})"
+            code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
+            code << "#{@pos.c_code(local_scope)})"
           else
             code << "#{@entry.c_name}[#{pos_code}]"
           end
@@ -621,7 +629,7 @@ module Rubex
           end
 
           def generate_evaluation_code code, local_scope
-            code << "#{@c_code} = rb_ary_new_2(#{@array_list.size});"
+            code << "#{@c_code} = rb_ary_new2(#{@array_list.size});"
             code.nl
             @array_list.each do |e|
               code <<"rb_ary_push(#{@c_code}, #{e.c_code(local_scope)});"
@@ -653,7 +661,6 @@ module Rubex
               [k.to_ruby_object, v.to_ruby_object]
             end
 
-            ap @key_val_pairs
             local_scope.release_temp @c_code
           end
 
@@ -664,7 +671,7 @@ module Rubex
               k.generate_evaluation_code(code, local_scope)
               v.generate_evaluation_code(code, local_scope)
 
-              code << "rb_hash_new_element(#{@c_code}, #{k.c_code(local_scope)}, "
+              code << "rb_hash_aset(#{@c_code}, #{k.c_code(local_scope)}, "
               code << "#{v.c_code(local_scope)});"
               code.nl
 
@@ -675,7 +682,7 @@ module Rubex
           end
 
           def generate_disposal_code code
-            code << "#{@c_code} = 0"
+            code << "#{@c_code} = 0;"
             code.nl
           end
 
@@ -726,6 +733,7 @@ module Rubex
           end
 
           def analyse_statement local_scope
+            @type = Rubex::DataType::RubyString.new unless @type
             @c_code = local_scope.allocate_temp @type
             local_scope.release_temp @c_code
           end
