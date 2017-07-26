@@ -147,13 +147,19 @@ module Rubex
 
         def init_variable code, var
           rhs = var.value
-          rhs = rhs.to_ruby_object if var.value.type.object?
-          var.value.generate_evaluation_code code, @scope
-          rhs = var.value.c_code(@scope)
-          rhs = "(#{var.type.to_s})(#{rhs})"
+          rhs =
+          if var.type.object?
+            rhs.to_ruby_object
+          elsif rhs.type.object? && !var.type.object?
+            rhs.from_ruby_object(var)
+          else
+            rhs
+          end
+          rhs.generate_evaluation_code code, @scope
           lhs = var.c_name
 
-          code.init_variable lhs: lhs, rhs: rhs
+          code.init_variable lhs: lhs, 
+            rhs: "(#{var.type.to_s})(#{rhs.c_code(@scope)})"
         end
 
         def declare_carrays_using_init_var_value code

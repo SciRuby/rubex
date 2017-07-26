@@ -34,8 +34,16 @@ module Rubex
           ToRubyObject.new self
         end
 
-        def from_ruby_object
-          FromRubyObject.new self
+        def from_ruby_object from_node
+          FromRubyObject.new self, from_node
+        end
+
+        def typecast_to dtype
+          TypecastTo.new dtype
+        end
+
+        def release_temp local_scope, c_name
+          local_scope.release_temp c_name
         end
 
         def generate_evaluation_code code, local_scope
@@ -145,12 +153,12 @@ module Rubex
             analyse_left_and_right_nodes local_scope, tree.left
 
             if !@@analyse_visited.include?(tree.left.object_id)
-              tree.left.analyse_statement(local_scope)
+              tree.left.analyse_for_target_type(tree.right.type, local_scope)
               @@analyse_visited << tree.left.object_id
             end
             
             if !@@analyse_visited.include?(tree.right.object_id)
-              tree.right.analyse_statement(local_scope)
+              tree.right.analyse_for_target_type(tree.left.type, local_scope)
               @@analyse_visited << tree.right.object_id
             end
 
@@ -226,7 +234,7 @@ module Rubex
           if @type.object?
             @pos = @pos.to_ruby_object
             @c_code = local_scope.allocate_temp @type
-            local_scope.release_temp
+            local_scope.release_temp @c_code
           end
           super(local_scope)
         end
@@ -237,14 +245,15 @@ module Rubex
           if @type.object?
             @pos.generate_evaluation_code code, local_scope
             code << "#{@c_code} = rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
-            code << "#{@pos.c_code(local_scope)})"
+            code << "#{@pos.c_code(local_scope)});"
+            code.nl
+            @pos.generate_disposal_code code
           else
             @c_code = "#{@entry.c_name}[#{@pos.c_code(local_scope)}]"
           end
         end
 
         def generate_disposal_code code
-          @pos.generate_disposal_code code
           if @type.object?
             code << "#{@c_code} = 0;"
             code.nl
@@ -317,6 +326,7 @@ module Rubex
           @name = name
         end
 
+        # Used when the node is a LHS of an assign statement.
         def analyse_declaration rhs, local_scope
           @entry = local_scope.find @name
 
@@ -370,6 +380,10 @@ module Rubex
             @type = @entry.type
           end
           super
+        end
+
+        def generate_evaluation_code code, local_scope
+          
         end
 
         def generate_assignment_code rhs, code, local_scope
@@ -599,16 +613,7 @@ module Rubex
         end
       end # class CommandCall
 
-      # internal node for converting to ruby object.
-      class ToRubyObject < Base
-        def initialize expr
-          @expr = expr
-        end
-
-        def c_code local_scope
-          "#{@expr.type.to_ruby_object(@expr.c_code(local_scope))}"
-        end
-
+      class CoerceObject < Base
         def generate_evaluation_code code, local_scope
           @expr.generate_evaluation_code code, local_scope
         end
@@ -622,14 +627,35 @@ module Rubex
         end
       end
 
-      # internal node for converting from ruby object.
-      class FromRubyObject < Base
+      # Internal class to typecast from a C type to another C type.
+      class TypecastTo < CoerceObject
+        # TODO
+      end
+
+      # internal node for converting to ruby object.
+      class ToRubyObject < CoerceObject
+        attr_reader :type
+
         def initialize expr
           @expr = expr
+          @type = Rubex::DataType::RubyObject.new
         end
 
         def c_code local_scope
-          "#{@expr.type.from_ruby_object(@expr.c_code(local_scope))}"
+          "#{@expr.type.to_ruby_object(@expr.c_code(local_scope))}"
+        end
+      end
+
+      # internal node for converting from ruby object.
+      class FromRubyObject < CoerceObject
+        def initialize expr, from_node
+          @expr = expr
+          @type = @expr.type
+          @from_node = from_node
+        end
+
+        def c_code local_scope
+          "#{@from_node.type.from_ruby_object(@expr.c_code(local_scope))}"
         end
       end
 
@@ -826,6 +852,7 @@ module Rubex
           end
 
           def analyse_statement local_scope
+            puts ">>> #{@type} #{@name}"
             @type = Rubex::DataType::RubyString.new unless @type
           end
 

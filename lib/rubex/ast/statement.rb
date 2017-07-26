@@ -68,7 +68,7 @@ module Rubex
           end
 
           c_name = extern ? @name : Rubex::VAR_PREFIX + @name
-          @value.analyse_statement(local_scope) if @value
+          @value.analyse_for_target_type(@type, local_scope) if @value
 
           local_scope.declare_var name: @name, c_name: c_name, type: @type,
             value: @value, extern: extern
@@ -381,11 +381,11 @@ module Rubex
         def generate_code code, local_scope
           super
           @expression.generate_evaluation_code code, local_scope
-          code << "return "
+          code << "return #{@expression.c_code(local_scope)};"
           # if local_scope.type.type.object?
             # code << @type.to_ruby_object("#{@expression.c_code(local_scope)}") + ";"
           # else
-            code << @expression.c_code(local_scope) + ";"
+            # code <<  + ";"
           # end
           
           code.nl
@@ -513,6 +513,7 @@ module Rubex
         end
 
         def generate_code code, local_scope
+          @expr.generate_evaluation_code code, local_scope
           generate_code_for_statement "if", code, local_scope
         end
 
