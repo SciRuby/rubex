@@ -93,9 +93,9 @@ module Rubex
       def to_s; "char";  end
 
       def to_ruby_object(arg, literal=false)
-        return "rb_str_new2(\"#{arg[1]}\")" if literal
+        # return "rb_str_new2(\"#{arg[1]}\")" if literal
 
-        "rb_str_new2(&#{arg})"
+        "rb_str_new2(#{arg})"
       end
 
       def from_ruby_object(arg); "(char)NUM2INT(#{arg})"; end

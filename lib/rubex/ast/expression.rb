@@ -214,16 +214,40 @@ module Rubex
           end
 
           @type = @entry.type.object? ? @entry.type : @entry.type.type
-          @pos = @pos.to_ruby_object if @type.object?
+          if @type.object?
+            @pos = @pos.to_ruby_object
+            @c_code = local_scope.allocate_temp @type
+            local_scope.release_temp
+          end
           super(local_scope)
         end
 
         def generate_evaluation_code code, local_scope
-          @pos.generate_evaluation_code code, local_scope
+          if @type.object?
+            @pos.generate_evaluation_code code, local_scope
+            code << "#{@c_code} = rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
+            code << "#{@pos.c_code(local_scope)})"
+          else
+            @c_code = "#{@entry.c_name}[#{@pos.c_code(local_scope)}]"
+          end
         end
 
         def generate_disposal_code code
           @pos.generate_disposal_code code
+          if @type.object?
+            code << "#{@c_code} = 0;"
+            code.nl
+          end
+        end
+
+        def generate_assignment_code rhs, code, local_scope
+          if @type.object?
+            # TODO: support []= method in ruby.
+          else
+            code << "#{@entry.c_name}[#{@pos.c_code(local_scope)}] = "
+            code << "#{rhs.c_code(local_scope)};"
+            code.nl
+          end
         end
 
         def c_code local_scope
@@ -232,7 +256,7 @@ module Rubex
             code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
             code << "#{@pos.c_code(local_scope)})"
           else
-            code << "#{@entry.c_name}[#{pos_code}]"
+            code << @c_code
           end
 
           code
@@ -287,7 +311,6 @@ module Rubex
             local_scope.add_ruby_obj(name: @name,
               c_name: Rubex::VAR_PREFIX + @name, value: @rhs)
             @entry = local_scope[@name]
-            @ruby_obj_init = true
           end
         end
 
@@ -760,7 +783,33 @@ module Rubex
         class Char < Literal::Base
           def initialize name
             super
-            @type = Rubex::DataType::Char.new
+          end
+
+          def analyse_for_target_type target_type, local_scope
+            if target_type.char?
+              @type = Rubex::DataType::Char.new
+            elsif target_type.object?
+              @type = Rubex::DataType::RubyString.new
+              analyse_statement local_scope
+            else
+              raise Rubex::TypeError, "Cannot assign #{target_type} to string."
+            end
+          end
+
+          def analyse_statement local_scope
+            @type = Rubex::DataType::RubyString.new unless @type
+          end
+
+          def generate_evaluation_code code, local_scope
+            if @type.char?
+              @c_code = @name
+            else
+              @c_code = "rb_str_new2(\"#{@name[1]}\")"
+            end
+          end
+
+          def c_code local_scope
+            @c_code
           end
         end # class Char
 

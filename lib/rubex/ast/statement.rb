@@ -377,6 +377,7 @@ module Rubex
           else
             t
           end
+          @expression = @expression.to_ruby_object if local_scope.type.type.object?
           # TODO: Raise error if type as inferred from the
           # is not compatible with the return statement type.
         end
@@ -384,11 +385,11 @@ module Rubex
         def generate_code code, local_scope
           super
           code << "return "
-          if local_scope.type.type.object?
-            code << @type.to_ruby_object("#{@expression.c_code(local_scope)}") + ";"
-          else
+          # if local_scope.type.type.object?
+            # code << @type.to_ruby_object("#{@expression.c_code(local_scope)}") + ";"
+          # else
             code << @expression.c_code(local_scope) + ";"
-          end
+          # end
           
           code.nl
         end
@@ -410,17 +411,19 @@ module Rubex
           end
           @lhs_entry = local_scope[@lhs.name]
           @rhs.analyse_for_target_type(@lhs_entry.type, local_scope)
+          @rhs = @rhs.to_ruby_object if @lhs_entry.type.object?
         end
 
         def generate_code code, local_scope
           super
           if @lhs.is_a?(AST::Expression::ElementRef) && @lhs_entry.type.object?
             generate_code_for_ruby_element_assign code, local_scope
-          elsif @lhs_entry.type.object? && @rhs.is_a?(AST::Expression::Literal::Base)
+          else#if @lhs_entry.type.object?# && @rhs.is_a?(AST::Expression::Literal::Base)
+            # raise "#{@lhs} #{@rhs}"
             @rhs.generate_evaluation_code code, local_scope
             @lhs.generate_assignment_code @rhs, code, local_scope
-          else
-            generate_code_for_element_assign code, local_scope
+          # else
+            # generate_code_for_element_assign code, local_scope
           end
         end
 
@@ -434,13 +437,13 @@ module Rubex
 
         def generate_code_for_element_assign code, local_scope
           str = "#{@lhs_entry.c_code(local_scope)} = "
-          if @ruby_obj_init
-            if @rhs.is_a?(Rubex::AST::Expression::Literal::Char)
-              str << "#{@rhs.type.to_ruby_object(@rhs.c_code(local_scope), true)}"
-            else
-              str << "#{@rhs.type.to_ruby_object(@rhs.c_code(local_scope))}"
-            end
-          else
+          # if @ruby_obj_init
+          #   if @rhs.is_a?(Rubex::AST::Expression::Literal::Char)
+          #     str << "#{@rhs.type.to_ruby_object(@rhs.c_code(local_scope), true)}"
+          #   else
+          #     str << "#{@rhs.type.to_ruby_object(@rhs.c_code(local_scope))}"
+          #   end
+          # else
             rt = @rhs.type
             lt = @lhs_entry.type
             if lt.cptr? && lt.type.char? && @rhs.type.object?
@@ -455,7 +458,7 @@ module Rubex
             else
               str << "#{@rhs.c_code(local_scope)}"  
             end
-          end
+          # end
           str << ";"
           code << str
           code.nl
