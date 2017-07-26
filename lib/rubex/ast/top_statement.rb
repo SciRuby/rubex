@@ -158,7 +158,7 @@ module Rubex
 
         def declare_carrays_using_init_var_value code
           @scope.carray_entries.select { |s|
-            !s.type.dimension.is_a?(Rubex::AST::Expression::Literal)
+            !s.type.dimension.is_a?(Rubex::AST::Expression::Literal::Base)
           }. each do |arr|
             type = arr.type.type.to_s
             c_name = arr.c_name

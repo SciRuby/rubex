@@ -26,6 +26,10 @@ module Rubex
           @typecast ? @typecast.c_code(local_scope) : ""
         end
 
+        def possible_typecast code, local_scope
+          @typecast ? @typecast.c_code(local_scope) : ""
+        end
+
         def to_ruby_object
           ToRubyObject.new self
         end
@@ -97,6 +101,11 @@ module Rubex
           analyse_left_and_right_nodes local_scope, self
           analyse_return_type local_scope, self
           super
+        end
+
+        def generate_evaluation_code code, local_scope
+          @left.generate_evaluation_code code, local_scope
+          @right.generate_evaluation_code code, local_scope
         end
 
         def c_code local_scope
@@ -222,6 +231,8 @@ module Rubex
           super(local_scope)
         end
 
+        # This method will be called when [] ruby method or C array element
+        #   reference is called.
         def generate_evaluation_code code, local_scope
           if @type.object?
             @pos.generate_evaluation_code code, local_scope
@@ -240,6 +251,8 @@ module Rubex
           end
         end
 
+        # This method will be called when []= ruby method or C array assignment
+        #   takes place.
         def generate_assignment_code rhs, code, local_scope
           if @type.object?
             # TODO: support []= method in ruby.
@@ -312,6 +325,7 @@ module Rubex
               c_name: Rubex::VAR_PREFIX + @name, value: @rhs)
             @entry = local_scope[@name]
           end
+          @type = @entry.type
         end
 
         # Analyse a Name node. This can either be a variable name or a method call
@@ -535,14 +549,29 @@ module Rubex
           super
         end
 
-        def c_code local_scope
-          code = super
+        def generate_evaluation_code code, local_scope
+          @c_code = ""
+          @expr.generate_evaluation_code(code, local_scope) if @expr
+          @command.generate_evaluation_code code, local_scope
           # Interpreted as a method call
           if @command.is_a? Rubex::AST::Expression::MethodCall
-            code << @command.c_code(local_scope)
+            @c_code << @command.c_code(local_scope)
           else # interpreted as referencing the contents of a struct
-            code << "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
-          end
+            @c_code << "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
+          end          
+        end
+
+        def generate_assignment_code rhs, code, local_scope
+          generate_evaluation_code code, local_scope
+          code << "#{self.c_code(local_scope)} = #{rhs.c_code(local_scope)};"
+          code.nl
+        end
+
+        def c_code local_scope
+          code = ""
+          possible_typecast code, local_scope
+          code << @c_code
+          code
         end
 
       private

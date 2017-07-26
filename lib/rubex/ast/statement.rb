@@ -160,11 +160,7 @@ module Rubex
 
         def analyse_array_list local_scope
           @array_list.each do |expr|
-            if expr.is_a? Rubex::AST::Expression
-              expr.analyse_statement(local_scope)
-            else
-              raise Rubex::SymbolNotFoundError, "Symbol #{expr} not found anywhere."
-            end
+            expr.analyse_statement(local_scope)
           end
         end
 
@@ -384,6 +380,7 @@ module Rubex
 
         def generate_code code, local_scope
           super
+          @expression.generate_evaluation_code code, local_scope
           code << "return "
           # if local_scope.type.type.object?
             # code << @type.to_ruby_object("#{@expression.c_code(local_scope)}") + ";"
@@ -409,17 +406,17 @@ module Rubex
           else
             @lhs.analyse_statement(local_scope)
           end
-          @lhs_entry = local_scope[@lhs.name]
-          @rhs.analyse_for_target_type(@lhs_entry.type, local_scope)
-          @rhs = @rhs.to_ruby_object if @lhs_entry.type.object?
+          # # @lhs_entry = local_scope[@lhs.name]
+          # puts "#{@lhs.name}"
+          @rhs.analyse_for_target_type(@lhs.type, local_scope)
+          @rhs = @rhs.to_ruby_object if @lhs.type.object?
         end
 
         def generate_code code, local_scope
           super
-          if @lhs.is_a?(AST::Expression::ElementRef) && @lhs_entry.type.object?
+          if @lhs.is_a?(AST::Expression::ElementRef) && @lhs.type.object?
             generate_code_for_ruby_element_assign code, local_scope
           else#if @lhs_entry.type.object?# && @rhs.is_a?(AST::Expression::Literal::Base)
-            # raise "#{@lhs} #{@rhs}"
             @rhs.generate_evaluation_code code, local_scope
             @lhs.generate_assignment_code @rhs, code, local_scope
           # else
@@ -428,7 +425,8 @@ module Rubex
         end
 
         def generate_code_for_ruby_element_assign code, local_scope
-          args = [@lhs_entry.pos,@rhs].map do |arg|
+          lhs_entry = local_scope.find @lhs.name
+          args = [lhs_entry.pos,@rhs].map do |arg|
             "#{arg.type.to_ruby_object(arg.c_code(local_scope))}"
           end.join(",")
           code << "rb_funcall(#{@lhs.entry.c_name}, rb_intern(\"[]=\"), 2, #{args});"
@@ -691,6 +689,7 @@ module Rubex
 
         def generate_code code, local_scope
           super
+          @expr.generate_evaluation_code code, local_scope
           code << @expr.c_code(local_scope) + ";"
           code.nl
         end
