@@ -401,7 +401,11 @@ module Rubex
             @lhs.analyse_statement(local_scope)
           end
           @rhs.analyse_for_target_type(@lhs.type, local_scope)
-          @rhs = @rhs.to_ruby_object if @lhs.type.object?
+          if @lhs.type.object?
+            @rhs = @rhs.to_ruby_object
+          elsif !@lhs.type.object? && @rhs.type.object?
+            @rhs = @rhs.from_ruby_object @lhs
+          end
         end
 
         def generate_code code, local_scope

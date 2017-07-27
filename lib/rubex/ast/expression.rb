@@ -38,10 +38,6 @@ module Rubex
           FromRubyObject.new self, from_node
         end
 
-        def typecast_to dtype
-          TypecastTo.new dtype
-        end
-
         def release_temp local_scope, c_name
           local_scope.release_temp c_name
         end
@@ -661,6 +657,9 @@ module Rubex
 
       # Internal class to typecast from a C type to another C type.
       class TypecastTo < CoerceObject
+        def initialize dtype
+          
+        end
         # TODO
       end
 
@@ -674,7 +673,9 @@ module Rubex
         end
 
         def c_code local_scope
-          "#{@expr.type.to_ruby_object(@expr.c_code(local_scope))}"
+          t = @expr.type
+          t = (t.c_function? || t.alias_type?) ? t.type : t
+          "#{t.to_ruby_object(@expr.c_code(local_scope))}"
         end
       end
 
