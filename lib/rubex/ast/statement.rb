@@ -382,12 +382,6 @@ module Rubex
           super
           @expression.generate_evaluation_code code, local_scope
           code << "return #{@expression.c_code(local_scope)};"
-          # if local_scope.type.type.object?
-            # code << @type.to_ruby_object("#{@expression.c_code(local_scope)}") + ";"
-          # else
-            # code <<  + ";"
-          # end
-          
           code.nl
         end
       end # class Return
@@ -406,42 +400,18 @@ module Rubex
           else
             @lhs.analyse_statement(local_scope)
           end
-          # # @lhs_entry = local_scope[@lhs.name]
-          # puts "#{@lhs.name}"
           @rhs.analyse_for_target_type(@lhs.type, local_scope)
           @rhs = @rhs.to_ruby_object if @lhs.type.object?
         end
 
         def generate_code code, local_scope
           super
-          if @lhs.is_a?(AST::Expression::ElementRef) && @lhs.type.object?
-            generate_code_for_ruby_element_assign code, local_scope
-          else#if @lhs_entry.type.object?# && @rhs.is_a?(AST::Expression::Literal::Base)
-            @rhs.generate_evaluation_code code, local_scope
-            @lhs.generate_assignment_code @rhs, code, local_scope
-          # else
-            # generate_code_for_element_assign code, local_scope
-          end
-        end
-
-        def generate_code_for_ruby_element_assign code, local_scope
-          lhs_entry = local_scope.find @lhs.name
-          args = [lhs_entry.pos,@rhs].map do |arg|
-            "#{arg.type.to_ruby_object(arg.c_code(local_scope))}"
-          end.join(",")
-          code << "rb_funcall(#{@lhs.entry.c_name}, rb_intern(\"[]=\"), 2, #{args});"
-          code.nl
+          @rhs.generate_evaluation_code code, local_scope
+          @lhs.generate_assignment_code @rhs, code, local_scope
         end
 
         def generate_code_for_element_assign code, local_scope
           str = "#{@lhs_entry.c_code(local_scope)} = "
-          # if @ruby_obj_init
-          #   if @rhs.is_a?(Rubex::AST::Expression::Literal::Char)
-          #     str << "#{@rhs.type.to_ruby_object(@rhs.c_code(local_scope), true)}"
-          #   else
-          #     str << "#{@rhs.type.to_ruby_object(@rhs.c_code(local_scope))}"
-          #   end
-          # else
             rt = @rhs.type
             lt = @lhs_entry.type
             if lt.cptr? && lt.type.char? && @rhs.type.object?
@@ -693,6 +663,7 @@ module Rubex
           @expr.generate_evaluation_code code, local_scope
           code << @expr.c_code(local_scope) + ";"
           code.nl
+          @expr.generate_disposal_code code
         end
       end # class Expression
 

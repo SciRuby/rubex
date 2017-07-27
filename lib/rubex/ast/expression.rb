@@ -222,8 +222,7 @@ module Rubex
           @name, @pos = name, pos
         end
 
-        def analyse_statement local_scope, struct_scope=nil
-          @pos.analyse_statement local_scope
+        def analyse_statement local_scope, struct_scope=nil     
           if struct_scope.nil?
             @entry = local_scope.find @name
           else
@@ -232,9 +231,12 @@ module Rubex
 
           @type = @entry.type.object? ? @entry.type : @entry.type.type
           if @type.object?
-            @pos = @pos.to_ruby_object
             @c_code = local_scope.allocate_temp @type
+            @pos.analyse_statement local_scope
+            @pos = @pos.to_ruby_object
             local_scope.release_temp @c_code
+          else
+            @pos.analyse_statement local_scope
           end
           super(local_scope)
         end
@@ -264,12 +266,16 @@ module Rubex
         #   takes place.
         def generate_assignment_code rhs, code, local_scope
           if @type.object?
-            # TODO: support []= method in ruby.
+            @pos.generate_evaluation_code code, local_scope
+            code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]=\"), 2, "
+            code << "#{@pos.c_code(local_scope)}, #{rhs.c_code(local_scope)});"
+            @pos.generate_disposal_code code
           else
             code << "#{@entry.c_name}[#{@pos.c_code(local_scope)}] = "
             code << "#{rhs.c_code(local_scope)};"
-            code.nl
           end
+          code.nl
+
         end
 
         def c_code local_scope
@@ -277,6 +283,7 @@ module Rubex
           if @type.object?
             code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
             code << "#{@pos.c_code(local_scope)})"
+            # code << @c_code
           else
             code << @c_code
           end
@@ -383,7 +390,15 @@ module Rubex
         end
 
         def generate_evaluation_code code, local_scope
-          
+          if @name.respond_to? :generate_evaluation_code
+            @name.generate_evaluation_code code, local_scope
+          end
+        end
+
+        def generate_disposal_code code
+          if @name.respond_to? :generate_disposal_code
+            @name.generate_disposal_code code
+          end
         end
 
         def generate_assignment_code rhs, code, local_scope
@@ -455,6 +470,18 @@ module Rubex
               type: Rubex::DataType::RubyObject.new)
           end
           super
+        end
+
+        def generate_evaluation_code code, local_scope
+          @arg_list.each do |arg|
+            arg.generate_evaluation_code code, local_scope
+          end
+        end
+
+        def generate_disposal_code code
+          @arg_list.each do |arg|
+            arg.generate_disposal_code code
+          end
         end
 
         def c_code local_scope
@@ -573,6 +600,11 @@ module Rubex
           else # interpreted as referencing the contents of a struct
             @c_code << "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
           end          
+        end
+
+        def generate_disposal_code code
+          @expr.generate_disposal_code(code) if @expr
+          @command.generate_disposal_code code
         end
 
         def generate_assignment_code rhs, code, local_scope
@@ -852,7 +884,6 @@ module Rubex
           end
 
           def analyse_statement local_scope
-            puts ">>> #{@type} #{@name}"
             @type = Rubex::DataType::RubyString.new unless @type
           end
 
