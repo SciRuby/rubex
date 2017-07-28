@@ -599,6 +599,7 @@ module Rubex
         end
 
         def generate_code code, local_scope
+          @expr.generate_evaluation_code code, local_scope
           stmt = "while (#{@expr.c_code(local_scope)})"
           code << stmt
           code.block do

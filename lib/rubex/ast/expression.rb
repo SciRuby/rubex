@@ -200,6 +200,10 @@ module Rubex
           super
         end
 
+        def generate_evaluation_code code, local_scope
+          @expr.generate_evaluation_code code, local_scope
+        end
+
         def c_code local_scope
           code = super
           code << @expr.c_code(local_scope)
@@ -276,6 +280,7 @@ module Rubex
 
         def c_code local_scope
           code = super
+          puts 
           if @type.object?
             code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
             code << "#{@pos.c_code(local_scope)})"
@@ -588,8 +593,12 @@ module Rubex
 
         def generate_evaluation_code code, local_scope
           @c_code = ""
+          @arg_list.each do |arg|
+            arg.generate_evaluation_code code, local_scope
+          end
           @expr.generate_evaluation_code(code, local_scope) if @expr
           @command.generate_evaluation_code code, local_scope
+
           # Interpreted as a method call
           if @command.is_a? Rubex::AST::Expression::MethodCall
             @c_code << @command.c_code(local_scope)
