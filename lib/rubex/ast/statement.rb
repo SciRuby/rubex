@@ -315,44 +315,6 @@ module Rubex
 
           format_string
         end
-
-        # FIXME: Method not currently in use. Will be after string interpolation using
-        # a Ruby-like #{} syntax is figured out.
-        def resolve_cstring_interpolations_if_any
-          string = @expressions[0].name
-          i = 0
-          exprs = []
-
-          while i < string.size
-            if string[i] == "#"
-              i += 1
-
-              if string[i] == "{"
-                expr = ""
-                i += 1
-                while string[i] != "}"
-                  expr << string[i]
-                  i += 1
-                end
-                i += 1
-                exprs << expr
-              else # go back cuz if its just a # then its a part of string.
-                i -= 1
-              end
-            end
-
-            str_part = ""
-            while i < string.size
-              break if string[i] == "#"
-              str_part << string[i]
-              i += 1
-            end
-
-            exprs << str_part unless str_part.empty?
-          end
-
-          exprs
-        end
       end # class Print
 
       class Return < Base
@@ -400,6 +362,7 @@ module Rubex
           else
             @lhs.analyse_statement(local_scope)
           end
+
           @rhs.analyse_for_target_type(@lhs.type, local_scope)
           if @lhs.type.object?
             @rhs = @rhs.to_ruby_object
@@ -412,28 +375,6 @@ module Rubex
           super
           @rhs.generate_evaluation_code code, local_scope
           @lhs.generate_assignment_code @rhs, code, local_scope
-        end
-
-        def generate_code_for_element_assign code, local_scope
-          str = "#{@lhs_entry.c_code(local_scope)} = "
-            rt = @rhs.type
-            lt = @lhs_entry.type
-            if lt.cptr? && lt.type.char? && @rhs.type.object?
-              # FIXME: This should happen only if object is declared as Ruby string.
-              str << "StringValueCStr(#{@rhs.c_code(local_scope)})"
-            elsif (lt.base_type.c_function? || 
-              (lt.alias_type? && lt.old_type.base_type.c_function?)) &&
-              @rhs.is_a?(Rubex::AST::Expression::Name)
-              str << "#{@rhs.entry.c_name}"
-            elsif lt.int? && rt.object?
-              str << "#{lt.from_ruby_object(@rhs.c_code(local_scope))}"
-            else
-              str << "#{@rhs.c_code(local_scope)}"  
-            end
-          # end
-          str << ";"
-          code << str
-          code.nl
         end
       end # class Assign
 

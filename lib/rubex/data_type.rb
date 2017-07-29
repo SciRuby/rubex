@@ -37,6 +37,14 @@ module Rubex
           false
         end
       end
+
+      def c_function_ptr?
+        if self.cptr? && self.base_type.c_function?
+          true
+        else
+          false
+        end
+      end
     end
 
     module IntHelpers
@@ -552,7 +560,7 @@ module Rubex
     #   is aliased with some other name too. In other words, reach the actual
     #   type in the most generic way possible without too many checks.
     class TypeDef
-      include Helpers
+#      include Helpers
       attr_reader :type, :old_type, :new_type
 
       def initialize old_type, new_type, type
@@ -567,6 +575,10 @@ module Rubex
 
       def base_type
         @old_type
+      end
+
+      def method_missing meth, *args, &block
+        @old_type.send(meth, *args, &block)
       end
     end
 

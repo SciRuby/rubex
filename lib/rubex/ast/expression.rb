@@ -280,7 +280,6 @@ module Rubex
 
         def c_code local_scope
           code = super
-          puts 
           if @type.object?
             code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
             code << "#{@pos.c_code(local_scope)})"
@@ -344,6 +343,16 @@ module Rubex
             @entry = local_scope[@name]
           end
           @type = @entry.type
+        end
+
+        def analyse_for_target_type target_type, local_scope
+          @entry = local_scope.find @name
+          
+          if @entry && @entry.type.c_function? && target_type.c_function_ptr?
+            @type = @entry.type
+          else
+            analyse_statement local_scope
+          end
         end
 
         # Analyse a Name node. This can either be a variable name or a method call
@@ -410,8 +419,7 @@ module Rubex
 
         def c_code local_scope
           code = super
-          if @entry.type.ruby_method? || @entry.type.c_function? ||
-              @entry.type.ruby_constant?
+          if @name.is_a?(Rubex::AST::Expression::Base)
             code << @name.c_code(local_scope)
           else
             code << @entry.c_name
