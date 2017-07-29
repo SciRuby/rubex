@@ -119,10 +119,10 @@ rule
 
   c_func_args:
     { result = [] }
-  | c_func_normal_arg { result = [Statement::ArgDeclaration.new(val[0])] }
+  | c_func_normal_arg { result = [Expression::ArgDeclaration.new(val[0])] }
   | c_func_args tCOMMA c_func_normal_arg
       { 
-        result = [*val[0], Statement::ArgDeclaration.new(val[2])] 
+        result = [*val[0], Expression::ArgDeclaration.new(val[2])] 
       }
 
   opt_c_func_arg_list:
@@ -130,7 +130,7 @@ rule
   | tLPAREN c_func_args tRPAREN
       { 
         # self is a compulsory implicit argument for C methods.
-        val[1] << Statement::ArgDeclaration.new(
+        val[1] << Expression::ArgDeclaration.new(
             { dtype: 'object', variables: [ {ident: 'self' }] })
         result = Statement::ArgumentList.new(val[1])
       }
@@ -231,7 +231,7 @@ rule
         if !val[4] # since last arg of cfunc must be self.
           val[4] = Statement::ArgumentList.new(
             [
-              Statement::ArgDeclaration.new(
+              Expression::ArgDeclaration.new(
                 { dtype: 'object', variables: [ {ident: 'self' }] }
                 )
             ]
@@ -443,7 +443,7 @@ rule
       { result = Expression::Literal::HashLit.new val[2] }
 
   hash_data:
-    {}
+    { result = [] }
   | hash_data_k_v { result = [val[0]] }
   | hash_data tCOMMA opt_eols hash_data_k_v { result = [*val[0], val[3]] }
 
@@ -465,36 +465,42 @@ rule
   f_args:
     f_normal_arg 
       { 
-        result = [Statement::ArgDeclaration.new(val[0])] 
+        result = [Expression::ArgDeclaration.new(val[0])] 
       }
   | f_args tCOMMA f_normal_arg
       {
-        result = [*val[0], Statement::ArgDeclaration.new(val[2])]
+        result = [*val[0], Expression::ArgDeclaration.new(val[2])]
       }
 
   f_normal_arg:
-    dtype tIDENTIFIER
+    dtype tIDENTIFIER opt_default_value
       { 
         result = { 
           dtype: val[0],
           variables: [
             {
-              ident: val[1]
+              ident: val[1],
+              value: val[2]
             }
           ]
         }
       }
-  | tIDENTIFIER
+  | tIDENTIFIER opt_default_value
       {
         result = { 
           dtype: 'object',
           variables: [
             {
-              ident: val[0]
+              ident: val[0],
+              value: val[1]
             }
           ]
         }
       }
+
+  opt_default_value:
+    { result = nil }
+  |  tASSIGN atomic_value { result = val[1] }
 
   expr:
     actual_expr  {}

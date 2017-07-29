@@ -1,4 +1,4 @@
-def default_method(hello, bye=nil ,opts={})
+def default_method(hello, bye = nil , opts = {})
   if bye && opts[:a]
     return 7
   elsif opts[:a]

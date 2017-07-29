@@ -38,7 +38,7 @@ module Rubex
 
         def xmalloc
           args = Statement::ArgumentList.new([
-            Statement::ArgDeclaration.new({ 
+            Expression::ArgDeclaration.new({ 
               dtype: 'size_t', variables: [{ident: 'dummy'}] })
           ])
           Statement::CFunctionDecl.new('void', '*', 'xmalloc', args)  
@@ -46,7 +46,7 @@ module Rubex
 
         def xfree
           args = Statement::ArgumentList.new([
-            Statement::ArgDeclaration.new({
+            Expression::ArgDeclaration.new({
               dtype: 'void',
               variables: [{ptr_level: '*', ident: 'dummy'}] })
           ])
@@ -133,7 +133,14 @@ module Rubex
 
         def init_args code
           @scope.arg_entries.each_with_index do |arg, i|
-            code << arg.c_name + '=' + arg.type.from_ruby_object("argv[#{i}]")
+            if arg.value
+              arg.value.generate_evaluation_code(code, @scope)
+              code << arg.c_name + '=' + arg.value.c_code(@scope) + ';'
+              code.nl
+              arg.value.generate_disposal_code(code)
+            else
+              code << arg.c_name + '=' + arg.type.from_ruby_object("argv[#{i}]")
+            end
             code << ";"
             code.nl
           end
@@ -194,6 +201,12 @@ module Rubex
         def analyse_statement local_scope
           super
           @entry.singleton = @singleton
+          @arg_list.each do |arg|
+            if arg.entry.value
+              e = arg.entry
+              e.value = Rubex::Helpers.to_lhs_type(e, e.value)
+            end
+          end
         end
 
         def generate_code code
@@ -519,7 +532,7 @@ module Rubex
             c_name = c_func_c_name(ALLOC_FUNC_NAME)
             scope = Rubex::SymbolTable::Scope::Local.new(ALLOC_FUNC_NAME, @scope)
             arg = Statement::ArgumentList.new([
-              Statement::ArgDeclaration.new({
+              Expression::ArgDeclaration.new({
                 dtype: 'object',
                 variables: [
                   {
@@ -543,7 +556,7 @@ module Rubex
             c_name = c_func_c_name(MEMCOUNT_FUNC_NAME)
             scope = Rubex::SymbolTable::Scope::Local.new(MEMCOUNT_FUNC_NAME, @scope)
             arg = Statement::ArgumentList.new([
-              Statement::ArgDeclaration.new({ 
+              Expression::ArgDeclaration.new({ 
                 dtype: "void", 
                 variables: [
                     {
@@ -568,7 +581,7 @@ module Rubex
             c_name = c_func_c_name(DEALLOC_FUNC_NAME)
             scope = Rubex::SymbolTable::Scope::Local.new(DEALLOC_FUNC_NAME, @scope)
             arg = Statement::ArgumentList.new([
-              Statement::ArgDeclaration.new({
+              Expression::ArgDeclaration.new({
                 dtype: "void",
                 variables: [
                     {
@@ -594,7 +607,7 @@ module Rubex
             scope = Rubex::SymbolTable::Scope::Local.new(
               GET_STRUCT_FUNC_NAME, @scope)
             arg = Statement::ArgumentList.new([
-              Statement::ArgDeclaration.new({
+              Expression::ArgDeclaration.new({
                   dtype: "object",
                   variables: [
                     {
@@ -635,7 +648,7 @@ module Rubex
 
         def modify_dealloc_func func
           func.arg_list = Statement::ArgumentList.new([
-              Statement::ArgDeclaration.new({
+              Expression::ArgDeclaration.new({
                 dtype: "void",
                 variables: [
                     {

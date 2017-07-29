@@ -1,6 +1,14 @@
 module Rubex
   module Helpers
     class << self
+      def to_lhs_type lhs, rhs
+        if lhs.type.object?
+          return rhs.to_ruby_object
+        elsif lhs.type.object? && !rhs.type.object?
+          return rhs.from_ruby_object
+        end  
+      end
+
       def result_type_for left, right
         return left.dup if left == right
         return (left < right ? right.dup : left.dup)

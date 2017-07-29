@@ -658,6 +658,56 @@ module Rubex
         end
       end # class CommandCall
 
+
+      class ArgDeclaration < Base
+        attr_reader :entry, :type
+
+        # data_hash - a Hash containing data about the variable.
+        def initialize data_hash
+          @data_hash = data_hash
+        end
+
+        def analyse_statement local_scope, inside_func_ptr: false, extern: false
+          # FIXME: Support array of function pointers and array in arguments.
+          var       = @data_hash[:variables][0]
+          dtype     = @data_hash[:dtype]
+          ident     = var[:ident]
+          ptr_level = var[:ptr_level]
+          value     = var[:value]
+
+          if ident.is_a?(Hash) # function pointer
+            cfunc_return_type = Helpers.determine_dtype(dtype,
+              ident[:return_ptr_level])
+            arg_list = ident[:arg_list].analyse_statement(local_scope,
+              inside_func_ptr: true)
+            ptr_level = "*" if ptr_level.empty?
+
+            if inside_func_ptr
+              name, c_name = nil, nil
+            else
+              name   = ident[:name]
+              c_name = Rubex::ARG_PREFIX + name
+            end
+
+            @type   = Helpers.determine_dtype(
+              DataType::CFunction.new(name, c_name, arg_list, cfunc_return_type),
+              ptr_level)
+          else
+            if !inside_func_ptr
+              name, c_name = ident, Rubex::ARG_PREFIX + ident 
+            end
+            @type = Helpers.determine_dtype(dtype, ptr_level)
+          end
+
+          value.analyse_statement(local_scope) if value
+
+          if !extern && !inside_func_ptr
+            @entry = local_scope.add_arg(name: name, c_name: c_name, type: @type,
+              value: value)
+          end
+        end # def analyse_statement
+      end # class ArgDeclaration
+
       class CoerceObject < Base
         def generate_evaluation_code code, local_scope
           @expr.generate_evaluation_code code, local_scope

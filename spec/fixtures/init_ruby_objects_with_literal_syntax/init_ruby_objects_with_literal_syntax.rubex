@@ -8,6 +8,7 @@ class DataInit
       "message" => string
     }
     emp = []
+    emp2 = {}
 
     print h["hello"]
 
