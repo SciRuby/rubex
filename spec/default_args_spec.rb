@@ -26,9 +26,9 @@ describe Rubex do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.so"
 
-          # expect(default_method(1)).to be(nil)
-          expect(default_method(1, true, {a: 33})).to be(7)
-          expect(default_method(1, nil, {a: 44})).to be(5)
+          expect(default_method(1)).to be(nil)
+          expect(default_method(1, true, {a: 33})).to eq(7)
+          expect(default_method(1, nil, {a: 44})).to eq(5)
         end
       end
     end

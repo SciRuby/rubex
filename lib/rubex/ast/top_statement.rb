@@ -134,14 +134,21 @@ module Rubex
         def init_args code
           @scope.arg_entries.each_with_index do |arg, i|
             if arg.value
-              arg.value.generate_evaluation_code(code, @scope)
-              code << arg.c_name + '=' + arg.value.c_code(@scope) + ';'
-              code.nl
-              arg.value.generate_disposal_code(code)
+              code << "if (RTEST(argv[#{i}]))"
+              code.block do
+                code << arg.c_name + '=' + arg.type.from_ruby_object("argv[#{i}]") + ';'  
+                code.nl
+              end
+              code << "else"
+              code.block do
+                arg.value.generate_evaluation_code(code, @scope)
+                code << arg.c_name + '=' + arg.value.c_code(@scope) + ';'
+                code.nl
+                arg.value.generate_disposal_code(code)
+              end
             else
-              code << arg.c_name + '=' + arg.type.from_ruby_object("argv[#{i}]")
+              code << arg.c_name + '=' + arg.type.from_ruby_object("argv[#{i}]") + ';'
             end
-            code << ";"
             code.nl
           end
         end
@@ -183,10 +190,18 @@ module Rubex
         end
 
         def generate_arg_checking code
-          code << 'if (argc != ' + @scope.arg_entries.size.to_s + ")"
+          code << 'if (argc < ' + min_user_arguments + ")"
           code.block do
             code << %Q{rb_raise(rb_eArgError, "Need #{@scope.arg_entries.size} args, not %d", argc);\n}
           end
+        end
+
+        def min_user_arguments
+          min_args = 0
+          @scope.arg_entries.each do |arg|
+            min_args += 1 if !arg.value
+          end
+          min_args.to_s
         end
       end
 

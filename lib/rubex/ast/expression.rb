@@ -38,8 +38,12 @@ module Rubex
           FromRubyObject.new self, from_node
         end
 
-        def release_temp local_scope, c_name
-          local_scope.release_temp c_name
+        def release_temp local_scope
+          local_scope.release_temp @c_code
+        end
+
+        def allocate_temp local_scope, type
+          @c_code = local_scope.allocate_temp type
         end
 
         def generate_evaluation_code code, local_scope

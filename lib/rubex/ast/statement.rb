@@ -278,18 +278,14 @@ module Rubex
           super
           @expressions.each do |expr|
             expr.generate_evaluation_code code, local_scope
-          end
 
-          str = "printf("
-          str << "\"#{prepare_format_string}\""
-          @expressions.each do |expr|
+            str = "printf("
+            str << "\"#{expr.type.p_formatter}\""
             str << ", #{inspected_expr(expr, local_scope)}"
-          end
-          str << ");"
-          code << str
-          code.nl
+            str << ");"
+            code << str
+            code.nl
 
-          @expressions.each do |expr|
             expr.generate_disposal_code code
           end
           
@@ -428,7 +424,6 @@ module Rubex
         end
 
         def generate_code code, local_scope
-          @expr.generate_evaluation_code code, local_scope
           generate_code_for_statement "if", code, local_scope
         end
 

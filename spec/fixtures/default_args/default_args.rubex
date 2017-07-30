@@ -1,9 +1,11 @@
 def default_method(hello, bye = nil , opts = {})
+  print "aaaa", opts[:a]
   if bye && opts[:a]
     return 7
   elsif opts[:a]
     return 5
   else
+    print "val ->>", opts
     return opts[:a]
   end
 end
