@@ -112,11 +112,30 @@ class Rcsv
 
     meta.offset_rows = opts[:offset_rows] if opts[:offset_rows]
 
-    # TODO: figure how to handle malloc calls.
     # Specify character encoding
-    # only_rows
-    # except_rows
+    option = opts[:output_encoding]
+    meta.encoding_index = RB_ENC_FIND_INDEX(option) if option != nil
 
+    # :only_rows is a list of values where row is only parsed
+    #   if its fields match those in the passed array.
+    option = opts[:only_rows]
+    if option
+      meta.num_only_rows = option.size
+      meta.only_rows = <object*>xmalloc(meta.num_only_rows * sizeof(object))
+
+      int i = 0
+
+      for 0 <= i < meta.num_only_rows do
+        only_row = option[i]
+        meta.only_rows[i] = validate_filter_row(only_row)
+      end
+    end
+    # TODO: row_defaults, row_conversions, column name declaration when parsing
+    #   fields as Hashes, 
+
+    # :row_conversions specifies Ruby types that CSV field values should be
+    #   converted into. Each char of row_conversions string represents Ruby
+    #   type for CSV field with matching position.
     row_conversions = opts[:row_conversions]
     if row_conversions
       meta.num_row_conversions = row_conversions.size
@@ -145,10 +164,11 @@ class Rcsv
           break
         end
 
-        csv_string = csvstr
+        char* csv_string = csvstr
         csv_string_len = csvstr.size
 
-        if csv_string_len != csv_parse(&cp, csv_string, csv_string_len, &end_of_field_callback, &end_of_line_callback)
+        if csv_string_len != csv_parse(&cp, csv_string, csv_string_len, 
+          &end_of_field_callback, &end_of_line_callback)
           int error = csv_error(&cp)
 
           if error == CSV_EPARSE
@@ -171,12 +191,152 @@ class Rcsv
     csv_fini(cp, &end_of_field_callback, &end_of_line_callback, meta)
   end
 
+  cfunc object validate_filter_row(row)
+    if row == nil
+      return nil
+    elsif row.is_a?(Array)
+      size_t j
+      int r_size = row.size
+      int type
+      for (0 <= j < r_size) do
+        type = TYPE(row[i])
+
+        if type == T_NIL || type == T_TRUE || type == T_FALSE || type == T_FLOAT ||
+          type == T_FLOAT || type == T_FIXNUM || type == T_STRING
+          break
+        else
+          raise RcsvParseError, "Wrong type passed."
+        end
+      end
+      return row
+    else
+      raise RcsvParseError, "Wrong type passed."
+    end
+
+  end
+
   cfunc void end_of_field_callback(void* field, size_t field_size, void* data)
-    
+    char* field_str = <char *>field
+    rcsv_metadata meta = <rcsv_metadata*>data[0]
+    char row_conversion = 0;
+    object parsed_field
+
+    # No need to parse anything until the end of the line if skip_current_row is set */
+    return if meta.skip_current_row
+
+    # Skip the row if its position is less than specifed offset
+    if (meta.current_row < meta.offset_rows)
+      meta.skip_current_row = true
+      return
+    end
+
+    # Get row conversion char specifier
+    if meta.current_col < meta.num_row_conversions
+      row_conversion = <char>meta.row_conversions[meta.current_col]
+    end
+
+    # Convert the field from string into Ruby type specified by row_conversion
+    if row_conversion != ' ' # spacebar skips the column
+      if field_size == 0
+        # Assigning appropriate default value if applicable.
+        if meta.current_col < meta.num_row_defaults
+          parsed_field = meta.row_defaults[meta.current_col]
+        else # It depends on empty_field_is_nil if we convert empty strings to nils */
+          if meta.empty_field_is_nil || field_str == NULL
+            parsed_field = nil
+          else {
+            parsed_field = ENCODED_STR_NEW("", 0, meta.encoding_index);
+          end
+        end
+      else
+        if meta.current_col < meta.num_row_conversions
+          if row_conversion == 's' # string
+            parsed_field = ENCODED_STR_NEW(field_str, field_size, meta.encoding_index)
+          elsif row_conversion == 'i' # integer
+            parsed_field = atoll(field_str))
+          elsif row_conversion == 'f' # float
+            parsed_field = atof(field_str)
+          elsif row_conversion == 'b' # boolean
+            char field_0 = field_str[0]
+            if field_0 == 't' || field_0 == 'T' || field_0 == '1'
+              parsed_field = true
+            elsif field_0 == 'f' || field_0 == 'F' || field_0 == '0'
+              parsed_field = false
+            else
+              raise_with_location(meta.current_row, meta.current_col, field_str)
+            end
+          end
+        else
+          raise_with_location(meta.current_row, meta.current_col, field_str)
+        end
+      end
+    else # { /* No conversion happens */
+      parsed_field = ENCODED_STR_NEW(field_str, field_size, meta.encoding_index)
+    end
+
+    # Filter by row values listed in meta->only_rows */
+    if ((meta.only_rows != NULL) &&
+        (meta.current_col < meta.num_only_rows) &&
+        (meta.only_rows[meta.current_col] != nil) &&
+        (!rb_ary_includes(meta.only_rows[meta.current_col], parsed_field)))
+      
+      meta.skip_current_row = true
+      return
+    end
+
+    # Filter out by row values listed in meta->except_rows
+    if ((meta.except_rows != NULL) &&
+        (meta.current_col < meta.num_except_rows) &&
+        (meta.except_rows[meta.current_col] != nil) &&
+        (rb_ary_includes(meta.except_rows[meta.current_col], parsed_field)))
+      meta.skip_current_row = true
+      return
+    }
+
+    # Assign the value to appropriate hash key if parsing into Hash */
+    if meta.row_as_hash
+      if meta.current_col >= meta.num_columns
+        raise_with_location(meta.current_row, meta.current_col, field_str)
+      else
+        meta.last_entry[meta.column_names[meta.current_col]] = parsed_field
+      end
+    else # Parse into Array
+      meta.last_entry.push(parsed_field) # /* last_entry << field */
+    end
+
+    # Increment column counter */
+    meta.current_col += 1
+    return
   end
 
   cfunc void end_of_line_callback(int last_char, void* data)
+    rcsv_metadata meta = <rcsv_metadata *> data[0]
 
+    # If filters didn't match, current row parsing is reverted */
+    if meta.skip_current_row
+      meta.skip_current_row = false;
+    else
+      if block_given? # STREAMING
+        yield(meta.last_entry)
+      else
+        meta.result[0].push(meta.last_entry))
+      end
+    end
+
+    # /* Re-initialize last_entry unless EOF reached */
+    if last_char != -1
+      if meta.row_as_hash
+        meta.last_entry = {}
+      else
+        meta.last_entry = []
+      end
+    end
+
+    # Resetting column counter
+    meta.current_col = 0
+
+    # Incrementing row counter
+    meta.current_row += 1
   end
 
   cfunc void free_all_memory(csv_parser *p_cp, rcsv_metadata *p_meta)

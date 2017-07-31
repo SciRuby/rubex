@@ -34,6 +34,27 @@ module Rubex
           @declarations = []
           @declarations << xmalloc
           @declarations << xfree
+          @declarations << type_get
+          @declarations.concat type_identifiers
+        end
+
+        def type_get
+          args = Statement::ArgumentList.new([
+            Expression::ArgDeclaration.new({ 
+              dtype: 'object', variables: [{ident: 'dummy'}] })
+          ])
+          Statement::CFunctionDecl.new('int', '', 'TYPE', args)
+        end
+
+        def type_identifiers
+          stmts = [
+            'T_ARRAY', 'T_NIL', 'T_TRUE', 'T_FALSE', 'T_FLOAT', 'T_FIXNUM',
+            'T_BIGNUM', 'T_REGEXP', 'T_STRING'
+          ].map do |ident|
+            Statement::VarDecl.new('int', ident, nil, @location)
+          end
+
+          stmts
         end
 
         def xmalloc

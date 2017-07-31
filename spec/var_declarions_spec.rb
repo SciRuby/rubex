@@ -26,6 +26,7 @@ describe Rubex do
           require_relative "#{dir}/#{test_case}.so"
 
           expect(additive(1,5,2)).to be_within(0.001).of(6.6)
+          expect(declare_in_the_middle).to eq(7)
         end
       end
     end

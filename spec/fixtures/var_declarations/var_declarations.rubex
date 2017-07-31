@@ -11,3 +11,11 @@ def additive(float a, u64 b, i32 qq)
 
   return a + c
 end
+
+def declare_in_the_middle
+  f32 f = 3
+  f += 4
+  f32 g = f
+
+  return g
+end
