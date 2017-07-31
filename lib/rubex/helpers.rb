@@ -4,8 +4,10 @@ module Rubex
       def to_lhs_type lhs, rhs
         if lhs.type.object?
           return rhs.to_ruby_object
-        elsif lhs.type.object? && !rhs.type.object?
-          return rhs.from_ruby_object
+        elsif !lhs.type.object? && rhs.type.object?
+          return rhs.from_ruby_object(lhs)
+        else
+          return rhs
         end  
       end
 

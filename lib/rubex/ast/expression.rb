@@ -629,8 +629,7 @@ module Rubex
         end
 
         def c_code local_scope
-          code = ""
-          possible_typecast code, local_scope
+          code = super
           code << @c_code
           code
         end
@@ -750,6 +749,8 @@ module Rubex
 
       # internal node for converting from ruby object.
       class FromRubyObject < CoerceObject
+        # expr - Expression to convert
+        # from_node - LHS expression. Of type Rubex::AST::Expression
         def initialize expr, from_node
           @expr = expr
           @type = @expr.type

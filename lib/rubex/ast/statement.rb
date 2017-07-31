@@ -67,7 +67,6 @@ module Rubex
 
           local_scope.declare_var name: @name, c_name: @c_name, type: @type,
             value: @value, extern: extern
-
         end
 
         def rescan_declarations scope
@@ -88,7 +87,7 @@ module Rubex
       end
 
       class CPtrDecl < Base
-        attr_reader :entry
+        attr_reader :entry, :type
 
         # type - Specifies the type of the pointer. Is a string in case of a
         # normal pointer denoting the data type and pointer level (like `int`
@@ -101,18 +100,21 @@ module Rubex
         end
 
         def analyse_statement local_scope, extern: false
-          c_name = extern ? @name : Rubex::POINTER_PREFIX + @name
+          @c_name = extern ? @name : Rubex::POINTER_PREFIX + @name
           
           if @type.is_a?(Hash) # function ptr
             ident = @type[:ident]
             ident[:arg_list].analyse_statement(local_scope, inside_func_ptr: true)
-            @type = DataType::CFunction.new(@name, c_name, ident[:arg_list],
+            @type = DataType::CFunction.new(@name, @c_name, ident[:arg_list],
               Helpers.determine_dtype(@type[:dtype], ident[:return_ptr_level]))
           end
           @type = Helpers.determine_dtype @type, @ptr_level
-          @value.analyse_for_target_type(@type, local_scope) if @value
+          if @value
+            @value.analyse_for_target_type(@type, local_scope)
+            @value = Helpers.to_lhs_type(self, @value)
+          end
 
-          @entry = local_scope.declare_var name: @name, c_name: c_name,
+          @entry = local_scope.declare_var name: @name, c_name: @c_name,
             type: @type, value: @value, extern: extern
         end
 
@@ -127,7 +129,12 @@ module Rubex
         end
 
         def generate_code code, local_scope
-
+          if @value
+            @value.generate_evaluation_code code, local_scope
+            code << "#{@c_name} = #{@value.c_code(local_scope)};"
+            code.nl
+            @value.generate_disposal_code code
+          end
         end
       end
 
@@ -378,7 +385,6 @@ module Rubex
       class IfBlock < Base
         module Helper
           def analyse_statement local_scope
-            puts "---+++ #{@location}"
             @expr.analyse_statement(local_scope)
             @statements.each do |stat|
               stat.analyse_statement local_scope

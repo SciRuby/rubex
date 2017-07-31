@@ -5,7 +5,7 @@ end
 def blank?(string)
   i32 i = 0
   char *s = string
-  i32 length = RSTRING_LEN(string)
+  i32 length = <i32>RSTRING_LEN(string)
 
   while i < length do
     if s[i] != ' '
