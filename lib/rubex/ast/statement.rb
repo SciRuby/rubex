@@ -399,6 +399,7 @@ module Rubex
             end
 
             code.block do
+              @expr.generate_disposal_code(code) if stat != 'else'
               @statements.each do |stat|
                 stat.generate_code code, local_scope
                 code.nl
@@ -424,6 +425,7 @@ module Rubex
         end
 
         def generate_code code, local_scope
+          @expr.generate_evaluation_code code, local_scope
           generate_code_for_statement "if", code, local_scope
         end
 

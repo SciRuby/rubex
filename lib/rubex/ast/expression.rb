@@ -284,14 +284,7 @@ module Rubex
 
         def c_code local_scope
           code = super
-          if @type.object?
-            code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
-            code << "#{@pos.c_code(local_scope)})"
-            # code << @c_code
-          else
-            code << @c_code
-          end
-
+          code << @c_code
           code
         end
       end # class ElementRef
@@ -879,8 +872,12 @@ module Rubex
             @type = Rubex::DataType::RubySymbol.new
           end
 
+          def generate_evaluation_code code, local_scope
+            @c_code = "ID2SYM(rb_intern(\"#{@name}\"))"
+          end
+
           def c_code local_scope
-            "ID2SYM(rb_intern(\"#{@name}\"))"
+            @c_code
           end
         end
 

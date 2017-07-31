@@ -1,5 +1,5 @@
 def default_method(hello, bye = nil , opts = {})
-  print "aaaa", opts[:a]
+  print "aaaa", opts[:a], "hello"
   if bye && opts[:a]
     return 7
   elsif opts[:a]
