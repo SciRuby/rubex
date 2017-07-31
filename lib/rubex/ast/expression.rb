@@ -106,6 +106,7 @@ module Rubex
         end
 
         def analyse_statement local_scope
+          puts "#{@left}  --- #{@right}"
           analyse_left_and_right_nodes local_scope, self
           analyse_return_type local_scope, self
           super
@@ -366,7 +367,6 @@ module Rubex
         #   run time.
         def analyse_statement local_scope
           @entry = local_scope.find @name
-          puts "(())  #{@name}"
           # FIXME: Figure out a way to perform compile time checking of expressions
           #   to see if the said Ruby methods are actually present in the Ruby
           #   runtime. Maybe read symbols in the Ruby interpreter and load them

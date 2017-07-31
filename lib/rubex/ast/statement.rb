@@ -370,6 +370,7 @@ module Rubex
       class IfBlock < Base
         module Helper
           def analyse_statement local_scope
+            puts "---+++ #{@location}"
             @expr.analyse_statement(local_scope)
             @statements.each do |stat|
               stat.analyse_statement local_scope
@@ -432,6 +433,7 @@ module Rubex
           end
 
           def generate_code code, local_scope
+            @expr.generate_evaluation_code code, local_scope
             generate_code_for_statement "else if", code, local_scope
           end
         end # class Elsif

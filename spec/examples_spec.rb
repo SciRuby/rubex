@@ -18,19 +18,14 @@ describe Rubex do
       context ".compile", now: true do
         it "compiles to valid C file" do
           t,c,e = Rubex.compile(@path + '.rubex', test: true)
+          puts c
         end
       end
 
-      context "Black Box testing", now: true do
+      context "Black Box testing" do
         it "compiles and checks for valid output" do
           setup_and_teardown_compiled_files(test_case, example) do |dir|
             require_relative "#{dir}/#{example}.so"
-
-            k = Kustom.new
-            expect(k.bye).to eq("Bye world!")
-
-            k2 = Kustom2.new
-            expect(k2.hello).to eq("This is a prelude.Hello world!")
           end
         end
       end

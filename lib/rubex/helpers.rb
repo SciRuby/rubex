@@ -10,8 +10,12 @@ module Rubex
       end
 
       def result_type_for left, right
-        return left.dup if left == right
-        return (left < right ? right.dup : left.dup)
+        begin
+          return left.dup if left == right
+          return (left < right ? right.dup : left.dup)
+        rescue ArgumentError => e
+          raise Rubex::TypeError, e.to_s
+        end
       end
 
       def determine_dtype data, ptr_level

@@ -79,6 +79,7 @@ class Rcsv
     csv_parser cp
     ensure_container = []
     unsigned char csv_options = CSV_STRICT_FINI | CSV_APPEND_NULL
+    int csv_string_len
 
     setup_rcsv_metadata_defaults(&meta)
     csvio = StringIO.new(file_name)
@@ -147,8 +148,8 @@ class Rcsv
         csv_string = csvstr
         csv_string_len = csvstr.size
 
-        if csv_string != csv_parse(&cp, csv_string, csv_string_len, &end_of_field_callback, &end_of_line_callback)
-          error = csv_error(&cp)
+        if csv_string_len != csv_parse(&cp, csv_string, csv_string_len, &end_of_field_callback, &end_of_line_callback)
+          int error = csv_error(&cp)
 
           if error == CSV_EPARSE
         #    raise RcsvParseError, "Error when parsing malformed data."
@@ -182,7 +183,7 @@ class Rcsv
     csv_parser cp = p_cp[0]
     rcsv_metadata meta = p_meta[0]
 
-    if (cp != NULL)
+    if cp
       csv_free(&cp)
     end
   end

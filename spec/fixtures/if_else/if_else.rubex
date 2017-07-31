@@ -23,6 +23,10 @@ def adder_if_else(int a, i64 b, f64 c)
     d = 4
   end
 
+  if a
+    print "hello"
+  end
+
   d = 5643 if d + 4 == 69
   if c - 43 >= 321 then b = -43 end
 
