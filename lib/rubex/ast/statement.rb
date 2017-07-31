@@ -58,13 +58,16 @@ module Rubex
         def analyse_statement local_scope, extern: false
           # TODO: Have type checks for knowing if correct literal assignment
           # is taking place. For example, a char should not be assigned a float.
-          puts "#{@type}" if @name == "CSV_APPEND_NULL"
           @type = Helpers.determine_dtype @type, ""
-          c_name = extern ? @name : Rubex::VAR_PREFIX + @name
-          @value.analyse_for_target_type(@type, local_scope) if @value
+          @c_name = extern ? @name : Rubex::VAR_PREFIX + @name
+          if @value
+            @value.analyse_for_target_type(@type, local_scope)
+            @value = Helpers.to_lhs_type(self, @value)
+          end
 
-          local_scope.declare_var name: @name, c_name: c_name, type: @type,
+          local_scope.declare_var name: @name, c_name: @c_name, type: @type,
             value: @value, extern: extern
+
         end
 
         def rescan_declarations scope
@@ -75,7 +78,12 @@ module Rubex
         end
 
         def generate_code code, local_scope
-
+          if @value
+            @value.generate_evaluation_code code, local_scope
+            code << "#{@c_name} = #{@value.c_code(local_scope)};"
+            code.nl
+            @value.generate_disposal_code code
+          end
         end
       end
 

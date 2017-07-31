@@ -106,7 +106,6 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          puts "#{@left}  --- #{@right}"
           analyse_left_and_right_nodes local_scope, self
           analyse_return_type local_scope, self
           super

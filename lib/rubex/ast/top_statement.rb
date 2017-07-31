@@ -135,7 +135,7 @@ module Rubex
           declare_temps code, @scope
           generate_arg_checking code unless c_function
           init_args code unless c_function
-          init_vars code
+          # init_vars code
           declare_carrays_using_init_var_value code
           generate_statements code
         end
