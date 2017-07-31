@@ -149,7 +149,6 @@ module Rubex
       private
 
         def type_of expr
-          puts "#{expr.name} #{expr.type}"
           t = expr.type
           return (t.c_function? ? t.type : t)
         end
@@ -159,12 +158,12 @@ module Rubex
             analyse_left_and_right_nodes local_scope, tree.left
 
             if !@@analyse_visited.include?(tree.left.object_id)
-              tree.left.analyse_for_target_type(type_of(tree.right), local_scope)
+              tree.left.analyse_for_target_type(tree.right.type, local_scope)
               @@analyse_visited << tree.left.object_id
             end
             
             if !@@analyse_visited.include?(tree.right.object_id)
-              tree.right.analyse_for_target_type(type_of(tree.left), local_scope)
+              tree.right.analyse_for_target_type(tree.left.type, local_scope)
               @@analyse_visited << tree.right.object_id
             end
 
@@ -180,7 +179,7 @@ module Rubex
             analyse_return_type local_scope, tree.right
 
             if ['==', '<', '>', '<=', '>=', '||', '&&'].include? tree.operator
-              if tree.left.type.object? || tree.right.type.object?
+              if type_of(tree.left).object? || type_of(tree.right).object?
                 tree.type = Rubex::DataType::Boolean.new
               else
                 tree.type = Rubex::DataType::CBoolean.new
@@ -191,7 +190,7 @@ module Rubex
                   "be performed between #{tree.left} and #{tree.right}"
               end
               tree.type = Rubex::Helpers.result_type_for(
-                     tree.left.type, tree.right.type)
+                     type_of(tree.left), type_of(tree.right))
             end
           end
         end
@@ -367,7 +366,7 @@ module Rubex
         #   run time.
         def analyse_statement local_scope
           @entry = local_scope.find @name
-
+          puts "(())  #{@name}"
           # FIXME: Figure out a way to perform compile time checking of expressions
           #   to see if the said Ruby methods are actually present in the Ruby
           #   runtime. Maybe read symbols in the Ruby interpreter and load them

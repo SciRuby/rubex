@@ -58,15 +58,8 @@ module Rubex
         def analyse_statement local_scope, extern: false
           # TODO: Have type checks for knowing if correct literal assignment
           # is taking place. For example, a char should not be assigned a float.
-          @type =
-          if Rubex::TYPE_MAPPINGS.has_key? @type
-            Rubex::TYPE_MAPPINGS[@type].new
-          elsif Rubex::CUSTOM_TYPES.has_key? @type
-            Rubex::CUSTOM_TYPES[@type]
-          else
-            raise "Cannot decipher type #{@type}"
-          end
-
+          puts "#{@type}" if @name == "CSV_APPEND_NULL"
+          @type = Helpers.determine_dtype @type, ""
           c_name = extern ? @name : Rubex::VAR_PREFIX + @name
           @value.analyse_for_target_type(@type, local_scope) if @value
 
