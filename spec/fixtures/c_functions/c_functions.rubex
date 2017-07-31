@@ -18,4 +18,8 @@ class CFunctions
 
     return c - d
   end
+
+  cfunc int empty
+    
+  end
 end

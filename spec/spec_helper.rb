@@ -16,12 +16,13 @@ def dir_str test_case
   "#{Dir.pwd}/spec/fixtures/#{test_case}"
 end
 
-def path_str test_case
-  "#{Dir.pwd}/spec/fixtures/#{test_case}/#{test_case}"
+def path_str test_case, example=nil
+  example = test_case if example.nil?
+  "#{Dir.pwd}/spec/fixtures/#{test_case}/#{example}"
 end
 
-def generate_shared_object test_case
-  path = path_str test_case
+def generate_shared_object test_case, example=nil
+  path = path_str test_case, example
   dir = dir_str test_case
 
   Rubex.compile(path + '.rubex', directory: dir)
@@ -31,9 +32,9 @@ def generate_shared_object test_case
   end
 end
 
-def delete_generated_files test_case
+def delete_generated_files test_case, example=nil
   dir = dir_str test_case
-
+  test_case = example if example
   Dir.chdir(dir) do
     [
       "#{test_case}.c", "#{test_case}.so", "Makefile",
@@ -44,8 +45,8 @@ def delete_generated_files test_case
   end
 end
 
-def setup_and_teardown_compiled_files test_case, &block
-  generate_shared_object test_case
+def setup_and_teardown_compiled_files test_case, example=nil, &block
+  generate_shared_object test_case, example
   dir = dir_str test_case
   begin
     block.call(dir)

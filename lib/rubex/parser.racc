@@ -55,7 +55,7 @@ rule
   | top_stmts terms { result = val[0] }
 
   top_stmts:
-    {}
+    { result = [] }
   | top_stmt { result = [val[0]] }
   | top_stmts terms top_stmt { result = [*val[0], val[2]] }
 
@@ -264,7 +264,7 @@ rule
     stmts opt_terms { result = val[0] }
 
   stmts:
-    {}
+    { result = [] }
   | stmt { result = [*val[0]] }
   | stmts terms stmt { result = [*val[0], *val[2]] }
 
@@ -457,6 +457,7 @@ rule
     tIDENTIFIER tQMARK { result = "#{val[0]}#{val[1]}" }
   | tIDENTIFIER tBANG  { result = "#{val[0]}#{val[1]}" }
   | tIDENTIFIER        { result = val[0] }
+  | kNIL tQMARK        { result = "#{val[0]}#{val[1]}" }
 
   f_opt_arglist:
     { result = Statement::ArgumentList.new([]) }

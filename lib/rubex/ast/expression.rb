@@ -121,7 +121,7 @@ module Rubex
           code << "( "
           left_code = @left.c_code(local_scope)
           right_code = @right.c_code(local_scope)
-          if @left.type.object? || @right.type.object?
+          if type_of(@left).object? || type_of(@right).object?
             left_ruby_code = @left.type.to_ruby_object(left_code)
             right_ruby_code = @right.type.to_ruby_object(right_code)
 
@@ -148,17 +148,23 @@ module Rubex
 
       private
 
+        def type_of expr
+          puts "#{expr.name} #{expr.type}"
+          t = expr.type
+          return (t.c_function? ? t.type : t)
+        end
+
         def analyse_left_and_right_nodes local_scope, tree
           if tree.respond_to?(:left)
             analyse_left_and_right_nodes local_scope, tree.left
 
             if !@@analyse_visited.include?(tree.left.object_id)
-              tree.left.analyse_for_target_type(tree.right.type, local_scope)
+              tree.left.analyse_for_target_type(type_of(tree.right), local_scope)
               @@analyse_visited << tree.left.object_id
             end
             
             if !@@analyse_visited.include?(tree.right.object_id)
-              tree.right.analyse_for_target_type(tree.left.type, local_scope)
+              tree.right.analyse_for_target_type(type_of(tree.left), local_scope)
               @@analyse_visited << tree.right.object_id
             end
 
@@ -201,6 +207,7 @@ module Rubex
         def analyse_statement local_scope
           @expr.analyse_statement local_scope
           @type = @expr.type
+          @expr = @expr.to_ruby_object if @type.object?
           super
         end
 
@@ -212,7 +219,7 @@ module Rubex
           code = super
           code << @expr.c_code(local_scope)
           if @type.object?
-            "rb_funcall(#{@type.to_ruby_object(code)}, rb_intern(\"#{@operator}\"), 0)"
+            "rb_funcall(#{code}, rb_intern(\"#{@operator}\"), 0)"
           else
             "#{@operator} #{code}"
           end

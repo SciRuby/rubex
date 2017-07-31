@@ -1,3 +1,5 @@
 def addition (i32 a, i32 b)
+  t = "aaa"
+  t.nil?
   return a + b
 end
