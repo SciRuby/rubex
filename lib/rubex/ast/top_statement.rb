@@ -135,7 +135,6 @@ module Rubex
           declare_temps code, @scope
           generate_arg_checking code unless c_function
           init_args code unless c_function
-          # init_vars code
           declare_carrays_using_init_var_value code
           generate_statements code
         end
@@ -157,29 +156,6 @@ module Rubex
             code << arg.c_name + '=' + arg.type.from_ruby_object("argv[#{i}]") + ';'
             code.nl
           end
-        end
-
-        def init_vars code
-          @scope.var_entries.select { |v| v.value }.each do |var|
-            init_variable code, var
-          end
-        end
-
-        def init_variable code, var
-          rhs = var.value
-          rhs =
-          if var.type.object?
-            rhs.to_ruby_object
-          elsif rhs.type.object? && !var.type.object?
-            rhs.from_ruby_object(var)
-          else
-            rhs
-          end
-          rhs.generate_evaluation_code code, @scope
-          lhs = var.c_name
-
-          code.init_variable lhs: lhs, 
-            rhs: "(#{var.type.to_s})(#{rhs.c_code(@scope)})"
         end
 
         def declare_carrays_using_init_var_value code

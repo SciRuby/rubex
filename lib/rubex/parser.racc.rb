@@ -1688,7 +1688,7 @@ module_eval(<<'.,.,', 'parser.racc', 273)
 
 module_eval(<<'.,.,', 'parser.racc', 275)
   def _reduce_60(val, _values, result)
-     result = Statement::Print.new val[1], location 
+     result = Statement::Print.new val[2], location 
     result
   end
 .,.,

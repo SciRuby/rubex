@@ -278,8 +278,10 @@ module Rubex
 
         def analyse_statement local_scope
           @expressions.each do |expr|
-            expr.allocate_temp local_scope
             expr.analyse_statement local_scope
+            expr.allocate_temps local_scope
+            expr.allocate_temp local_scope, expr.type
+            expr.release_temps local_scope
             expr.release_temp local_scope
           end
         end
@@ -324,6 +326,8 @@ module Rubex
 
         def analyse_statement local_scope
           @expression.analyse_statement local_scope
+          @expression.allocate_temp local_scope, @expression.type
+          @expression.release_temp local_scope
           t = @expression.type
 
           @type =
@@ -359,19 +363,26 @@ module Rubex
           else
             @lhs.analyse_statement(local_scope)
           end
+          @lhs.allocate_temps local_scope
+          @lhs.allocate_temp local_scope, @lhs.type
 
           @rhs.analyse_for_target_type(@lhs.type, local_scope)
-          if @lhs.type.object?
-            @rhs = @rhs.to_ruby_object
-          elsif !@lhs.type.object? && @rhs.type.object?
-            @rhs = @rhs.from_ruby_object @lhs
-          end
+          @rhs = Helpers.to_lhs_type(@lhs, @rhs)
+
+          @rhs.allocate_temps local_scope
+          @rhs.allocate_temp local_scope, @rhs.type
+
+          @lhs.release_temps local_scope
+          @lhs.release_temp local_scope
+          @rhs.release_temps local_scope
+          @rhs.release_temp local_scope
         end
 
         def generate_code code, local_scope
           super
           @rhs.generate_evaluation_code code, local_scope
           @lhs.generate_assignment_code @rhs, code, local_scope
+          @rhs.generate_disposal_code code
         end
       end # class Assign
 
@@ -533,7 +544,7 @@ module Rubex
 
         def analyse_statement local_scope
           @expr.analyse_statement local_scope
-          @expr.allocate_temp local_scope
+          @expr.allocate_temp local_scope, @expr.type
           @expr.release_temp local_scope
           @statements.each do |stat|
             stat.analyse_statement local_scope

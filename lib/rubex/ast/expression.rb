@@ -43,7 +43,21 @@ module Rubex
         end
 
         def allocate_temp local_scope, type
-          @c_code = local_scope.allocate_temp(type) if @has_temp
+          if @has_temp
+            @c_code = local_scope.allocate_temp(type)
+          end
+        end
+
+        def allocate_temps local_scope
+          if @subexprs
+            @subexprs.each { |expr| expr.allocate_temp(local_scope, expr.type) }
+          end
+        end
+
+        def release_temps local_scope
+          if @subexprs
+            @subexprs.each { |expr| expr.release_temp(local_scope) }
+          end
         end
 
         def generate_evaluation_code code, local_scope
@@ -230,9 +244,18 @@ module Rubex
 
         def initialize name, pos
           @name, @pos = name, pos
+          @subexprs = []
         end
 
-        def analyse_statement local_scope, struct_scope=nil     
+        # FIXME: This method needs to be implemented for all exprs that are
+        #   possible LHS candidates.
+        # def analyse_declaration rhs, local_scope
+        #   analyse_statement local_scope
+        #   @has_temp = false
+        # end
+
+        def analyse_statement local_scope, struct_scope=nil   
+          @has_temp = true
           if struct_scope.nil?
             @entry = local_scope.find @name
           else
@@ -243,6 +266,7 @@ module Rubex
           if @type.object?
             @pos.analyse_statement local_scope
             @pos = @pos.to_ruby_object
+            @subexprs << @pos
           else
             @pos.analyse_statement local_scope
           end
@@ -283,7 +307,6 @@ module Rubex
             code << "#{rhs.c_code(local_scope)};"
           end
           code.nl
-
         end
 
         def c_code local_scope
@@ -482,15 +505,15 @@ module Rubex
         end
 
         def generate_evaluation_code code, local_scope
-          @arg_list.each do |arg|
-            arg.generate_evaluation_code code, local_scope
-          end
+          # @arg_list.each do |arg|
+          #   arg.generate_evaluation_code code, local_scope
+          # end
         end
 
         def generate_disposal_code code
-          @arg_list.each do |arg|
-            arg.generate_disposal_code code
-          end
+          # @arg_list.each do |arg|
+          #   arg.generate_disposal_code code
+          # end
         end
 
         def c_code local_scope
@@ -575,6 +598,7 @@ module Rubex
 
         def initialize expr, command, arg_list
           @expr, @command, @arg_list = expr, command, arg_list
+          @subexprs = []
         end
 
         # Analyse the command call. If the @command is found in the symbol table,
@@ -587,6 +611,7 @@ module Rubex
         def analyse_statement local_scope
           @arg_list.each do |arg|
             arg.analyse_statement local_scope
+            @subexprs << arg
           end
           # Case for implicit 'self' when a method in the class itself is being called.
           if @expr.nil? 
@@ -594,7 +619,9 @@ module Rubex
             @expr = Expression::Self.new if entry && !entry.extern?
           end
           # if command is extern @expr will be nil.
-          @expr.analyse_statement(local_scope) unless @expr.nil?
+          unless @expr.nil?
+            @expr.analyse_statement(local_scope)
+          end
           analyse_command_type local_scope
           super
         end
@@ -618,6 +645,9 @@ module Rubex
         def generate_disposal_code code
           @expr.generate_disposal_code(code) if @expr
           @command.generate_disposal_code code
+          @arg_list.each do |arg|
+            arg.generate_disposal_code code
+          end
         end
 
         def generate_assignment_code rhs, code, local_scope
@@ -708,17 +738,11 @@ module Rubex
       end # class ArgDeclaration
 
       class CoerceObject < Base
-        def generate_evaluation_code code, local_scope
-          @expr.generate_evaluation_code code, local_scope
-        end
+        extend Forwardable
 
-        def generate_disposal_code code
-          @expr.generate_disposal_code code
-        end
-
-        def generate_assignment_code rhs, code, local_scope
-          @expr.generate_assignment_code rhs, code, local_scope
-        end
+        def_delegators :@expr, :generate_evaluation_code, :generate_disposal_code,
+          :generate_assignment_code, :allocate_temp, :allocate_temps,
+          :release_temp, :release_temps, :type
       end
 
       # Internal class to typecast from a C type to another C type.
@@ -795,13 +819,17 @@ module Rubex
 
           def initialize array_list
             @array_list = array_list
+            @subexprs = []
           end
 
           def analyse_statement local_scope
+            @has_temp = true
             @type = DataType::RubyObject.new
             @array_list.map! do |e|
               e.analyse_statement local_scope
-              e.to_ruby_object
+              e = e.to_ruby_object
+              @subexprs << e
+              e
             end
           end
 
@@ -809,7 +837,7 @@ module Rubex
             code << "#{@c_code} = rb_ary_new2(#{@array_list.size});"
             code.nl
             @array_list.each do |e|
-              code <<"rb_ary_push(#{@c_code}, #{e.c_code(local_scope)});"
+              code << "rb_ary_push(#{@c_code}, #{e.c_code(local_scope)});"
               code.nl
             end
           end
@@ -830,6 +858,7 @@ module Rubex
           end
 
           def analyse_statement local_scope
+            @has_temp = true
             @type = Rubex::DataType::RubyObject.new
             @key_val_pairs.map! do |k, v|
               k.analyse_for_target_type(@type, local_scope)
@@ -853,6 +882,20 @@ module Rubex
               v.generate_disposal_code code
               code.nl
             end            
+          end
+
+          def allocate_temps local_scope
+            @key_val_pairs.each do |k,v|
+              k.allocate_temp local_scope, k.type
+              v.allocate_temp local_scope, v.type
+            end
+          end
+
+          def release_temps local_scope
+            @key_val_pairs.each do |k,v|
+              k.release_temp local_scope
+              v.release_temp local_scope
+            end
           end
 
           def generate_disposal_code code
