@@ -278,7 +278,9 @@ module Rubex
 
         def analyse_statement local_scope
           @expressions.each do |expr|
+            expr.allocate_temp local_scope
             expr.analyse_statement local_scope
+            expr.release_temp local_scope
           end
         end
 
@@ -309,15 +311,6 @@ module Rubex
           else
             obj
           end  
-        end
-
-        def prepare_format_string
-          format_string = ""
-          @expressions.each do |expr|
-            format_string << expr.type.p_formatter
-          end
-
-          format_string
         end
       end # class Print
 
@@ -540,6 +533,8 @@ module Rubex
 
         def analyse_statement local_scope
           @expr.analyse_statement local_scope
+          @expr.allocate_temp local_scope
+          @expr.release_temp local_scope
           @statements.each do |stat|
             stat.analyse_statement local_scope
           end
@@ -554,6 +549,7 @@ module Rubex
               stat.generate_code code, local_scope
             end
           end
+          @expr.generate_disposal_code code
         end
       end # class While
 
@@ -698,33 +694,94 @@ module Rubex
         end
       end # class ArgumentList
 
-      class ActualArgList < Base
-        include Enumerable
-
-        def each &block
-          @args.each(&block)  
-        end
-
-        def initialize args
-          @args = args
-        end
-
+      class ActualArgList < ArgumentList
         def analyse_statement local_scope
           @args.each do |arg|
             arg.analyse_statement local_scope
           end
         end
-      end
+
+        def allocate_temps local_scope
+          @args.each { |a| a.allocate_temp(local_scope, a.type) }
+        end
+
+        def release_temps local_scope
+          @args.each { |a| a.release_temp(local_scope) }
+        end
+
+        def generate_evaluation_code code, local_scope
+          @args.each do |a|
+            a.generate_evaluation_code code, local_scope
+          end
+        end
+
+        def generate_disposal_code code
+          @args.each do |a|
+            a.generate_disposal_code code
+          end
+        end
+      end # class ActualArgList
 
       class Raise < Base
         def initialize args
           @args = args
         end
 
-        def analyse_statemnt local_scope
+        def analyse_statement local_scope
           @args.analyse_statement local_scope
+          @args.allocate_temps local_scope
+          @args.release_temps local_scope
+          unless @args.empty? || @args[0].is_a?(AST::Expression::Name) ||
+            @args[0].is_a?(AST::Expression::Literal::StringLit)
+            raise Rubex::TypeMismatchError, "Wrong argument list #{@args.inspect} for raise."
+          end
         end
-      end
+
+        def generate_code code, local_scope
+          @args.generate_evaluation_code code, local_scope
+          str = ""
+          str << "rb_raise("
+
+          if @args[0].is_a?(AST::Expression::Name)
+            str << @args[0].c_code(local_scope) + ','
+            args = @args[1..-1]
+          else
+            str << Rubex::DEFAULT_CLASS_MAPPINGS["RuntimeError"] + ','
+            args = @args
+          end
+
+          unless args.empty?
+            str << "\"#{prepare_format_string(args)}\" ,"
+            str << args.map { |arg| "#{inspected_expr(arg, local_scope)}" }.join(',')
+          else
+            str << "\"\""
+          end
+          str << ");"
+          code << str
+          code.nl
+          @args.generate_disposal_code code
+        end
+
+      private
+
+        def prepare_format_string args
+          format_string = ""
+          args.each do |expr|
+            format_string << expr.type.p_formatter
+          end
+
+          format_string
+        end
+
+        def inspected_expr expr, local_scope
+          obj = expr.c_code(local_scope)
+          if expr.type.object?
+            "RSTRING_PTR(rb_funcall(#{obj}, rb_intern(\"inspect\"), 0, NULL))"
+          else
+            obj
+          end  
+        end
+      end # class Raise
     end # module Statement
   end # module AST
 end # module Rubex

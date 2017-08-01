@@ -39,11 +39,11 @@ module Rubex
         end
 
         def release_temp local_scope
-          local_scope.release_temp @c_code
+          local_scope.release_temp(@c_code) if @has_temp
         end
 
         def allocate_temp local_scope, type
-          @c_code = local_scope.allocate_temp type
+          @c_code = local_scope.allocate_temp(type) if @has_temp
         end
 
         def generate_evaluation_code code, local_scope
@@ -241,10 +241,8 @@ module Rubex
 
           @type = @entry.type.object? ? @entry.type : @entry.type.type
           if @type.object?
-            @c_code = local_scope.allocate_temp @type
             @pos.analyse_statement local_scope
             @pos = @pos.to_ruby_object
-            local_scope.release_temp @c_code
           else
             @pos.analyse_statement local_scope
           end
@@ -801,12 +799,10 @@ module Rubex
 
           def analyse_statement local_scope
             @type = DataType::RubyObject.new
-            @c_code = local_scope.allocate_temp @type
             @array_list.map! do |e|
               e.analyse_statement local_scope
               e.to_ruby_object
             end
-            local_scope.release_temp @c_code
           end
 
           def generate_evaluation_code code, local_scope
@@ -835,14 +831,11 @@ module Rubex
 
           def analyse_statement local_scope
             @type = Rubex::DataType::RubyObject.new
-            @c_code = local_scope.allocate_temp @type
             @key_val_pairs.map! do |k, v|
               k.analyse_for_target_type(@type, local_scope)
               v.analyse_for_target_type(@type, local_scope)
               [k.to_ruby_object, v.to_ruby_object]
             end
-
-            local_scope.release_temp @c_code
           end
 
           def generate_evaluation_code code, local_scope
@@ -919,8 +912,7 @@ module Rubex
 
           def analyse_statement local_scope
             @type = Rubex::DataType::RubyString.new unless @type
-            @c_code = local_scope.allocate_temp @type
-            local_scope.release_temp @c_code
+            @has_temp = 1
           end
 
           def generate_evaluation_code code, local_scope
