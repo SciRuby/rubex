@@ -933,8 +933,10 @@ module Rubex
           end
 
           def generate_disposal_code code
-            code << "#{@c_code} = 0;"
-            code.nl
+            if @type.object?
+              code << "#{@c_code} = 0;"
+              code.nl
+            end
           end
 
           def c_code local_scope

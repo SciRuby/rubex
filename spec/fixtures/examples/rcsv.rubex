@@ -201,8 +201,7 @@ class Rcsv
       for (0 <= j < r_size) do
         type = TYPE(row[i])
 
-        if type == T_NIL || type == T_TRUE || type == T_FALSE || type == T_FLOAT ||
-          type == T_FLOAT || type == T_FIXNUM || type == T_STRING
+        if type == T_NIL || type == T_TRUE || type == T_FALSE || type == T_FLOAT || type == T_FLOAT || type == T_FIXNUM || type == T_STRING
           break
         else
           raise RcsvParseError, "Wrong type passed."
@@ -218,7 +217,7 @@ class Rcsv
   cfunc void end_of_field_callback(void* field, size_t field_size, void* data)
     char* field_str = <char *>field
     rcsv_metadata meta = <rcsv_metadata*>data[0]
-    char row_conversion = 0;
+    char row_conversion = 0
     object parsed_field
 
     # No need to parse anything until the end of the line if skip_current_row is set */

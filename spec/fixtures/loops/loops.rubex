@@ -19,3 +19,15 @@ def looper(i32 size)
 
   return a[2]
 end
+
+def break_stmt
+  int *i = [1,2,3,4,5]
+  int j
+
+  while j < 5 do
+    break if i[j] == 3
+    j += 1
+  end
+
+  return i[j]
+end

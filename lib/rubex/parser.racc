@@ -317,6 +317,10 @@ rule
       }
 
   for_expr:
+    tLPAREN actual_for_expr tRPAREN { result = val[1] }
+  | actual_for_expr
+
+  actual_for_expr:
     expr_value lt_or_lteq tIDENTIFIER lt_or_lteq expr_value { result = val }
   | expr_value gt_or_gteq tIDENTIFIER gt_or_gteq expr_value { result = val }
 

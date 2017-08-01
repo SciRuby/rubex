@@ -54,3 +54,12 @@ class IfElseTest
     return i
   end
 end
+
+def multi_line_if
+  if true || false ||
+    false && true
+    return true
+  else
+    return false
+  end
+end

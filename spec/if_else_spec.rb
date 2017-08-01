@@ -28,6 +28,10 @@ describe Rubex do
 
           expect(adder_if_else(2, 3, 4)).to eq(4)
           expect(IfElseTest.new.ruby_obj_in_condition).to eq(20)
+
+          pending("Multi line if statement conditions.") do
+            expect(multi_line_if).to eq(true)
+          end
         end
       end
     end
