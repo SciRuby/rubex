@@ -2,7 +2,7 @@ class Rubex::Parser
 token
   kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE   kTHEN  kSTATIC_ARRAY kFOR kWHILE
   kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS        kLIB kCLASS
-  kCFUNC     kSELF  kNULL  kFWD   kATTACH
+  kCFUNC     kSELF  kNULL  kFWD   kATTACH kRAISE
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT  kDTYPE_CHAR   kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8    kDTYPE_UI16   kDTYPE_UI32 kDTYPE_UI64
@@ -272,7 +272,8 @@ rule
   stmt:
     var_decl_or_init { result = variable_decl_nodes val }
   | kRETURN expr { result = Statement::Return.new val[1], location }
-  | kPRINT command_arg_list { result = Statement::Print.new val[1], location }
+  | kPRINT opt_lparen command_arg_list opt_rparen 
+      { result = Statement::Print.new val[1], location }
   | normal_init
       {
         match = val[0]
@@ -300,6 +301,10 @@ rule
   | forward_declaration
   | alias_stmt
   | expr { result = Statement::Expression.new(val[0], location) }
+  | kRAISE opt_lparen command_arg_list opt_rparen
+      { 
+        result = Statement::Raise.new(Statement::ActualArgList.new(val[2]))
+      }
 
   forward_declaration:
     kFWD kSTRUCT tIDENTIFIER
@@ -613,6 +618,14 @@ rule
         result = val[0]
       }
 
+  opt_lparen:
+    {}
+  | tLPAREN
+
+  opt_rparen:
+    {}
+  | tRPAREN
+
   opt_terms:
     {}
   | terms {}
@@ -716,6 +729,8 @@ def check_for_keyword token
     return [:kTHEN  , match]
   elsif match == "sizeof"
     return [:kSIZEOF, match]
+  elsif match == "raise"
+    return [:kRAISE, match]
   end
 
   return token

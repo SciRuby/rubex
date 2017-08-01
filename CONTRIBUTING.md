@@ -64,3 +64,5 @@ If Hash, it will look like this:
 # Future work
 
 The following features in Rubex need to be implemented or can be made better:
+
+* Ability to have Ruby-style method arguments without parenthesis.

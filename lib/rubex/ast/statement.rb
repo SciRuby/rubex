@@ -697,6 +697,34 @@ module Rubex
           @args[idx]
         end
       end # class ArgumentList
+
+      class ActualArgList < Base
+        include Enumerable
+
+        def each &block
+          @args.each(&block)  
+        end
+
+        def initialize args
+          @args = args
+        end
+
+        def analyse_statement local_scope
+          @args.each do |arg|
+            arg.analyse_statement local_scope
+          end
+        end
+      end
+
+      class Raise < Base
+        def initialize args
+          @args = args
+        end
+
+        def analyse_statemnt local_scope
+          @args.analyse_statement local_scope
+        end
+      end
     end # module Statement
   end # module AST
 end # module Rubex

@@ -3,7 +3,11 @@ class RaiseTester
     if switch
       raise ArgumentError, "You raised an ArgumentError!"
     else
-      raise NoMethodError, "You raised an NoMethodError!"
+      raise(NoMethodError, "You raised an NoMethodError!")
     end
+  end
+
+  def test_raise1
+    raise
   end
 end

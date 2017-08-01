@@ -339,6 +339,7 @@ class Rubex::Lexer
     token
   end # def next_token
     def do_parse
+      self.ss << "\n"
     end
 end # class
 

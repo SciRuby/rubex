@@ -203,6 +203,6 @@ rules
 
 inner
   def do_parse
-    # this is a stub since oedipus lex uses this internally.
+    self.ss << "\n"
   end
 end # Rubex::Lexer

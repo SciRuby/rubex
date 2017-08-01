@@ -30,6 +30,8 @@ describe Rubex do
 
           k2 = Kustom2.new
           expect(k2.hello).to eq("This is a prelude.Hello world!")
+
+          expect(Kustom2.ancestors[1]).to eq(Kustom)
         end
       end
     end
