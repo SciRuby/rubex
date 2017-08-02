@@ -117,17 +117,43 @@ module Rubex
         def initialize left, operator, right
           @left, @operator, @right = left, operator, right
           @@analyse_visited = []
+          @subexprs = []
         end
 
         def analyse_statement local_scope
           analyse_left_and_right_nodes local_scope, self
           analyse_return_type local_scope, self
+          @subexprs << @left
+          @subexprs << @right
+          @has_temp = true if @type.object?
+          @time = 0 
           super
         end
 
+        def allocate_temps local_scope
+          @subexprs.each do |expr|
+            if expr.is_a?(Binary)
+              puts "#{expr.inspect}\n\n"
+              expr.allocate_temps local_scope
+            else
+              puts "#{expr.inspect}\n\n"
+              expr.allocate_temp local_scope, expr.type
+            end
+          end
+        end
+
         def generate_evaluation_code code, local_scope
+          puts code.to_s
+          # if !@left.is_a?(Binary)
           @left.generate_evaluation_code code, local_scope
+          # end
+
+          # if !@right.is_a?(Binary)
           @right.generate_evaluation_code code, local_scope
+          puts "<<<<<<< POST >>>>>>"
+          puts code.to_s
+          # end
+
         end
 
         def c_code local_scope
@@ -254,7 +280,7 @@ module Rubex
         #   @has_temp = false
         # end
 
-        def analyse_statement local_scope, struct_scope=nil   
+        def analyse_statement local_scope, struct_scope=nil
           @has_temp = true
           if struct_scope.nil?
             @entry = local_scope.find @name
@@ -360,7 +386,6 @@ module Rubex
         # Used when the node is a LHS of an assign statement.
         def analyse_declaration rhs, local_scope
           @entry = local_scope.find @name
-
           unless @entry
             local_scope.add_ruby_obj(name: @name,
               c_name: Rubex::VAR_PREFIX + @name, value: @rhs)

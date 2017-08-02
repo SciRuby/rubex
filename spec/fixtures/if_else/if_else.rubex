@@ -1,59 +1,59 @@
-def adder_if_else(int a, i64 b, f64 c)
-  i32 d
-
-  if a < 5
-    d = 5
-  elsif b == 44
-    d = 44
-  elsif c >= 211
-    d = 211
-
-    if c == 225
-      d = 221
-    end
-  else
-    d = 666
-  end
-
-  if !(d > 32)
-    d = -69
-  end
-
-  if !d || a == 2
-    d = 4
-  end
-
-  if a
-    print "hello"
-  end
-
-  d = 5643 if d + 4 == 69
-  if c - 43 >= 321 then b = -43 end
-
-  return d
-end
-
-class IfElseTest
-  def ruby_obj_in_condition
-    int i = 0
-    a = nil
-    b = false
-
-    if a
-      i += 1
-    else
-      i += 10
-    end
-
-    if b
-      i += 1
-    else
-      i += 10
-    end
-
-    return i
-  end
-end
+#def adder_if_else(int a, i64 b, f64 c)
+#  i32 d
+#
+#  if a < 5
+#    d = 5
+#  elsif b == 44
+#    d = 44
+#  elsif c >= 211
+#    d = 211
+#
+#    if c == 225
+#      d = 221
+#    end
+#  else
+#    d = 666
+#  end
+#
+#  if !(d > 32)
+#    d = -69
+#  end
+#
+#  if !d || a == 2
+#    d = 4
+#  end
+#
+#  if a
+#    print "hello"
+#  end
+#
+#  d = 5643 if d + 4 == 69
+#  if c - 43 >= 321 then b = -43 end
+#
+#  return d
+#end
+#
+#class IfElseTest
+#  def ruby_obj_in_condition
+#    int i = 0
+#    a = nil
+#    b = false
+#
+#    if a
+#      i += 1
+#    else
+#      i += 10
+#    end
+#
+#    if b
+#      i += 1
+#    else
+#      i += 10
+#    end
+#
+#    return i
+#  end
+#end
 
 def multi_if_elsif
   opts = {}

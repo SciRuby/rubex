@@ -380,6 +380,9 @@ module Rubex
 
         def generate_code code, local_scope
           super
+          # puts "#{@location}"
+          # puts "-----"
+          # puts "#{@lhs} #{@rhs}"
           @rhs.generate_evaluation_code code, local_scope
           @lhs.generate_assignment_code @rhs, code, local_scope
           @rhs.generate_disposal_code code
@@ -389,16 +392,11 @@ module Rubex
       class IfBlock < Base
         module Helper
           def analyse_statement local_scope
-            @expr.analyse_statement(local_scope)
             @statements.each do |stat|
               stat.analyse_statement local_scope
             end
 
-            unless @if_tail.empty?
-              @if_tail.each do |tail|
-                tail.analyse_statement local_scope
-              end
-            end
+            @if_tail.analyse_statement(local_scope) if @if_tail
           end
 
           def generate_code_for_statement stat, code, local_scope
@@ -419,11 +417,7 @@ module Rubex
             end
 
             if stat != "else"
-              unless @if_tail.empty?
-                @if_tail.each do |tail|
-                  tail.generate_code code, local_scope
-                end
-              end
+              @if_tail.generate_code(code, local_scope) if @if_tail
             end
           end
         end # module Helper
@@ -436,8 +430,37 @@ module Rubex
           @expr, @statements, @if_tail = expr, statements, if_tail
         end
 
+        def analyse_statement local_scope
+          @tail_exprs = if_tail_exprs
+          @tail_exprs.each do |tail|
+            tail.analyse_statement local_scope
+            tail.allocate_temps local_scope
+            tail.allocate_temp local_scope, tail.type
+          end
+          @tail_exprs.each do |tail|
+            tail.release_temps local_scope
+            tail.release_temp local_scope
+          end
+          super
+        end
+
+        def if_tail_exprs
+          tail_exprs = []
+          temp = self
+          while temp.respond_to?(:if_tail) && 
+            !temp.is_a?(Rubex::AST::Statement::IfBlock::Else)
+            tail_exprs << temp.expr
+            temp = temp.if_tail
+          end
+
+          tail_exprs
+        end
+
         def generate_code code, local_scope
-          @expr.generate_evaluation_code code, local_scope
+          @tail_exprs.each do |tail|
+            # puts "\n\n\n#{tail.inspect}\n\n\n"
+            tail.generate_evaluation_code(code, local_scope)
+          end
           generate_code_for_statement "if", code, local_scope
         end
 
@@ -451,7 +474,7 @@ module Rubex
           end
 
           def generate_code code, local_scope
-            @expr.generate_evaluation_code code, local_scope
+            # @expr.generate_evaluation_code code, local_scope
             generate_code_for_statement "else if", code, local_scope
           end
         end # class Elsif

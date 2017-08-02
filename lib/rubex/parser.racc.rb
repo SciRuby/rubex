@@ -1718,7 +1718,7 @@ module_eval(<<'.,.,', 'parser.racc', 278)
 
 module_eval(<<'.,.,', 'parser.racc', 283)
   def _reduce_62(val, _values, result)
-            result = Statement::IfBlock.new val[1], [*val[3]], [*val[4]], location
+            result = Statement::IfBlock.new val[1], [*val[3]], val[4], location
       
     result
   end
@@ -1727,7 +1727,7 @@ module_eval(<<'.,.,', 'parser.racc', 283)
 module_eval(<<'.,.,', 'parser.racc', 287)
   def _reduce_63(val, _values, result)
             set_location
-        result = Statement::IfBlock.new val[2], [*val[0]], [], location
+        result = Statement::IfBlock.new val[2], [*val[0]], nil, location
       
     result
   end
@@ -1854,7 +1854,7 @@ module_eval(<<'.,.,', 'parser.racc', 343)
 
 module_eval(<<'.,.,', 'parser.racc', 346)
   def _reduce_87(val, _values, result)
-            result = Statement::IfBlock::Elsif.new val[1], [*val[3]], [*val[4]], location
+            result = Statement::IfBlock::Elsif.new val[1], [*val[3]], val[4], location
       
     result
   end
