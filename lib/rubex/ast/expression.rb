@@ -806,7 +806,7 @@ module Rubex
           def == other
             self.class == other.class && @name == other.name
           end
-        end
+        end # class Base
 
         class ArrayLit < Literal::Base
           include Enumerable
@@ -825,7 +825,7 @@ module Rubex
           def analyse_statement local_scope
             @has_temp = true
             @type = DataType::RubyObject.new
-            @array_list.map! do |e|
+            @array_list.map! do |e|    
               e.analyse_statement local_scope
               e = e.to_ruby_object
               @subexprs << e
@@ -850,7 +850,7 @@ module Rubex
           def c_code local_scope
             @c_code
           end
-        end
+        end # class ArrayLit
 
         class HashLit < Literal::Base
           def initialize key_val_pairs

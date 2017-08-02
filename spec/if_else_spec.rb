@@ -14,24 +14,24 @@ describe Rubex do
       end
     end
 
-    context ".compile", focus: true do
+    context ".compile", now: false do
       it "compiles to valid C file" do
-        t,c,e = Rubex.compile(@path + '.rubex', test: true)
-        # expect_compiled_code(c, @path + ".c")
+        t,c,e = Rubex.compile(@path + '.rubex', test: false)
       end
     end
 
-    context "Black Box testing" do
+    context "Black Box testing", now: false do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.so"
 
           expect(adder_if_else(2, 3, 4)).to eq(4)
+          expect(multi_if_elsif).to eq(true)
           expect(IfElseTest.new.ruby_obj_in_condition).to eq(20)
 
-          pending("Multi line if statement conditions.") do
-            expect(multi_line_if).to eq(true)
-          end
+          # pending("Multi line if statement conditions.") do
+          #   expect(multi_line_if).to eq(true)
+          # end
         end
       end
     end

@@ -21,7 +21,7 @@ def looper(i32 size)
 end
 
 def break_stmt
-  int *i = [1,2,3,4,5]
+  int i[5] = [1,2,3,4,5]
   int j
 
   while j < 5 do

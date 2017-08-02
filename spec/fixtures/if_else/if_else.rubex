@@ -55,11 +55,23 @@ class IfElseTest
   end
 end
 
-def multi_line_if
-  if true || false ||
-    false && true
+def multi_if_elsif
+  opts = {}
+  opts[:a] = "hello world"
+  opts[:b] = 3
+
+  if opts[:a] == 3 && opts[:b] == "hello world"
     return true
-  else
+  elsif opts[:b] == 3 && opts[:a] == "hello world"
     return false
   end
 end
+
+#def multi_line_if
+#  if true || false ||
+#    false && true
+#    return true
+#  else
+#    return false
+#  end
+#end

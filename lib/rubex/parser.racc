@@ -2,7 +2,7 @@ class Rubex::Parser
 token
   kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE   kTHEN  kSTATIC_ARRAY kFOR kWHILE
   kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS        kLIB kCLASS
-  kCFUNC     kSELF  kNULL  kFWD   kATTACH kRAISE
+  kCFUNC     kSELF  kNULL  kFWD   kATTACH kRAISE kBREAK
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT  kDTYPE_CHAR   kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8    kDTYPE_UI16   kDTYPE_UI32 kDTYPE_UI64
@@ -305,6 +305,7 @@ rule
       { 
         result = Statement::Raise.new(Statement::ActualArgList.new(val[2]))
       }
+  | kBREAK { result = Statement::Break.new(location) }
 
   forward_declaration:
     kFWD kSTRUCT tIDENTIFIER
@@ -731,6 +732,8 @@ def check_for_keyword token
     return [:kSIZEOF, match]
   elsif match == "raise"
     return [:kRAISE, match]
+  elsif match == "break"
+    return [:kBREAK, match]
   end
 
   return token

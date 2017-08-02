@@ -174,7 +174,7 @@ module Rubex
 
         def verify_array_list_types local_scope
           @array_list.all? do |expr|
-            return true if @type > expr.type
+            return true if @type >= expr.type
             raise "Specified type #{@type} but list contains #{expr.type}."
           end
         end
@@ -793,6 +793,19 @@ module Rubex
           end  
         end
       end # class Raise
+
+      class Break < Base
+        def analyse_statement local_scope
+          # TODO: figure whether this is a Ruby break or C break. For now
+          #   assuming C break.
+        end
+
+        def generate_code code, local_scope
+          code.write_location @location
+          code << "break;"
+          code.nl
+        end
+      end
     end # module Statement
   end # module AST
 end # module Rubex
