@@ -112,7 +112,7 @@ module Rubex
         attr_reader :operator
         attr_accessor :left, :right
         # Final return type of expression
-        attr_accessor :type
+        attr_accessor :type, :subexprs
 
         def initialize left, operator, right
           @left, @operator, @right = left, operator, right
@@ -123,9 +123,8 @@ module Rubex
         def analyse_statement local_scope
           analyse_left_and_right_nodes local_scope, self
           analyse_return_type local_scope, self
-          @subexprs << @left
-          @subexprs << @right
-          @has_temp = true if @type.object?
+
+          # @has_temp = true if @type.object?
           @time = 0 
           super
         end
@@ -133,27 +132,21 @@ module Rubex
         def allocate_temps local_scope
           @subexprs.each do |expr|
             if expr.is_a?(Binary)
-              puts "#{expr.inspect}\n\n"
               expr.allocate_temps local_scope
             else
-              puts "#{expr.inspect}\n\n"
               expr.allocate_temp local_scope, expr.type
             end
           end
         end
 
         def generate_evaluation_code code, local_scope
-          puts code.to_s
-          # if !@left.is_a?(Binary)
           @left.generate_evaluation_code code, local_scope
-          # end
-
-          # if !@right.is_a?(Binary)
           @right.generate_evaluation_code code, local_scope
-          puts "<<<<<<< POST >>>>>>"
-          puts code.to_s
-          # end
+        end
 
+        def generate_disposal_code code
+          @left.generate_disposal_code code
+          @right.generate_disposal_code code
         end
 
         def c_code local_scope
@@ -199,11 +192,13 @@ module Rubex
 
             if !@@analyse_visited.include?(tree.left.object_id)
               tree.left.analyse_for_target_type(tree.right.type, local_scope)
+              @subexprs << tree.left
               @@analyse_visited << tree.left.object_id
             end
             
             if !@@analyse_visited.include?(tree.right.object_id)
               tree.right.analyse_for_target_type(tree.left.type, local_scope)
+              @subexprs << tree.right
               @@analyse_visited << tree.right.object_id
             end
 

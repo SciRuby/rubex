@@ -380,9 +380,6 @@ module Rubex
 
         def generate_code code, local_scope
           super
-          # puts "#{@location}"
-          # puts "-----"
-          # puts "#{@lhs} #{@rhs}"
           @rhs.generate_evaluation_code code, local_scope
           @lhs.generate_assignment_code @rhs, code, local_scope
           @rhs.generate_disposal_code code
@@ -399,25 +396,24 @@ module Rubex
             @if_tail.analyse_statement(local_scope) if @if_tail
           end
 
-          def generate_code_for_statement stat, code, local_scope
+          def generate_code_for_statement stat, code, local_scope, node
             if stat != "else"
-              condition = @expr.c_code(local_scope)
-              expr_condition = @expr.type.object? ? "RTEST(#{condition})" : condition
+              condition = node.expr.c_code(local_scope)
+              expr_condition = node.expr.type.object? ? "RTEST(#{condition})" : condition
               code << "#{stat} (#{expr_condition}) "
             else
               code << "#{stat}"
             end
 
             code.block do
-              @expr.generate_disposal_code(code) if stat != 'else'
-              @statements.each do |stat|
+              node.statements.each do |stat|
                 stat.generate_code code, local_scope
                 code.nl
               end
             end
 
             if stat != "else"
-              @if_tail.generate_code(code, local_scope) if @if_tail
+              node.if_tail.generate_code(code, local_scope) if node.if_tail
             end
           end
         end # module Helper
@@ -458,10 +454,23 @@ module Rubex
 
         def generate_code code, local_scope
           @tail_exprs.each do |tail|
-            # puts "\n\n\n#{tail.inspect}\n\n\n"
             tail.generate_evaluation_code(code, local_scope)
           end
-          generate_code_for_statement "if", code, local_scope
+          generate_code_for_statement "if", code, local_scope, self
+
+          tail = @if_tail
+          while tail
+            if tail.is_a?(Elsif)
+              generate_code_for_statement "else if", code, local_scope, tail
+            elsif tail.is_a?(Else)
+              generate_code_for_statement "else", code, local_scope, tail
+            end
+            tail = tail.if_tail
+          end
+
+          @tail_exprs.each do |tail|
+            tail.generate_disposal_code code
+          end
         end
 
         class Elsif < Base
@@ -474,8 +483,7 @@ module Rubex
           end
 
           def generate_code code, local_scope
-            # @expr.generate_evaluation_code code, local_scope
-            generate_code_for_statement "else if", code, local_scope
+            #generate_code_for_statement "else if", code, local_scope
           end
         end # class Elsif
 
@@ -495,8 +503,10 @@ module Rubex
           end
 
           def generate_code code, local_scope
-            generate_code_for_statement "else", code, local_scope
+            #generate_code_for_statement "else", code, local_scope
           end
+
+          def if_tail; nil; end
         end # class Else
       end # class IfBlock
 
