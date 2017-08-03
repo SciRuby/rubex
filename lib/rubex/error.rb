@@ -10,4 +10,6 @@ module Rubex
   class NoMethodError < StandardError; end
 
   class TypeError < StandardError; end
+
+  class LibraryNotFoundError < StandardError; end
 end

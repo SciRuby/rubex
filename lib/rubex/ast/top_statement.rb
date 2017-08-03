@@ -33,6 +33,10 @@ module Rubex
           elsif @lib == 'rubex/ruby/encoding'
             load_ruby_encoding_functions_and_type
             @lib = '<ruby/encoding.h>'
+          elsif @lib == 'stdlib'
+            load_stdlib_functions_and_types
+          else
+            raise Rubex::LibraryNotFoundError, "Cannot find #{@lib}."
           end
         end
 
@@ -46,6 +50,18 @@ module Rubex
 
         def load_ruby_encoding_functions_and_type
           @declarations << rb_enc_associate_index
+        end
+
+        def load_stdlib_functions_and_types
+          @declarations << atox_functions
+        end
+
+        def atox_functions
+          [
+            ['int', 'atoi'], ['long', 'atol'], ['long long', 'atoll']
+          ].map do |type, ident|
+            cfunc_decl(type, '', ident, arg_list([arg('char', '*', 'str')]))
+          end
         end
 
         def rb_enc_associate_index

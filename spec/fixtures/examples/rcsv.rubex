@@ -1,5 +1,6 @@
 lib "rubex/ruby"
 lib "rubex/ruby/encoding"
+lib "rubex/stdlib"
 
 lib "stdbool.h" do
   alias bool = int
@@ -255,7 +256,7 @@ class Rcsv
           if row_conversion == 's' # string
             parsed_field = ENCODED_STR_NEW(field_str, field_size, meta.encoding_index)
           elsif row_conversion == 'i' # integer
-            parsed_field = atoll(field_str))
+            parsed_field = atoll(field_str)
           elsif row_conversion == 'f' # float
             parsed_field = atof(field_str)
           elsif row_conversion == 'b' # boolean
@@ -277,23 +278,15 @@ class Rcsv
     end
 
     # Filter by row values listed in meta->only_rows */
-    if ((meta.only_rows != NULL) &&
-        (meta.current_col < meta.num_only_rows) &&
-        (meta.only_rows[meta.current_col] != nil) &&
-        (!rb_ary_includes(meta.only_rows[meta.current_col], parsed_field)))
-      
+    if ((meta.only_rows != NULL) && (meta.current_col < meta.num_only_rows) && (meta.only_rows[meta.current_col] != nil) && (!rb_ary_includes(meta.only_rows[meta.current_col], parsed_field)))
       meta.skip_current_row = true
       return
     end
-
     # Filter out by row values listed in meta->except_rows
-    if ((meta.except_rows != NULL) &&
-        (meta.current_col < meta.num_except_rows) &&
-        (meta.except_rows[meta.current_col] != nil) &&
-        (rb_ary_includes(meta.except_rows[meta.current_col], parsed_field)))
+    if ((meta.except_rows != NULL) && (meta.current_col < meta.num_except_rows) && (meta.except_rows[meta.current_col] != nil) && (rb_ary_includes(meta.except_rows[meta.current_col], parsed_field)))
       meta.skip_current_row = true
       return
-    }
+    end
 
     # Assign the value to appropriate hash key if parsing into Hash */
     if meta.row_as_hash

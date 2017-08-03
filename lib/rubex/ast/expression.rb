@@ -804,6 +804,10 @@ module Rubex
         end
       end
 
+
+      class Empty < Base
+      end
+
       module Literal
         class Base < Rubex::AST::Expression::Base
           attr_reader :name, :type

@@ -329,7 +329,7 @@ module Rubex
             if local_scope.type.ruby_method?
               @expression = Expression::Literal::Nil.new 'Qnil'
             elsif local_scope.type.c_function?
-              @expression = Expression::Literal::CNull.new
+              @expression = Expression::Empty.new
             end # FIXME: print a warning for type mismatch if none of above 
           end
 
@@ -849,7 +849,7 @@ module Rubex
           code << "break;"
           code.nl
         end
-      end
+      end # class Break
     end # module Statement
   end # module AST
 end # module Rubex
