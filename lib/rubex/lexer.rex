@@ -28,6 +28,7 @@ macros
   CLASS           /class/
   NULL            /NULL/
   ATTACH          /attach/
+  BLOCK_GIVEN     /block_given\?/
 
   IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN          /\(/
@@ -119,6 +120,7 @@ rules
   /#{NULL}/   { [:kNULL, text] }
   /fwd/       { [:kFWD, text] }
   /#{ATTACH}/ { [:kATTACH, text] }
+  /#{BLOCK_GIVEN}/ { [:kBLOCK_GIVEN, text] }
 
   # Method hacks
 

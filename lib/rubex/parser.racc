@@ -2,7 +2,7 @@ class Rubex::Parser
 token
   kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE   kTHEN  kSTATIC_ARRAY kFOR kWHILE
   kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS        kLIB kCLASS
-  kCFUNC     kSELF  kNULL  kFWD   kATTACH kRAISE kBREAK
+  kCFUNC     kSELF  kNULL  kFWD   kATTACH kRAISE kBREAK kBLOCK_GIVEN  kYIELD
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT  kDTYPE_CHAR   kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8    kDTYPE_UI16   kDTYPE_UI32 kDTYPE_UI64
@@ -306,6 +306,10 @@ rule
         result = Statement::Raise.new(Statement::ActualArgList.new(val[2]))
       }
   | kBREAK { result = Statement::Break.new(location) }
+  | kYIELD opt_lparen command_arg_list opt_rparen
+      {
+        result = Statement::Yield.new(Statement::ActualArgList.new(val[2]))
+      }
 
   forward_declaration:
     kFWD kSTRUCT tIDENTIFIER
@@ -577,6 +581,7 @@ rule
       { 
         result = Expression::SizeOf.new(val[2], val[3])
       }
+  | kBLOCK_GIVEN { result = Expression::BlockGiven.new }
 
   command_call:
     method_or_attr command_opt_args
@@ -622,7 +627,7 @@ rule
   opt_expr:
     { result = nil }
   | expr
-  
+
   opt_lparen:
     {}
   | tLPAREN
@@ -783,6 +788,8 @@ def check_for_primitive_dtype token
     return [:kDTYPE_SIZE_T, match]
   elsif match == "str"
     return [:kDTYPE_RB_STR, match]
+  elsif match == "yield"
+    return [:kYIELD, match]
   end
 
   token

@@ -32,6 +32,7 @@ class Rubex::Lexer
   CLASS             = /class/
   NULL              = /NULL/
   ATTACH            = /attach/
+  BLOCK_GIVEN       = /block_given\?/
   IDENTIFIER        = /[a-zA-Z_][a-zA-Z_0-9]*/
   LPAREN            = /\(/
   RPAREN            = /\)/
@@ -171,6 +172,8 @@ class Rubex::Lexer
             action { [:kFWD, text] }
           when text = ss.scan(/#{ATTACH}/) then
             action { [:kATTACH, text] }
+          when text = ss.scan(/#{BLOCK_GIVEN}/) then
+            action { [:kBLOCK_GIVEN, text] }
           when text = ss.scan(/#{DOT}#{EACH}/) then
             action { [:kDOT_EACH, text] }
           when text = ss.scan(/unsigned long long int/) then

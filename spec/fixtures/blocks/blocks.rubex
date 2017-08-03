@@ -1,10 +1,10 @@
 def block_scene
-  int i = [1,2,3,4,5,6]
+  int i[6] = [1,2,3,4,5,6]
   int j = 0
 
   if block_given?
-    while j < 5 do
-      yield(j)
+    while j < 6 do
+      yield(i[j])
       j += 1
     end
   end

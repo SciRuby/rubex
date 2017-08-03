@@ -28,6 +28,7 @@ module Rubex
     'int'                    => Rubex::DataType::Int,
     'unsigned int'           => Rubex::DataType::UInt,
     'long int'               => Rubex::DataType::LInt,
+    'long'                   => Rubex::DataType::LInt,
     'unsigned long int'      => Rubex::DataType::ULInt,
     'long long int'          => Rubex::DataType::LLInt,
     'unsigned long long int' => Rubex::DataType::ULLInt,

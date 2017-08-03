@@ -276,7 +276,6 @@ module Rubex
         # end
 
         def analyse_statement local_scope, struct_scope=nil
-          @has_temp = true
           if struct_scope.nil?
             @entry = local_scope.find @name
           else
@@ -285,6 +284,7 @@ module Rubex
 
           @type = @entry.type.object? ? @entry.type : @entry.type.type
           if @type.object?
+            @has_temp = true
             @pos.analyse_statement local_scope
             @pos = @pos.to_ruby_object
             @subexprs << @pos
@@ -804,7 +804,20 @@ module Rubex
         end
       end
 
+      class BlockGiven < Base
+        attr_reader :type
 
+        def analyse_statement local_scope
+          @type = DataType::CBoolean.new
+        end
+
+        def c_code local_scope
+          "rb_block_given_p()"
+        end
+      end
+
+      # Internal node that denotes empty expression for a statement for example
+      #   the `return` for a C function with return type `void`.
       class Empty < Base
       end
 
