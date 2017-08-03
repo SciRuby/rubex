@@ -271,7 +271,7 @@ rule
 
   stmt:
     var_decl_or_init { result = variable_decl_nodes val }
-  | kRETURN expr { result = Statement::Return.new val[1], location }
+  | kRETURN opt_expr { result = Statement::Return.new val[1], location }
   | kPRINT opt_lparen command_arg_list opt_rparen 
       { result = Statement::Print.new val[2], location }
   | normal_init
@@ -619,6 +619,10 @@ rule
         result = val[0]
       }
 
+  opt_expr:
+    { result = nil }
+  | expr
+  
   opt_lparen:
     {}
   | tLPAREN

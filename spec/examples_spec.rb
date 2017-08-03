@@ -15,7 +15,7 @@ describe Rubex do
         end
       end
 
-      context ".compile" do
+      context ".compile", now: true do
         it "compiles to valid C file" do
           t,c,e = Rubex.compile(@path + '.rubex', test: true)
           puts c
@@ -31,5 +31,4 @@ describe Rubex do
       end
     end
   end
-
 end

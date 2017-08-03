@@ -1,3 +1,6 @@
+lib "rubex/ruby"
+lib "rubex/ruby/encoding"
+
 lib "stdbool.h" do
   alias bool = int
 end
@@ -243,8 +246,8 @@ class Rcsv
         else # It depends on empty_field_is_nil if we convert empty strings to nils */
           if meta.empty_field_is_nil || field_str == NULL
             parsed_field = nil
-          else {
-            parsed_field = ENCODED_STR_NEW("", 0, meta.encoding_index);
+          else
+            parsed_field = ENCODED_STR_NEW("", 0, meta.encoding_index)
           end
         end
       else
@@ -336,6 +339,14 @@ class Rcsv
 
     # Incrementing row counter
     meta.current_row += 1
+  end
+
+  cfunc object ENCODED_STR_NEW(char* str, int length, int enc_index)
+    _string = rb_str_new(str, length)
+    if (enc_index != -1)
+      rb_enc_associate_index(_string, enc_index)
+    end
+    _string
   end
 
   cfunc void free_all_memory(csv_parser *p_cp, rcsv_metadata *p_meta)

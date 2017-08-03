@@ -9,7 +9,10 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          load_predecided_declarations unless @declarations
+          unless @declarations
+            @declarations = []
+            load_predecided_declarations
+          end
 
           @declarations.each do |stat|
             stat.analyse_statement local_scope, extern: true
@@ -27,23 +30,36 @@ module Rubex
           if @lib == 'rubex/ruby'
             load_ruby_functions_and_types
             @lib = '<ruby.h>'
+          elsif @lib == 'rubex/ruby/encoding'
+            load_ruby_encoding_functions_and_type
+            @lib = '<ruby/encoding.h>'
           end
         end
 
         def load_ruby_functions_and_types
-          @declarations = []
           @declarations << xmalloc
           @declarations << xfree
           @declarations << type_get
           @declarations.concat type_identifiers
+          @declarations << rb_str_new
+        end
+
+        def load_ruby_encoding_functions_and_type
+          @declarations << rb_enc_associate_index
+        end
+
+        def rb_enc_associate_index
+          args = arg_list([arg('object', '', 'string'), arg('int', '', 'enc')])
+          cfunc_decl('object', '', 'rb_enc_associate_index', args)
+        end
+
+        def rb_str_new
+          args = arg_list([arg('char', '*', 'str'), arg('long', '', 'length')])
+          cfunc_decl('object', '', 'rb_str_new', args)
         end
 
         def type_get
-          args = Statement::ArgumentList.new([
-            Expression::ArgDeclaration.new({ 
-              dtype: 'object', variables: [{ident: 'dummy'}] })
-          ])
-          Statement::CFunctionDecl.new('int', '', 'TYPE', args)
+          cfunc_decl('int', '', 'TYPE', arg_list([arg('object', '', 'dummy')]))
         end
 
         def type_identifiers
@@ -66,12 +82,23 @@ module Rubex
         end
 
         def xfree
-          args = Statement::ArgumentList.new([
-            Expression::ArgDeclaration.new({
-              dtype: 'void',
-              variables: [{ptr_level: '*', ident: 'dummy'}] })
-          ])
-          Statement::CFunctionDecl.new('void', '', 'xfree', args)
+          cfunc_decl 'void', '', 'xfree', arg_list([arg('void', '*', 'dummy')])
+        end
+
+      private
+
+        def arg type, ptr_level, ident
+          Expression::ArgDeclaration.new({
+            dtype: type, variables: [{ ident: ident, ptr_level: ptr_level }]
+            })
+        end
+
+        def cfunc_decl return_type, return_ptr_level, ident, args
+          Statement::CFunctionDecl.new(return_type, return_ptr_level, ident, args)
+        end
+
+        def arg_list args
+          Statement::ArgumentList.new args
         end
       end # class CBindings
 
