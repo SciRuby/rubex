@@ -2,11 +2,11 @@ lib "rubex/ruby"
 lib "rubex/ruby/encoding"
 lib "rubex/stdlib"
 
-lib "stdbool.h" do
+lib "stdbool.h"
   alias bool = int
 end
 
-lib "csv.h" do
+lib "csv.h"
   struct csv_parser
   end
 
@@ -314,7 +314,7 @@ class Rcsv
       if block_given? # STREAMING
         yield(meta.last_entry)
       else
-        meta.result[0].push(meta.last_entry))
+        meta.result[0].push(meta.last_entry)
       end
     end
 
@@ -334,8 +334,8 @@ class Rcsv
     meta.current_row += 1
   end
 
-  cfunc object ENCODED_STR_NEW(char* str, int length, int enc_index)
-    _string = rb_str_new(str, length)
+  cfunc object ENCODED_STR_NEW(char* string, int length, int enc_index)
+    _string = rb_str_new(string, length)
     if (enc_index != -1)
       rb_enc_associate_index(_string, enc_index)
     end

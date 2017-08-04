@@ -1,4 +1,4 @@
-lib "<ruby/encoding.h>" do
+lib "<ruby/encoding.h>"
   struct rb_encoding
 
   end
@@ -10,7 +10,7 @@ lib "<ruby/encoding.h>" do
   int ENCODING_GET(object)
 end
 
-lib "<ruby.h>" do
+lib "<ruby.h>"
   char* RSTRING_PTR(object)
   char* RSTRING_END(object)
 end

@@ -1,4 +1,4 @@
-lib "<ruby.h>" do
+lib "<ruby.h>"
   int HAVE_RUBY_DEFINES_H
 end
 

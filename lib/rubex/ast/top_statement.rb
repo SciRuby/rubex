@@ -33,8 +33,9 @@ module Rubex
           elsif @lib == 'rubex/ruby/encoding'
             load_ruby_encoding_functions_and_type
             @lib = '<ruby/encoding.h>'
-          elsif @lib == 'stdlib'
+          elsif @lib == 'rubex/stdlib'
             load_stdlib_functions_and_types
+            @lib = '<stdlib.h>'
           else
             raise Rubex::LibraryNotFoundError, "Cannot find #{@lib}."
           end
@@ -53,7 +54,7 @@ module Rubex
         end
 
         def load_stdlib_functions_and_types
-          @declarations << atox_functions
+          @declarations.concat atox_functions
         end
 
         def atox_functions

@@ -1,4 +1,4 @@
-lib "<ruby.h>" do
+lib "<ruby.h>"
   double RSTRING_LEN(object)
 end
 

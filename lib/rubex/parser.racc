@@ -85,11 +85,14 @@ rule
   | tLT tIDENTIFIER { result = val[1] }
 
   c_bindings:
-    kLIB tSTRING kDO eol c_declarations terms kEND
+    kLIB tSTRING opt_declarations
       {
-        result = TopStatement::CBindings.new val[1], val[4], location
+        result = TopStatement::CBindings.new val[1], val[2], location
       }
-  | kLIB tSTRING { result = TopStatement::CBindings.new val[1], nil, location }
+
+  opt_declarations:
+    eol { result = nil }
+  | eol c_declarations terms kEND { result = val[1] }
 
   c_declarations:
     c_declaration { result = [val[0]] }
