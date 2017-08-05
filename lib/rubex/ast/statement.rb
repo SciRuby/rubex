@@ -327,9 +327,9 @@ module Rubex
         def analyse_statement local_scope
           unless @expression
             if local_scope.type.ruby_method?
-              @expression = Expression::Literal::Nil.new 'Qnil'
+              @expression = Rubex::AST::Expression::Literal::Nil.new 'Qnil'
             elsif local_scope.type.c_function?
-              @expression = Expression::Empty.new
+              @expression = Rubex::AST::Expression::Empty.new
             end # FIXME: print a warning for type mismatch if none of above 
           end
 
@@ -494,7 +494,6 @@ module Rubex
           end
 
           def generate_code code, local_scope
-            #generate_code_for_statement "else if", code, local_scope
           end
         end # class Elsif
 
@@ -514,7 +513,6 @@ module Rubex
           end
 
           def generate_code code, local_scope
-            #generate_code_for_statement "else", code, local_scope
           end
 
           def if_tail; nil; end
@@ -536,6 +534,16 @@ module Rubex
         def analyse_statement local_scope
           @left_expr.analyse_statement local_scope
           @right_expr.analyse_statement local_scope
+
+          [ @left_expr, @right_expr ].each do |e|
+            e.allocate_temps local_scope
+            e.allocate_temp local_scope, e.type
+          end
+          [ @left_expr, @right_expr ].each do |e|
+            e.release_temps local_scope
+            e.release_temp local_scope
+          end
+
           @middle = local_scope[@middle] # middle will not be an expr.
           @statements.each do |stat|
             stat.analyse_statement local_scope
@@ -543,17 +551,21 @@ module Rubex
         end
 
         def generate_code code, local_scope
-          code << for_loop_header(local_scope)
+          code << for_loop_header(code, local_scope)
           code.block do
             @statements.each do |stat|
               stat.generate_code code, local_scope
             end
           end
+          @left_expr.generate_disposal_code code
+          @right_expr.generate_disposal_code code
         end
 
         private
 
-        def for_loop_header local_scope
+        def for_loop_header code, local_scope
+          @left_expr.generate_evaluation_code code, local_scope
+          @right_expr.generate_evaluation_code code, local_scope
           for_stmt = ""
           for_stmt << "for (#{@middle.c_name} = #{@left_expr.c_code(local_scope)}"
 

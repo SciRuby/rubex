@@ -123,9 +123,6 @@ module Rubex
         def analyse_statement local_scope
           analyse_left_and_right_nodes local_scope, self
           analyse_return_type local_scope, self
-
-          # @has_temp = true if @type.object?
-          @time = 0 
           super
         end
 
@@ -213,7 +210,7 @@ module Rubex
             analyse_return_type local_scope, tree.left
             analyse_return_type local_scope, tree.right
 
-            if ['==', '<', '>', '<=', '>=', '||', '&&'].include? tree.operator
+            if ['==', '<', '>', '<=', '>=', '||', '&&', '!='].include? tree.operator
               if type_of(tree.left).object? || type_of(tree.right).object?
                 tree.type = Rubex::DataType::Boolean.new
               else
@@ -241,6 +238,10 @@ module Rubex
         def analyse_statement local_scope
           @expr.analyse_statement local_scope
           @type = @expr.type
+          @expr.allocate_temps local_scope
+          @expr.allocate_temp local_scope, @type
+          @expr.release_temps local_scope
+          @expr.release_temp local_scope
           @expr = @expr.to_ruby_object if @type.object?
           super
         end
@@ -653,7 +654,7 @@ module Rubex
           end
           @expr.generate_evaluation_code(code, local_scope) if @expr
           @command.generate_evaluation_code code, local_scope
-
+          puts "<<<< #{@expr.name}" if @expr.is_a?(Name)
           # Interpreted as a method call
           if @command.is_a? Rubex::AST::Expression::MethodCall
             @c_code << @command.c_code(local_scope)
@@ -819,6 +820,11 @@ module Rubex
       # Internal node that denotes empty expression for a statement for example
       #   the `return` for a C function with return type `void`.
       class Empty < Base
+        attr_reader :type
+
+        def analyse_statement local_scope
+          @type = DataType::Void.new
+        end
       end
 
       module Literal

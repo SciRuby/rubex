@@ -17,7 +17,17 @@ describe Rubex do
 
       context ".compile", now: true do
         it "compiles to valid C file" do
-          t,c,e = Rubex.compile(@path + '.rubex', test: true)
+          begin
+            RubyProf.start
+            t,c,e = Rubex.compile(@path + '.rubex', test: true)            
+          rescue NoMemoryError => e
+            res = RubyProf.stop
+            printer = RubyProf::FlatPrinter.new(res)
+            printer.print(STDOUT)            
+          end
+
+
+          puts c
         end
       end
 

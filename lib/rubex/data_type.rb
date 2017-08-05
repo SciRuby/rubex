@@ -537,8 +537,6 @@ module Rubex
     class FalseType < Boolean;  end
 
     class NilType < RubyObject
-      include Helpers
-
       def nil_type?; true; end
     end
 

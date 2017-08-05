@@ -1,6 +1,6 @@
-lib "rubex/ruby"
-lib "rubex/ruby/encoding"
-lib "rubex/stdlib"
+lib "rubex/ruby"; end
+lib "rubex/ruby/encoding"; end
+lib "rubex/stdlib"; end
 
 lib "stdbool.h"
   alias bool = int
@@ -118,7 +118,7 @@ class Rcsv
 
     # Specify character encoding
     option = opts[:output_encoding]
-    meta.encoding_index = RB_ENC_FIND_INDEX(option) if option != nil
+    meta.encoding_index = rb_enc_find_index(option) if option != nil
 
     # :only_rows is a list of values where row is only parsed
     #   if its fields match those in the passed array.

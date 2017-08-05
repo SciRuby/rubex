@@ -51,6 +51,7 @@ module Rubex
 
         def load_ruby_encoding_functions_and_type
           @declarations << rb_enc_associate_index
+          @declarations << rb_enc_find_index
         end
 
         def load_stdlib_functions_and_types
@@ -63,6 +64,11 @@ module Rubex
           ].map do |type, ident|
             cfunc_decl(type, '', ident, arg_list([arg('char', '*', 'str')]))
           end
+        end
+
+        def rb_enc_find_index
+          cfunc_decl('int', '', 'rb_enc_find_index', 
+            arg_list([arg('char', '*', 'enc')]))
         end
 
         def rb_enc_associate_index

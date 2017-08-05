@@ -8,7 +8,7 @@ require 'ruby-prof'
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
-PrettyBacktrace.enable
+# PrettyBacktrace.enable
 
 require 'rubex'
 
