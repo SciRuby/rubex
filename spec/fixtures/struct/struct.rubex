@@ -41,7 +41,7 @@ end
 def struct_index
   struct node
     int a
-    int ptr[20]
+    int ptr[20], ptr1[5]
   end
 
   int i = 0
@@ -51,6 +51,7 @@ def struct_index
     n.ptr[i] = i
   end
   n.a = 4
+  n.ptr1[4] = 4
 
-  return n.ptr[n.a]
+  return n.ptr[n.ptr1[n.a]]
 end

@@ -68,8 +68,9 @@ module Rubex
         entry
       end
 
-      def declare_type type:
+      def declare_type type:, extern:
         entry = Rubex::SymbolTable::Entry.new(nil, nil, type, nil)
+        entry.extern = extern
         @type_entries << entry
 
         entry

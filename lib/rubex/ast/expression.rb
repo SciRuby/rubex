@@ -644,6 +644,8 @@ module Rubex
           # if command is extern @expr will be nil.
           unless @expr.nil?
             @expr.analyse_statement(local_scope)
+            @expr.allocate_temps local_scope
+            @expr.allocate_temp local_scope, @expr.type
           end
           analyse_command_type local_scope
           super
@@ -705,6 +707,8 @@ module Rubex
             @command = Expression::MethodCall.new @command, @expr, @arg_list
             @command.analyse_statement local_scope
           end
+          @command.allocate_temps local_scope
+          @command.allocate_temp local_scope, @command.type
           @type = @command.type
         end
       end # class CommandCall

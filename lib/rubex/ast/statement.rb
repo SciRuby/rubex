@@ -247,7 +247,7 @@ module Rubex
         def analyse_statement local_scope, extern: false
           @c_name = Rubex::TYPE_PREFIX + local_scope.klass_name + "_" + @name
           @type = Rubex::DataType::TypeDef.new("#{@kind} #{@name}", @c_name, type)
-          local_scope.declare_type type: @type
+          local_scope.declare_type type: @type, extern: extern
         end
 
         def rescan_declarations local_scope
@@ -651,7 +651,7 @@ module Rubex
 
           @type = Rubex::DataType::TypeDef.new(base_type, @new_name, base_type)
           Rubex::CUSTOM_TYPES[@new_name] = @type
-          local_scope.declare_type(type: @type) if original != @new_name
+          local_scope.declare_type(type: @type, extern: extern) if original != @new_name
         end
 
         def generate_code code, local_scope

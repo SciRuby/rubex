@@ -16,6 +16,7 @@ end
 
 def declare_in_the_middle
   f32 f = 3
+
   f += 4
   f32 g = f
 

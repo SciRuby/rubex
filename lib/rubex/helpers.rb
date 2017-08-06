@@ -90,28 +90,30 @@ module Rubex
 
       def declare_types code, scope
         scope.type_entries.each do |entry|
-          type = entry.type
+          if !entry.extern
+            type = entry.type
 
-          if type.alias_type?
-            base = type.old_type
-            if base.respond_to?(:base_type) && base.base_type.c_function?
-              func = base.base_type
-              str = "typedef #{func.type} (#{type.old_type.ptr_level} #{type.new_type})"
-              str << "(" + func.arg_list.map { |e| e.type.to_s }.join(',') + ")"
-              str << ";"
-              code << str
-            else
-              code << "typedef #{type.old_type} #{type.new_type};"
+            if type.alias_type?
+              base = type.old_type
+              if base.respond_to?(:base_type) && base.base_type.c_function?
+                func = base.base_type
+                str = "typedef #{func.type} (#{type.old_type.ptr_level} #{type.new_type})"
+                str << "(" + func.arg_list.map { |e| e.type.to_s }.join(',') + ")"
+                str << ";"
+                code << str
+              else
+                code << "typedef #{type.old_type} #{type.new_type};"
+              end
+            elsif type.struct_or_union? && !entry.extern?
+              code << sue_header(entry)
+              code.block(sue_footer(entry)) do
+                declare_vars code, type.scope
+                declare_carrays code, type.scope
+                declare_ruby_objects code, type.scope
+              end
             end
-          elsif type.struct_or_union? && !entry.extern?
-            code << sue_header(entry)
-            code.block(sue_footer(entry)) do
-              declare_vars code, type.scope
-              declare_carrays code, type.scope
-              declare_ruby_objects code, type.scope
-            end
+            code.nl
           end
-          code.nl
         end
       end
 

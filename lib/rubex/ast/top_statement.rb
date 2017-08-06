@@ -47,6 +47,7 @@ module Rubex
           @declarations << type_get
           @declarations.concat type_identifiers
           @declarations << rb_str_new
+          @declarations << rb_ary_includes
         end
 
         def load_ruby_encoding_functions_and_type
@@ -58,9 +59,15 @@ module Rubex
           @declarations.concat atox_functions
         end
 
+        def rb_ary_includes
+          cfunc_decl('object', '', 'rb_ary_includes', 
+            arg_list([arg('object', '','ary'), arg('object', '','item')]))
+        end
+
         def atox_functions
           [
-            ['int', 'atoi'], ['long', 'atol'], ['long long', 'atoll']
+            ['int', 'atoi'], ['long', 'atol'], ['long long', 'atoll'],
+            ['double', 'atof']
           ].map do |type, ident|
             cfunc_decl(type, '', ident, arg_list([arg('char', '*', 'str')]))
           end

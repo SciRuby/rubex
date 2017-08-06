@@ -54,8 +54,13 @@ module Rubex
       def generate_preamble code
         code << "#include <ruby.h>\n"
         code << "#include <stdint.h>\n"
+        code << "#include <stdbool.h>\n"
         @scope.include_files.each do |name|
-          code << "#include #{name}\n"
+          if name[0] == '<' && name[-1] == '>'
+            code << "#include #{name}\n"
+          else
+            code << "#include \"#{name}\"\n"
+          end
         end
         write_usability_macros code
         @statements.grep(Rubex::AST::TopStatement::Klass).each do |klass|

@@ -304,6 +304,9 @@ class Rcsv
     return
   end
 
+  cfunc void raise_with_location(size_t current_row, size_t current_col, char* string)
+  end
+
   cfunc void end_of_line_callback(int last_char, void* data)
     rcsv_metadata meta = <rcsv_metadata *> data[0]
 
