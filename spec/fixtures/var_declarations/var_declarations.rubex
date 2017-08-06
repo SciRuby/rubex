@@ -1,3 +1,5 @@
+lib "rubex/ruby"; end
+
 def additive(float a, u64 b, i32 qq)
   f32 c = 5.6
   i32 d
@@ -18,4 +20,19 @@ def declare_in_the_middle
   f32 g = f
 
   return g
+end
+
+def obj_pointer
+  object * a
+  int i = 5, j = 0
+
+  a = <object*>xmalloc(sizeof(object)*i)
+  b = []
+  while j < i do
+    b.push(j)
+    a[j] = b.dup
+    j += 1
+  end
+
+  return a[2]
 end

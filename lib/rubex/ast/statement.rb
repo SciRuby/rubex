@@ -391,6 +391,11 @@ module Rubex
 
         def generate_code code, local_scope
           super
+          if @lhs.is_a?(Rubex::AST::Expression::CommandCall)
+            if @lhs.command.is_a?(Rubex::AST::Expression::ElementRef)
+              puts ">>>> #{@lhs.command.name} #{@rhs}"
+            end
+          end
           @rhs.generate_evaluation_code code, local_scope
           @lhs.generate_assignment_code @rhs, code, local_scope
           @rhs.generate_disposal_code code

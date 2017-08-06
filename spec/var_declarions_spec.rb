@@ -27,6 +27,7 @@ describe Rubex do
 
           expect(additive(1,5,2)).to be_within(0.001).of(6.6)
           expect(declare_in_the_middle).to eq(7)
+          expect(obj_pointer).to eq([0,1,2])
         end
       end
     end
