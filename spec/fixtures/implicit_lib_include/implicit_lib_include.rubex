@@ -1,4 +1,4 @@
-lib "rubex/ruby"
+lib "rubex/ruby"; end
 
 def test_method
   int *i = <int*>xmalloc(sizeof(int)*5)

@@ -120,11 +120,11 @@ module Rubex
 
         # FIXME: This feels jugaadu. Try to scan all declarations before you
         # scan individual statements.
-        def rescan_declarations scope
+        def rescan_declarations local_scope
           base_type = @entry.type.base_type
           if base_type.is_a? String
             type = Helpers.determine_dtype base_type, @ptr_level
-            scope[@name].type = type
+            local_scope[@name].type = type
           end
         end
 
@@ -186,7 +186,7 @@ module Rubex
       end # class CArrayDecl
 
       class CStructOrUnionDef < Base
-        attr_reader :name, :declarations, :type, :kind, :entry
+        attr_reader :name, :declarations, :type, :kind, :entry, :scope
 
         def initialize kind, name, declarations, location
           super(location)
@@ -200,18 +200,18 @@ module Rubex
         end
 
         def analyse_statement outer_scope, extern: false
-          local_scope = Rubex::SymbolTable::Scope::StructOrUnion.new(
+          @scope = Rubex::SymbolTable::Scope::StructOrUnion.new(
             @name, outer_scope)
           if extern
             c_name = @kind.to_s + " " + @name
           else
-            c_name = Rubex::TYPE_PREFIX + local_scope.klass_name + "_" + @name
+            c_name = Rubex::TYPE_PREFIX + @scope.klass_name + "_" + @name
           end
           @type = Rubex::DataType::CStructOrUnion.new(@kind, @name, c_name, 
-            local_scope)
+            @scope)
 
           @declarations.each do |decl|
-            decl.analyse_statement local_scope, extern: extern
+            decl.analyse_statement @scope, extern: extern
           end
           Rubex::CUSTOM_TYPES[@name] = @type
           @entry = outer_scope.declare_sue(name: @name, c_name: c_name,
@@ -223,10 +223,9 @@ module Rubex
         end
 
         def rescan_declarations local_scope
-          struct_scope = Rubex::CUSTOM_TYPES[@name].scope
           @declarations.each do |decl|
             decl.respond_to?(:rescan_declarations) and
-            decl.rescan_declarations(struct_scope)
+            decl.rescan_declarations(@scope)
           end
         end
       end
@@ -391,11 +390,6 @@ module Rubex
 
         def generate_code code, local_scope
           super
-          if @lhs.is_a?(Rubex::AST::Expression::CommandCall)
-            if @lhs.command.is_a?(Rubex::AST::Expression::ElementRef)
-              puts ">>>> #{@lhs.command.name} #{@rhs}"
-            end
-          end
           @rhs.generate_evaluation_code code, local_scope
           @lhs.generate_assignment_code @rhs, code, local_scope
           @rhs.generate_disposal_code code

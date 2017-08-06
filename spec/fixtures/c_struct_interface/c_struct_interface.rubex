@@ -1,4 +1,4 @@
-lib "rubex/ruby"
+lib "rubex/ruby"; end
 
 struct mp3info
   char *artist, *title

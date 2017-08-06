@@ -285,8 +285,7 @@ module Rubex
           
           @object_ptr = true if @entry.type.cptr? && @entry.type.type.object?
           @type = @entry.type.object? ? @entry.type : @entry.type.type
-          
-          puts "a ::: #{@name} #{@type}"
+
           if @type.object? && !@object_ptr
             @has_temp = true
             @pos.analyse_statement local_scope
@@ -301,8 +300,8 @@ module Rubex
         # This method will be called when [] ruby method or C array element
         #   reference is called.
         def generate_evaluation_code code, local_scope
+          @pos.generate_evaluation_code code, local_scope
           if @type.object? && !@object_ptr
-            @pos.generate_evaluation_code code, local_scope
             code << "#{@c_code} = rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
             code << "#{@pos.c_code(local_scope)});"
             code.nl
@@ -661,9 +660,6 @@ module Rubex
           if @command.is_a? Rubex::AST::Expression::MethodCall
             @c_code << @command.c_code(local_scope)
           else # interpreted as referencing the contents of a struct
-            puts code.to_s
-            puts "c_code #{@expr} ___ > #{@command}"
-            puts "c_code #{@expr.c_code(local_scope)} ___ > #{@command.c_code(local_scope)}"
             @c_code << "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
           end          
         end
@@ -764,6 +760,8 @@ module Rubex
       end # class ArgDeclaration
 
       class CoerceObject < Base
+        attr_reader :expr
+
         extend Forwardable
 
         def_delegators :@expr, :generate_evaluation_code, :generate_disposal_code,

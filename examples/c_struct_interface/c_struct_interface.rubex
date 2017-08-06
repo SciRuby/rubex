@@ -1,4 +1,4 @@
-lib "rubex/ruby"
+lib "rubex/ruby"; end
 
 struct mp3info
   char *artist, *title
@@ -8,7 +8,7 @@ end
 # The class that will be 'attached' to the struct and will make it possible to
 #   initialize instances of the struct. There will be a variable called `data`
 #   which will be made available to the user which will be of type
-#   'struct __rubex_data_Music'. This variable will be available throughout the #   class.
+#   'struct __rubex_data_Music'. This variable will be available throughout the class.
 #
 # The allocate function will be defined implicitly, and calls to `TypeData_*`
 #   macros will also be implicit.

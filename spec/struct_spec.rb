@@ -26,6 +26,7 @@ describe Rubex do
           require_relative "#{dir}/#{test_case}.so"
 
           expect(structure("aa",2,3)).to eq(666)
+          expect(struct_index).to eq(4)
         end
       end
     end

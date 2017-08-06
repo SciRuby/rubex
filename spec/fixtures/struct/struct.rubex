@@ -4,7 +4,7 @@ def structure(a, i32 b, i32 c)
 
   struct node
     i32 a, b
-    other_node *other
+    other_node *hello
     f32 c[10]
   end
 
@@ -36,4 +36,21 @@ def structure(a, i32 b, i32 c)
   print n.c[7]
 
   return shell.a
+end
+
+def struct_index
+  struct node
+    int a
+    int ptr[20]
+  end
+
+  int i = 0
+  node n
+
+  for 0 <= i < 20 do
+    n.ptr[i] = i
+  end
+  n.a = 4
+
+  return n.ptr[n.a]
 end
