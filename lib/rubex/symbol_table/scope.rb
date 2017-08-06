@@ -96,9 +96,10 @@ module Rubex
       end
 
       # Add a Ruby class to the current scope.
-      def add_ruby_class name: , c_name:, scope:, ancestor:
+      def add_ruby_class name: , c_name:, scope:, ancestor:, extern:
         type = Rubex::DataType::RubyClass.new name, c_name, scope, ancestor
         entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
+        entry.extern = extern
         @entries[name] = entry
         @ruby_class_entries << entry
 

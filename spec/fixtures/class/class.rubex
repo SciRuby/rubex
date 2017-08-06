@@ -15,3 +15,6 @@ class Kustom2 < Kustom
     return a.concat("Hello world!")
   end
 end
+
+class RandomRubyError < StandardError
+end

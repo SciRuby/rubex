@@ -329,7 +329,6 @@ module Rubex
         end
 
         def generate_code code
-          # raise "name #{@name}"
           @statements.each do |stat|
             stat.generate_code code
           end

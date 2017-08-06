@@ -66,8 +66,17 @@ module Rubex
         @statements.grep(Rubex::AST::TopStatement::Klass).each do |klass|
           declare_types code, klass.scope
         end
+        write_user_klasses code
         write_function_declarations code
         code.nl
+      end
+
+      def write_user_klasses code
+        code.nl
+        @scope.ruby_class_entries.each do |klass|
+          code << "VALUE #{klass.c_name};"
+          code.nl
+        end
       end
 
       def write_usability_macros code
@@ -115,7 +124,16 @@ module Rubex
             # the same scope object is used for 'Object' class every single time
             # throughout the compilation process.
             if name != 'Object'
-              ancestor_scope = @scope.find(stat.ancestor)&.type&.scope || @scope
+              ancestor_entry = @scope.find(stat.ancestor)
+              if !ancestor_entry && Rubex::DEFAULT_CLASS_MAPPINGS[stat.ancestor]
+                ancestor_c_name = Rubex::DEFAULT_CLASS_MAPPINGS[stat.ancestor]
+                ancestor_scope = Rubex::SymbolTable::Scope::Klass.new(
+                  stat.ancestor, nil)
+                @scope.add_ruby_class(name: stat.ancestor, c_name: ancestor_c_name,
+                  scope: ancestor_scope, ancestor: nil, extern: true)
+              else
+                ancestor_scope = ancestor_entry&.type&.scope || @scope
+              end
               klass_scope = Rubex::SymbolTable::Scope::Klass.new(
                 name, ancestor_scope)
             else
@@ -125,7 +143,7 @@ module Rubex
             c_name = c_name_for_class name
 
             @scope.add_ruby_class(name: name, c_name: c_name, scope: klass_scope,
-              ancestor: ancestor_scope)
+              ancestor: ancestor_scope, extern: false)
           end
         end
       end

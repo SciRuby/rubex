@@ -17,6 +17,7 @@ describe Rubex do
     context ".compile", focus: true do
       it "compiles to valid C file" do
         t,c,e = Rubex.compile(@path + '.rubex', test: true)
+        puts c
       end
     end
 
@@ -32,6 +33,7 @@ describe Rubex do
           expect(k2.hello).to eq("This is a prelude.Hello world!")
 
           expect(Kustom2.ancestors[1]).to eq(Kustom)
+          expect(RandomRubyError.ancestors[1]).to eq(StandardError)
         end
       end
     end

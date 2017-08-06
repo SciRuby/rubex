@@ -69,3 +69,4 @@ The following features in Rubex need to be implemented or can be made better:
 * Multiline conditionals in the condition of if-elsif statements.
 * Special treatment for VALUE C arrays by marking each element with GC.
 * Checks for return statement. No return statement or wrong return type should raise error/warning.
+* Compile time checking of types passed into functions and methods.
