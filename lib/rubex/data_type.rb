@@ -61,16 +61,6 @@ module Rubex
       include Helpers
     end
 
-    class CBoolean
-      include Helpers
-
-      def cbool?; true; end
-
-      def to_ruby_object arg
-        Rubex::C_MACRO_INT2BOOL + "(" + arg + ")"
-      end
-    end
-
     class Void
       include Helpers
 
@@ -294,6 +284,14 @@ module Rubex
       end
     end
 
+    class CBoolean < Int
+      def cbool?; true; end
+
+      def to_ruby_object arg
+        Rubex::C_MACRO_INT2BOOL + "(" + arg + ")"
+      end
+    end
+ 
     class UInt
       include UIntHelpers
       def to_s; "unsigned int"; end

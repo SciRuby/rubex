@@ -334,7 +334,6 @@ module Rubex
           @statements.each do |stmt|
             if ruby_method_or_c_function?(stmt)
               f_name, f_scope = prepare_name_and_scope_of_functions(stmt)
-              puts "NAME: #{f_name}"
               stmt.arg_list.analyse_statement(f_scope)
               if stmt.is_a? Rubex::AST::TopStatement::RubyMethodDef
                 add_ruby_method_to_scope f_name, f_scope, stmt.arg_list
@@ -631,7 +630,7 @@ module Rubex
           else
             c_name = c_func_c_name(ALLOC_FUNC_NAME)
             scope = Rubex::SymbolTable::Scope::Local.new(ALLOC_FUNC_NAME, @scope)
-            arg = Statement::ArgumentList.new([
+            arg_list = Statement::ArgumentList.new([
               Expression::ArgDeclaration.new({
                 dtype: 'object',
                 variables: [
@@ -641,11 +640,13 @@ module Rubex
                 ]
               })
             ])
-            arg.analyse_statement(scope)
-            type = Rubex::DataType::CFunction.new(
-              ALLOC_FUNC_NAME, c_name, arg, DataType::RubyObject.new)
-            @alloc_c_func = @scope.add_c_method(name: ALLOC_FUNC_NAME,
-              c_name: c_name, type: type)
+            arg_list.analyse_statement(scope)
+            @alloc_c_func = @scope.add_c_method(
+              name: ALLOC_FUNC_NAME,
+              c_name: c_name, 
+              arg_list: arg_list,
+              return_type: DataType::RubyObject.new,
+              scope: scope)
           end
         end
 
@@ -655,7 +656,7 @@ module Rubex
           else
             c_name = c_func_c_name(MEMCOUNT_FUNC_NAME)
             scope = Rubex::SymbolTable::Scope::Local.new(MEMCOUNT_FUNC_NAME, @scope)
-            arg = Statement::ArgumentList.new([
+            arg_list = Statement::ArgumentList.new([
               Expression::ArgDeclaration.new({ 
                 dtype: "void", 
                 variables: [
@@ -666,11 +667,13 @@ module Rubex
                   ]
                 })
               ])
-            arg.analyse_statement(scope)
-            type = Rubex::DataType::CFunction.new(
-              MEMCOUNT_FUNC_NAME, c_name, arg, DataType::Size_t.new)
-            @memcount_c_func = @scope.add_c_method(name: MEMCOUNT_FUNC_NAME,
-              c_name: c_name, type: type)
+            arg_list.analyse_statement(scope)
+            @memcount_c_func = @scope.add_c_method(
+              name: MEMCOUNT_FUNC_NAME,
+              c_name: c_name,
+              arg_list: arg_list,
+              return_type: DataType::Size_t.new,
+              scope: scope)
           end
         end
 
@@ -680,7 +683,7 @@ module Rubex
           else
             c_name = c_func_c_name(DEALLOC_FUNC_NAME)
             scope = Rubex::SymbolTable::Scope::Local.new(DEALLOC_FUNC_NAME, @scope)
-            arg = Statement::ArgumentList.new([
+            arg_list = Statement::ArgumentList.new([
               Expression::ArgDeclaration.new({
                 dtype: "void",
                 variables: [
@@ -691,11 +694,13 @@ module Rubex
                   ]
                 })
               ])
-            arg.analyse_statement(scope)
-            type = Rubex::DataType::CFunction.new(
-              DEALLOC_FUNC_NAME, c_name, arg, DataType::Void.new)
-            @dealloc_c_func = @scope.add_c_method(name: DEALLOC_FUNC_NAME,
-              c_name: c_name, type: type)
+            arg_list.analyse_statement(scope)
+            @dealloc_c_func = @scope.add_c_method(
+              name: DEALLOC_FUNC_NAME,
+              c_name: c_name, 
+              return_type: DataType::Void.new,
+              scope: scope,
+              arg_list: arg_list)
           end
         end
 
@@ -706,7 +711,7 @@ module Rubex
             c_name = c_func_c_name(GET_STRUCT_FUNC_NAME)
             scope = Rubex::SymbolTable::Scope::Local.new(
               GET_STRUCT_FUNC_NAME, @scope)
-            arg = Statement::ArgumentList.new([
+            arg_list = Statement::ArgumentList.new([
               Expression::ArgDeclaration.new({
                   dtype: "object",
                   variables: [
@@ -716,16 +721,18 @@ module Rubex
                   ]
                 })
               ])
-            arg.analyse_statement(scope)
-            type = Rubex::DataType::CFunction.new(
-              GET_STRUCT_FUNC_NAME, c_name, arg,
-                DataType::CPtr.new(
-                  DataType::CStructOrUnion.new(
+            arg_list.analyse_statement(scope)
+            return_type = DataType::CPtr.new(
+                            DataType::CStructOrUnion.new(
                     :struct, @data_struct.name, @data_struct.entry.c_name, nil)
-                )
               )
-            @get_struct_c_func = @scope.add_c_method(name: GET_STRUCT_FUNC_NAME,
-              c_name: c_name, type: type)
+            @get_struct_c_func = @scope.add_c_method(
+              name: GET_STRUCT_FUNC_NAME,
+              c_name: c_name,
+              return_type: return_type,
+              arg_list: arg_list,
+              scope: scope
+            )
           end
         end
 

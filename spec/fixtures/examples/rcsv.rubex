@@ -2,10 +2,6 @@ lib "rubex/ruby"; end
 lib "rubex/ruby/encoding"; end
 lib "rubex/stdlib"; end
 
-lib "stdbool.h"
-  alias bool = int
-end
-
 lib "csv.h"
   struct csv_parser
   end

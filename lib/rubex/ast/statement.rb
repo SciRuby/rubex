@@ -648,7 +648,7 @@ module Rubex
             ptr_level = "*" if ptr_level.empty?
 
             Helpers.determine_dtype(
-              DataType::CFunction.new(nil, nil, arg_list, cfunc_return_type),
+              DataType::CFunction.new(nil, nil, arg_list, cfunc_return_type, nil),
               ptr_level)
           else
             Helpers.determine_dtype(original, ptr_level)
@@ -695,7 +695,6 @@ module Rubex
         end
 
         def analyse_statement local_scope, extern: false
-          puts "<<< #{@name} #{@arg_list.size}"
           @arg_list.analyse_statement(local_scope, extern: extern) if @arg_list
           c_name = extern ? @name : (Rubex::C_FUNC_PREFIX + @name)
           # type   = Rubex::DataType::CFunction.new(@name, c_name, @arg_list, 
@@ -724,6 +723,10 @@ module Rubex
 
         def each &block
           @args.each(&block)
+        end
+
+        def map! &block
+          @args.map!(&block)
         end
 
         def pop

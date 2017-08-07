@@ -7,7 +7,7 @@ token
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT  kDTYPE_CHAR   kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8    kDTYPE_UI16   kDTYPE_UI32 kDTYPE_UI64
   kDTYPE_INT    kDTYPE_F32  kDTYPE_F64    kDTYPE_LF64   kDTYPE_ROBJ kDTYPE_ULINT
-  kDTYPE_ULLINT kDTYPE_VOID kDTYPE_SIZE_T kDTYPE_RB_STR kDTYPE_UCHAR
+  kDTYPE_ULLINT kDTYPE_VOID kDTYPE_SIZE_T kDTYPE_RB_STR kDTYPE_UCHAR kDTYPE_BOOL
   tCUSTOM_DTYPE
 
   tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON
@@ -103,7 +103,7 @@ rule
   c_function_declaration_or_var_decl:
     dtype opt_star tIDENTIFIER opt_c_func_arg_list
       { 
-        if val[3] # function decl
+        if !val[3].empty? # function decl
           val[3].pop # HACK: because declared external C functions don't have implicit self argument.
           result = Statement::CFunctionDecl.new val[0], val[1], val[2], val[3]
         else # var/macro decl
@@ -620,7 +620,7 @@ rule
     kDTYPE_I16    | kDTYPE_I32    | kDTYPE_I64   | kDTYPE_UI8    | kDTYPE_UI16 |
     kDTYPE_UI32   | kDTYPE_UI64   | kDTYPE_INT   | kDTYPE_F32    | kDTYPE_F64  |
     kDTYPE_LF64   | kDTYPE_ROBJ   | kDTYPE_ULINT | kDTYPE_ULLINT | kDTYPE_VOID |
-    kDTYPE_SIZE_T | kDTYPE_RB_STR | kDTYPE_UCHAR | tCUSTOM_DTYPE
+    kDTYPE_SIZE_T | kDTYPE_RB_STR | kDTYPE_UCHAR | kDTYPE_BOOL   | tCUSTOM_DTYPE
       {
         result = val[0]
       }
@@ -791,6 +791,8 @@ def check_for_primitive_dtype token
     return [:kDTYPE_RB_STR, match]
   elsif match == "yield"
     return [:kYIELD, match]
+  elsif match == "bool"
+    return [:kDTYPE_BOOL, match]
   end
 
   token

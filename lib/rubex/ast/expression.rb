@@ -188,13 +188,21 @@ module Rubex
             analyse_left_and_right_nodes local_scope, tree.left
 
             if !@@analyse_visited.include?(tree.left.object_id)
-              tree.left.analyse_for_target_type(tree.right.type, local_scope)
+              if tree.right.type
+                tree.left.analyse_for_target_type(tree.right.type, local_scope)
+              else
+                tree.left.analyse_statement(local_scope)
+              end
               @subexprs << tree.left
               @@analyse_visited << tree.left.object_id
             end
             
             if !@@analyse_visited.include?(tree.right.object_id)
-              tree.right.analyse_for_target_type(tree.left.type, local_scope)
+              if tree.left.type
+                tree.right.analyse_for_target_type(tree.left.type, local_scope)
+              else
+                tree.right.analyse_statement(local_scope)
+              end
               @subexprs << tree.right
               @@analyse_visited << tree.right.object_id
             end
@@ -561,9 +569,8 @@ module Rubex
       private
 
         def type_check_arg_types entry
-          puts ">>>> #{@method_name} #{@arg_list.size}"
           @arg_list.map!.with_index do |arg, idx|
-            Helpers.to_lhs_type(entry.type.arg_list[idx], arg)
+            Helpers.to_lhs_type(entry.type.base_type.arg_list[idx], arg)
           end
         end
 
@@ -746,7 +753,7 @@ module Rubex
           ident     = var[:ident]
           ptr_level = var[:ptr_level]
           value     = var[:value]
-          puts "!@!@! #{ident}"
+
           if ident.is_a?(Hash) # function pointer
             cfunc_return_type = Helpers.determine_dtype(dtype,
               ident[:return_ptr_level])
