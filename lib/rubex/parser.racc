@@ -105,7 +105,7 @@ rule
       { 
         if val[3] # function decl
           val[3].pop # HACK: because declared external C functions don't have implicit self argument.
-          result = Statement::CFunctionDecl.new val[0], val[1], val[2], val[4]
+          result = Statement::CFunctionDecl.new val[0], val[1], val[2], val[3]
         else # var/macro decl
           result = variable_decl_nodes([{
             dtype: val[0], 
@@ -126,7 +126,7 @@ rule
       }
 
   opt_c_func_arg_list:
-      { result = nil }
+      { result = Statement::ArgumentList.new([]) }
   | tLPAREN c_func_args tRPAREN
       { 
         # self is a compulsory implicit argument for C methods.
@@ -176,7 +176,7 @@ rule
           variables: [
             {
               ptr_level: val[1],
-              ident: nil
+              ident: ""
             }
           ]
         }
@@ -188,7 +188,7 @@ rule
           variables: [
             {
               ptr_level: val[2],
-              ident: nil
+              ident: ""
             }
           ]
         }
@@ -228,12 +228,12 @@ rule
   c_function:
     kCFUNC dtype opt_star tIDENTIFIER opt_c_func_arg_list eol compstmt kEND
       { 
-        if !val[4] # since last arg of cfunc must be self.
+        if val[4].empty? # since last arg of cfunc must be self.
           val[4] = Statement::ArgumentList.new(
             [
               Expression::ArgDeclaration.new(
-                { dtype: 'object', variables: [ {ident: 'self' }] }
-                )
+                { dtype: 'object', variables: [ { ident: 'self' }] }
+              )
             ]
           ) 
         end
@@ -248,7 +248,8 @@ rule
           dtype: val[0],
           variables: [
             {
-              ptr_level: val[1]
+              ptr_level: val[1],
+              ident: ""
             }
           ]
         } 
@@ -391,7 +392,7 @@ rule
       {
         result = {}
 
-        if val[2]
+        if !val[2].empty?
           result[:ptr_level] = val[0]
           result[:ident] = {
             :name => val[1],

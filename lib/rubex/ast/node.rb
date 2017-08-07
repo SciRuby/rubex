@@ -88,6 +88,10 @@ module Rubex
 
       def write_usability_functions code
         code.nl
+        write_char_2_ruby_str code
+      end
+
+      def write_char_2_ruby_str code
         code << "VALUE #{Rubex::C_FUNC_CHAR2RUBYSTR}(char ch);"
         code.nl
         code << "VALUE #{Rubex::C_FUNC_CHAR2RUBYSTR}(char ch)"
@@ -96,7 +100,7 @@ module Rubex
           code << "s[0] = ch;\n"
           code << "s[1] = '\\0';\n"
           code << "return rb_str_new2(s);\n"
-        end
+        end        
       end
 
       def write_function_declarations code

@@ -106,7 +106,9 @@ module Rubex
         entry
       end
 
-      def add_c_method name:, c_name:, type:, extern: false
+      def add_c_method name:, c_name:, scope:, arg_list:, return_type:, extern: false
+        type = Rubex::DataType::CFunction.new(
+          name, c_name, arg_list, return_type, scope)
         entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
         entry.extern = extern
         @entries[name] = entry
@@ -119,8 +121,8 @@ module Rubex
       # c_name: c_name of the method
       # extern: whether it is defined within the Rubex script or in a scope
       #   outside the Rubex script.
-      def add_ruby_method name:, c_name:, extern: false
-        type = Rubex::DataType::RubyMethod.new name, c_name
+      def add_ruby_method name:, c_name:, scope:, arg_list:, extern: false
+        type = Rubex::DataType::RubyMethod.new name, c_name, scope, arg_list
         entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
         entry.extern = extern
         @entries[name] = entry

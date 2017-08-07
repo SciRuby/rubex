@@ -627,8 +627,8 @@ module Rubex
       attr_reader :name, :c_name, :type
       attr_accessor :scope, :arg_list
 
-      def initialize name, c_name
-        @name, @c_name, = name, c_name
+      def initialize name, c_name, scope, arg_list
+        @name, @c_name, @scope, @arg_list = name, c_name, scope, arg_list
         @type = RubyObject.new
       end
 
@@ -642,8 +642,8 @@ module Rubex
 
       # FIXME: all attributes should be initialized upon class creation to maintain
       # sanity and consistency.
-      def initialize name, c_name, arg_list, type
-        @name, @c_name, @arg_list, @type = name, c_name, arg_list, type
+      def initialize name, c_name, arg_list, type, scope
+        @name, @c_name, @arg_list, @type, @scope = name, c_name, arg_list, type, scope
       end
 
       def c_function?; true; end

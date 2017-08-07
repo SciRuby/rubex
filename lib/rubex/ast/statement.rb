@@ -105,8 +105,13 @@ module Rubex
           if @type.is_a?(Hash) # function ptr
             ident = @type[:ident]
             ident[:arg_list].analyse_statement(local_scope, inside_func_ptr: true)
-            @type = DataType::CFunction.new(@name, @c_name, ident[:arg_list],
-              Helpers.determine_dtype(@type[:dtype], ident[:return_ptr_level]))
+            @type = DataType::CFunction.new(
+              @name,
+              @c_name,
+              ident[:arg_list],
+              Helpers.determine_dtype(@type[:dtype], ident[:return_ptr_level]),
+              nil
+            )
           end
           @type = Helpers.determine_dtype @type, @ptr_level
           if @value
@@ -690,11 +695,17 @@ module Rubex
         end
 
         def analyse_statement local_scope, extern: false
+          puts "<<< #{@name} #{@arg_list.size}"
           @arg_list.analyse_statement(local_scope, extern: extern) if @arg_list
           c_name = extern ? @name : (Rubex::C_FUNC_PREFIX + @name)
-          type   = Rubex::DataType::CFunction.new(@name, c_name, @arg_list, 
-            Helpers.determine_dtype(@type, @return_ptr_level))
-          @entry = local_scope.add_c_method(name: @name, c_name: c_name, type: type,
+          # type   = Rubex::DataType::CFunction.new(@name, c_name, @arg_list, 
+          #   Helpers.determine_dtype(@type, @return_ptr_level), nil)
+          @entry = local_scope.add_c_method(
+            name: @name,
+            c_name: c_name,
+            return_type: Helpers.determine_dtype(@type, @return_ptr_level),
+            arg_list: @arg_list,
+            scope: nil,
             extern: extern)
         end
 

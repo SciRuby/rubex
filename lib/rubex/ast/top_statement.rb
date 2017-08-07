@@ -154,13 +154,14 @@ module Rubex
         end
 
         def analyse_statement outer_scope
-          @scope = Rubex::SymbolTable::Scope::Local.new @name, outer_scope
+          # @scope = Rubex::SymbolTable::Scope::Local.new @name, outer_scope
           @entry = outer_scope.find @name
-          @entry.type.scope = @scope
+          @scope = @entry.type.scope
           @scope.type = @entry.type
           @scope.self_name = @self_name
-          @arg_list.analyse_statement(@scope) if @arg_list
-          @entry.type.arg_list = @arg_list
+          @arg_list = @entry.type.arg_list
+          # @arg_list.analyse_statement(@scope) if @arg_list
+          # @entry.type.arg_list = @arg_list
           @statements.each do |stat|
             stat.analyse_statement @scope
           end
@@ -246,12 +247,6 @@ module Rubex
         def analyse_statement local_scope
           super
           @entry.singleton = @singleton
-          @arg_list.each do |arg|
-            if arg.entry.value
-              e = arg.entry
-              e.value = Rubex::Helpers.to_lhs_type(e, e.value)
-            end
-          end
         end
 
         def generate_code code
@@ -336,21 +331,82 @@ module Rubex
       protected
 
         def add_statement_symbols_to_symbol_table
-          @statements.each do |stat|
-            name = stat.name
-            if stat.is_a? Rubex::AST::TopStatement::RubyMethodDef
-              c_name = Rubex::RUBY_FUNC_PREFIX + @name + "_" +
-                name.gsub("?", "_qmark").gsub("!", "_bang")
-              @scope.add_ruby_method name: name, c_name: c_name
-            elsif stat.is_a? Rubex::AST::TopStatement::CFunctionDef
-              c_name = c_func_c_name(name)
-              type = Rubex::DataType::CFunction.new(
-                name, c_name, stat.arg_list, 
-                Helpers.determine_dtype(stat.type, stat.return_ptr_level))
-              @scope.add_c_method(name: name, c_name: c_name, extern: false,
-                type: type)
+          @statements.each do |stmt|
+            if ruby_method_or_c_function?(stmt)
+              f_name, f_scope = prepare_name_and_scope_of_functions(stmt)
+              puts "NAME: #{f_name}"
+              stmt.arg_list.analyse_statement(f_scope)
+              if stmt.is_a? Rubex::AST::TopStatement::RubyMethodDef
+                add_ruby_method_to_scope f_name, f_scope, stmt.arg_list
+              elsif stmt.is_a? Rubex::AST::TopStatement::CFunctionDef
+                return_type = Helpers.determine_dtype(stmt.type, stmt.return_ptr_level)
+                add_c_function_to_scope f_name, f_scope, stmt.arg_list, return_type
+              end
+            end
+            # f_name = stat.name
+            # f_scope = Rubex::SymbolTable::Scope::Local.new f_name, @scope
+            
+
+            # if stat.is_a? Rubex::AST::TopStatement::RubyMethodDef
+            #   c_name = Rubex::RUBY_FUNC_PREFIX + @name + "_" +
+            #     f_name.gsub("?", "_qmark").gsub("!", "_bang")
+            #   @scope.add_ruby_method(
+            #     name: f_name,
+            #     c_name: c_name, 
+            #     scope: f_scope,
+            #     arg_list: stat.arg_list
+            #   )
+            # elsif stat.is_a? Rubex::AST::TopStatement::CFunctionDef
+
+            #   @scope.add_c_method(
+            #     name: f_name, 
+            #     c_name: c_name, 
+            #     extern: false,
+            #     return_type: Helpers.determine_dtype(stat.type, stat.return_ptr_level),
+            #     arg_list: stat.arg_list
+            #   )
+            # end
+          end
+        end
+
+        def add_c_function_to_scope f_name, f_scope, arg_list, return_type
+          c_name = c_func_c_name(f_name)
+          arg_list.each do |arg|
+            if arg.entry.value
+              e = arg.entry
+              e.value = Rubex::Helpers.to_lhs_type(e, e.value)
             end
           end
+          @scope.add_c_method(
+            name: f_name, 
+            c_name: c_name, 
+            extern: false,
+            return_type: return_type,
+            arg_list: arg_list,
+            scope: f_scope
+          )
+        end
+
+        def add_ruby_method_to_scope f_name, f_scope, arg_list
+          c_name = Rubex::RUBY_FUNC_PREFIX + @name + "_" +
+            f_name.gsub("?", "_qmark").gsub("!", "_bang")
+          @scope.add_ruby_method(
+            name: f_name,
+            c_name: c_name, 
+            scope: f_scope,
+            arg_list: arg_list
+          )
+        end
+
+        def prepare_name_and_scope_of_functions stmt
+          f_name = stmt.name
+          f_scope = Rubex::SymbolTable::Scope::Local.new f_name, @scope
+          [f_name, f_scope]
+        end
+
+        def ruby_method_or_c_function? stmt
+          stmt.is_a?(Rubex::AST::TopStatement::RubyMethodDef) ||
+          stmt.is_a?(Rubex::AST::TopStatement::CFunctionDef)
         end
 
         def c_func_c_name name

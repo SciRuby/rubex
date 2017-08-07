@@ -424,8 +424,12 @@ module Rubex
               @name.analyse_statement local_scope
               @entry = @name.entry
             else # extern Ruby method
-              local_scope.add_ruby_method name: @name, c_name: @name, extern: true
-              @entry = local_scope.find @name
+              @entry = local_scope.add_ruby_method(
+                name: @name,
+                c_name: @name,
+                extern: true,
+                scope: nil,
+                arg_list: [])
             end
           end
           # If the entry is a RubyMethod, it should be interpreted as a command
@@ -491,10 +495,12 @@ module Rubex
         def analyse_statement local_scope
           entry = local_scope.find(@method_name)
           if !entry
-            local_scope.add_ruby_method(name: @method_name, 
-              c_name: @method_name, extern: true)
-            entry = local_scope.find(@method_name)
-            entry.type.arg_list = @arg_list
+            entry = local_scope.add_ruby_method(
+              name: @method_name, 
+              c_name: @method_name, 
+              extern: true,
+              arg_list: @arg_list,
+              scope: nil)
           end
 
           if method_not_within_scope? local_scope
@@ -555,6 +561,7 @@ module Rubex
       private
 
         def type_check_arg_types entry
+          puts ">>>> #{@method_name} #{@arg_list.size}"
           @arg_list.map!.with_index do |arg, idx|
             Helpers.to_lhs_type(entry.type.arg_list[idx], arg)
           end
@@ -739,7 +746,7 @@ module Rubex
           ident     = var[:ident]
           ptr_level = var[:ptr_level]
           value     = var[:value]
-
+          puts "!@!@! #{ident}"
           if ident.is_a?(Hash) # function pointer
             cfunc_return_type = Helpers.determine_dtype(dtype,
               ident[:return_ptr_level])
@@ -755,7 +762,7 @@ module Rubex
             end
 
             @type   = Helpers.determine_dtype(
-              DataType::CFunction.new(name, c_name, arg_list, cfunc_return_type),
+              DataType::CFunction.new(name, c_name, arg_list, cfunc_return_type, nil),
               ptr_level)
           else
             if !inside_func_ptr
