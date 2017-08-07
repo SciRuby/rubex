@@ -133,6 +133,7 @@ module Rubex
   }
 
   C_MACRO_INT2BOOL = Rubex::RUBEX_PREFIX + "INT2BOOL"
+  C_FUNC_CHAR2RUBYSTR = Rubex::RUBEX_PREFIX + "char2rubystr"
 
   # Maps regexes to the type of the variable for conversion from literal
   # to the correct type of Ruby object.

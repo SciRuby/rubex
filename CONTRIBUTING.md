@@ -70,3 +70,5 @@ The following features in Rubex need to be implemented or can be made better:
 * Special treatment for VALUE C arrays by marking each element with GC.
 * Checks for return statement. No return statement or wrong return type should raise error/warning.
 * Compile time checking of types passed into functions and methods.
+* Perform type checks in C before implicit conversion between Ruby and C types.
+* Ability to define function at any location in the file witout caring for when it will be actually used.

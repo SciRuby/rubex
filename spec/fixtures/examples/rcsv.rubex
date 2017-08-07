@@ -77,124 +77,6 @@ class RcsvParseError < StandardError
 end
 
 class Rcsv
-  def self.parse(file_name, opts)
-    rcsv_metadata meta
-    object csvio, options, option
-    csv_parser cp
-    ensure_container = []
-    unsigned char csv_options = CSV_STRICT_FINI | CSV_APPEND_NULL
-    int csv_string_len
-
-    setup_rcsv_metadata_defaults(&meta)
-    csvio = StringIO.new(file_name)
-
-    if !opts[:nostrict]
-      csv_options |= CSV_STRICT
-    end
-
-    option = opts[:parse_empty_fields_as]
-
-    if option == nil || option == :nil_or_string
-      csv_options |= CSV_EMPTY_IS_NULL
-    elsif option.nil?
-      meta.empty_field_is_nil = 1
-    elsif option == :string
-      meta.empty_field_is_nil = 0
-    else
-      raise(RcsvParseError, "The only valid options for :parse_empty_fields_as are :nil, :string and :nil_or_string.")
-    end
-
-    if csv_init(&cp, csv_options) == -1
-      raise(RcsvParseError, "Failed to initialize libcsv.")
-    end
-
-    buffer_size = opts[:buffer_size]
-    meta.row_as_hash = 1 if opts[:row_as_hash]
-
-    csv_set_delim(cp, col_sep) if opts[:col_sep]
-    csv_set_quote(cp, quote_char) if opts[:quote_char]
-
-    meta.offset_rows = opts[:offset_rows] if opts[:offset_rows]
-
-    # Specify character encoding
-    option = opts[:output_encoding]
-    meta.encoding_index = rb_enc_find_index(option) if option != nil
-
-    # :only_rows is a list of values where row is only parsed
-    #   if its fields match those in the passed array.
-    option = opts[:only_rows]
-    if option
-      meta.num_only_rows = option.size
-      meta.only_rows = <object*>xmalloc(meta.num_only_rows * sizeof(object))
-
-      int i = 0
-
-      for 0 <= i < meta.num_only_rows do
-        only_row = option[i]
-        meta.only_rows[i] = validate_filter_row(only_row)
-      end
-    end
-    # TODO: row_defaults, row_conversions, column name declaration when parsing
-    #   fields as Hashes, 
-
-    # :row_conversions specifies Ruby types that CSV field values should be
-    #   converted into. Each char of row_conversions string represents Ruby
-    #   type for CSV field with matching position.
-    row_conversions = opts[:row_conversions]
-    if row_conversions
-      meta.num_row_conversions = row_conversions.size
-      meta.row_conversions = row_conversions
-    end
-
-    if meta.row_as_hash
-      column_names = opts[:column_names]
-
-      if column_names.nil?
-       # raise RcsvParseError, ":row_as_hash requires :column_names to be set."
-      else
-        meta.last_entry = {}
-        meta.num_columns = column_names.size
-        meta.column_names = column_names
-      end
-    else
-      meta.last_entry = []
-    end
-
-    #begin
-      while true do
-        csvstr = csvio.read
-
-        if csvstr.nil? || csvstr.size == 0
-          break
-        end
-
-        char* csv_string = csvstr
-        csv_string_len = csvstr.size
-
-        if csv_string_len != csv_parse(&cp, csv_string, csv_string_len, 
-          &end_of_field_callback, &end_of_line_callback)
-          int error = csv_error(&cp)
-
-          if error == CSV_EPARSE
-            raise(RcsvParseError, "Error when parsing malformed data.")
-          elsif error == CSV_ENOMEM
-            raise(RcsvParseError, "No memory.")
-          elsif error == CSV_ETOOBIG
-            raise(RcsvParseError, "Field data data is too large.")
-          elsif error == CSV_EINVALID
-            raise(RcsvParseError, "#{csv_strerror(error)}")
-          else
-            raise(RcsvParseError, "Something went wrong.")
-          end
-        end
-      end
-    #ensure
-      free_all_memory(&cp, &meta)
-    #end
-
-    csv_fini(cp, &end_of_field_callback, &end_of_line_callback, meta)
-  end
-
   cfunc object validate_filter_row(row)
     if row == nil
       return nil
@@ -375,5 +257,123 @@ class Rcsv
     meta.row_conversions = NULL
     meta.column_names = NULL
     meta.result = []
+  end
+
+  def self.parse(file_name, opts)
+    rcsv_metadata meta
+    object csvio, options, option
+    csv_parser cp
+    ensure_container = []
+    unsigned char csv_options = CSV_STRICT_FINI | CSV_APPEND_NULL
+    int csv_string_len
+
+    setup_rcsv_metadata_defaults(&meta)
+    csvio = StringIO.new(file_name)
+
+    if !opts[:nostrict]
+      csv_options |= CSV_STRICT
+    end
+
+    option = opts[:parse_empty_fields_as]
+
+    if option == nil || option == :nil_or_string
+      csv_options |= CSV_EMPTY_IS_NULL
+    elsif option.nil?
+      meta.empty_field_is_nil = 1
+    elsif option == :string
+      meta.empty_field_is_nil = 0
+    else
+      raise(RcsvParseError, "The only valid options for :parse_empty_fields_as are :nil, :string and :nil_or_string.")
+    end
+
+    if csv_init(&cp, csv_options) == -1
+      raise(RcsvParseError, "Failed to initialize libcsv.")
+    end
+
+    buffer_size = opts[:buffer_size]
+    meta.row_as_hash = 1 if opts[:row_as_hash]
+
+    csv_set_delim(&cp, col_sep) if opts[:col_sep]
+    csv_set_quote(&cp, quote_char) if opts[:quote_char]
+
+    meta.offset_rows = opts[:offset_rows] if opts[:offset_rows]
+
+    # Specify character encoding
+    option = opts[:output_encoding]
+    meta.encoding_index = rb_enc_find_index(<char*>option) if option != nil
+
+    # :only_rows is a list of values where row is only parsed
+    #   if its fields match those in the passed array.
+    option = opts[:only_rows]
+    if option
+      meta.num_only_rows = option.size
+      meta.only_rows = <object*>xmalloc(meta.num_only_rows * sizeof(object))
+
+      int i = 0
+
+      for 0 <= i < meta.num_only_rows do
+        only_row = option[i]
+        meta.only_rows[i] = validate_filter_row(only_row)
+      end
+    end
+    # TODO: row_defaults, row_conversions, column name declaration when parsing
+    #   fields as Hashes, 
+
+    # :row_conversions specifies Ruby types that CSV field values should be
+    #   converted into. Each char of row_conversions string represents Ruby
+    #   type for CSV field with matching position.
+    row_conversions = opts[:row_conversions]
+    if row_conversions
+      meta.num_row_conversions = row_conversions.size
+      meta.row_conversions = row_conversions
+    end
+
+    if meta.row_as_hash
+      column_names = opts[:column_names]
+
+      if column_names.nil?
+       # raise RcsvParseError, ":row_as_hash requires :column_names to be set."
+      else
+        meta.last_entry = {}
+        meta.num_columns = column_names.size
+        meta.column_names = column_names
+      end
+    else
+      meta.last_entry = []
+    end
+
+    #begin
+      while true do
+        csvstr = csvio.read
+
+        if csvstr.nil? || csvstr.size == 0
+          break
+        end
+
+        char* csv_string = csvstr
+        csv_string_len = csvstr.size
+
+        if csv_string_len != csv_parse(&cp, csv_string, csv_string_len, 
+          &end_of_field_callback, &end_of_line_callback)
+          int error = csv_error(&cp)
+
+          if error == CSV_EPARSE
+            raise(RcsvParseError, "Error when parsing malformed data.")
+          elsif error == CSV_ENOMEM
+            raise(RcsvParseError, "No memory.")
+          elsif error == CSV_ETOOBIG
+            raise(RcsvParseError, "Field data data is too large.")
+          elsif error == CSV_EINVALID
+            raise(RcsvParseError, "#{csv_strerror(error)}")
+          else
+            raise(RcsvParseError, "Something went wrong.")
+          end
+        end
+      end
+    #ensure
+      free_all_memory(&cp, &meta)
+    #end
+
+    csv_fini(cp, &end_of_field_callback, &end_of_line_callback, meta)
   end
 end

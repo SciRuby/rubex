@@ -12,4 +12,12 @@ class TestTypeCasts
 
     return i + c[0]
   end
+
+  cfunc char converter(char* string, int length)
+    return string[length - 3]
+  end
+
+  def test_object_conversion(a)
+    return converter(a, a.size)
+  end
 end

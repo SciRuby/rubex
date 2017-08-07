@@ -512,6 +512,7 @@ module Rubex
             #   apply to extern functions as they are usually not made for accepting
             #   a VALUE last arg.
             @arg_list << Expression::Self.new if !entry.extern?
+            type_check_arg_types entry
           else
             @type = Rubex::DataType::RubyObject.new
           end
@@ -552,6 +553,13 @@ module Rubex
         end
 
       private
+
+        def type_check_arg_types entry
+          @arg_list.map!.with_index do |arg, idx|
+            Helpers.to_lhs_type(entry.type.arg_list[idx], arg)
+          end
+        end
+
         # Checks if method being called is of the same type of the caller. For
         # example, only instance methods can call instance methods and only 
         # class methods can call class methods. C functions are accessible from
@@ -637,7 +645,7 @@ module Rubex
             @subexprs << arg
           end
           # Case for implicit 'self' when a method in the class itself is being called.
-          if @expr.nil? 
+          if @expr.nil?
             entry = local_scope.find(@command)
             @expr = Expression::Self.new if entry && !entry.extern?
           end
@@ -663,7 +671,7 @@ module Rubex
             @c_code << @command.c_code(local_scope)
           else # interpreted as referencing the contents of a struct
             @c_code << "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
-          end          
+          end
         end
 
         def generate_disposal_code code
@@ -707,9 +715,11 @@ module Rubex
             @command = Expression::MethodCall.new @command, @expr, @arg_list
             @command.analyse_statement local_scope
           end
-          @command.allocate_temps local_scope
-          @command.allocate_temp local_scope, @command.type
           @type = @command.type
+          @command.allocate_temps local_scope
+          @command.allocate_temp local_scope, @type
+          @command.release_temps local_scope
+          @command.release_temp local_scope
         end
       end # class CommandCall
 

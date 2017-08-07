@@ -18,6 +18,7 @@ describe Rubex do
     context ".compile", focus: true do
       it "generates valid C code" do
         t, c, e = Rubex.compile @path + ".rubex", test: true
+        puts c
       end
     end
 
@@ -30,6 +31,7 @@ describe Rubex do
           t = TestTypeCasts.new
 
           expect(t.test_this).to eq(10)
+          expect(t.test_object_conversion("hello world")).to eq('r')
         end
       end
     end

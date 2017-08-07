@@ -157,11 +157,10 @@ module Rubex
           @scope = Rubex::SymbolTable::Scope::Local.new @name, outer_scope
           @entry = outer_scope.find @name
           @entry.type.scope = @scope
-          @entry.type.arg_list = @arg_list
           @scope.type = @entry.type
           @scope.self_name = @self_name
           @arg_list.analyse_statement(@scope) if @arg_list
-
+          @entry.type.arg_list = @arg_list
           @statements.each do |stat|
             stat.analyse_statement @scope
           end

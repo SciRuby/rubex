@@ -68,6 +68,7 @@ module Rubex
         end
         write_user_klasses code
         write_function_declarations code
+        write_usability_functions code
         code.nl
       end
 
@@ -83,6 +84,19 @@ module Rubex
         code.nl
         code.c_macro Rubex::RUBEX_PREFIX + "INT2BOOL(arg) (arg ? Qtrue : Qfalse)"
         code.nl
+      end
+
+      def write_usability_functions code
+        code.nl
+        code << "VALUE #{Rubex::C_FUNC_CHAR2RUBYSTR}(char ch);"
+        code.nl
+        code << "VALUE #{Rubex::C_FUNC_CHAR2RUBYSTR}(char ch)"
+        code.block do
+          code << "char s[2];\n"
+          code << "s[0] = ch;\n"
+          code << "s[1] = '\\0';\n"
+          code << "return rb_str_new2(s);\n"
+        end
       end
 
       def write_function_declarations code
