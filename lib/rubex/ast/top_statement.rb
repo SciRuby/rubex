@@ -334,38 +334,24 @@ module Rubex
           @statements.each do |stmt|
             if ruby_method_or_c_function?(stmt)
               f_name, f_scope = prepare_name_and_scope_of_functions(stmt)
-              stmt.arg_list.analyse_statement(f_scope)
-              if stmt.is_a? Rubex::AST::TopStatement::RubyMethodDef
-                add_ruby_method_to_scope f_name, f_scope, stmt.arg_list
-              elsif stmt.is_a? Rubex::AST::TopStatement::CFunctionDef
-                return_type = Helpers.determine_dtype(stmt.type, stmt.return_ptr_level)
-                add_c_function_to_scope f_name, f_scope, stmt.arg_list, return_type
+              if !auxillary_c_function_for_attached_klass?(f_name)
+                stmt.arg_list.analyse_statement(f_scope)
+                if stmt.is_a? Rubex::AST::TopStatement::RubyMethodDef
+                  add_ruby_method_to_scope f_name, f_scope, stmt.arg_list
+                elsif stmt.is_a? Rubex::AST::TopStatement::CFunctionDef
+                  return_type = Helpers.determine_dtype(stmt.type, stmt.return_ptr_level)
+                  add_c_function_to_scope f_name, f_scope, stmt.arg_list, return_type
+                end
               end
             end
-            # f_name = stat.name
-            # f_scope = Rubex::SymbolTable::Scope::Local.new f_name, @scope
-            
-
-            # if stat.is_a? Rubex::AST::TopStatement::RubyMethodDef
-            #   c_name = Rubex::RUBY_FUNC_PREFIX + @name + "_" +
-            #     f_name.gsub("?", "_qmark").gsub("!", "_bang")
-            #   @scope.add_ruby_method(
-            #     name: f_name,
-            #     c_name: c_name, 
-            #     scope: f_scope,
-            #     arg_list: stat.arg_list
-            #   )
-            # elsif stat.is_a? Rubex::AST::TopStatement::CFunctionDef
-
-            #   @scope.add_c_method(
-            #     name: f_name, 
-            #     c_name: c_name, 
-            #     extern: false,
-            #     return_type: Helpers.determine_dtype(stat.type, stat.return_ptr_level),
-            #     arg_list: stat.arg_list
-            #   )
-            # end
           end
+        end
+
+        def auxillary_c_function_for_attached_klass? f_name
+          self.is_a?(AttachedKlass) and [
+            Rubex::ALLOC_FUNC_NAME, Rubex::DEALLOC_FUNC_NAME, 
+            Rubex::MEMCOUNT_FUNC_NAME, Rubex::GET_STRUCT_FUNC_NAME
+          ].include?(f_name)
         end
 
         def add_c_function_to_scope f_name, f_scope, arg_list, return_type
@@ -417,10 +403,10 @@ module Rubex
 
         attr_reader :attached_type
 
-        ALLOC_FUNC_NAME = 'allocate'
-        DEALLOC_FUNC_NAME = 'deallocate'
-        MEMCOUNT_FUNC_NAME = 'memcount'
-        GET_STRUCT_FUNC_NAME = 'get_struct'
+        ALLOC_FUNC_NAME      = Rubex::ALLOC_FUNC_NAME          
+        DEALLOC_FUNC_NAME    = Rubex::DEALLOC_FUNC_NAME        
+        MEMCOUNT_FUNC_NAME   = Rubex::MEMCOUNT_FUNC_NAME      
+        GET_STRUCT_FUNC_NAME = Rubex::GET_STRUCT_FUNC_NAME  
 
         def initialize name, attached_type, ancestor, statements, location
           @attached_type = attached_type
@@ -432,9 +418,9 @@ module Rubex
           super(outer_scope, attach_klass: true)
           prepare_data_holding_struct
           prepare_rb_data_type_t_struct
-          check_or_modify_auxillary_c_functions
+          detach_and_modify_auxillary_c_functions_from_statements
+          add_auxillary_functions_to_klass_scope
           prepare_auxillary_c_functions
-          detach_auxillary_c_functions_from_statements
           @statements[1..-1].each do |stmt| # 0th stmt is the data struct
             if ruby_method_or_c_func?(stmt)
               rewrite_method_with_data_fetching stmt
@@ -453,13 +439,30 @@ module Rubex
         end
 
       private
+
+        # Since auxillary functions are detached from the klass statements,
+        #   analyse their arg_list separately and add function names to the
+        #   class scope so that their statements can be analysed properly later.
+        def add_auxillary_functions_to_klass_scope
+          @auxillary_c_functions.each_value do |func|
+            f_name, f_scope = prepare_name_and_scope_of_functions func
+            func.arg_list.analyse_statement(f_scope)
+            return_type = Helpers.determine_dtype(func.type, func.return_ptr_level)
+            add_c_function_to_scope f_name, f_scope, func.arg_list, return_type
+          end
+        end
+
         def analyse_auxillary_c_functions
           @auxillary_c_functions.each_value do |func|
             func.analyse_statement(@scope)
           end
         end
 
-        def detach_auxillary_c_functions_from_statements
+        # Detach the user-supplied auxlically C functions from the class and
+        #   store them in Hash @auxillary_c_functions. Make modifications to
+        #   them if necessary and also set an ivar that indicates if an
+        #   auxillary function is user-supplied or not.
+        def detach_and_modify_auxillary_c_functions_from_statements
           @auxillary_c_functions = {}
 
           indexes = []
@@ -467,15 +470,20 @@ module Rubex
             if stmt.is_a?(CFunctionDef)
               if stmt.name == ALLOC_FUNC_NAME
                 @auxillary_c_functions[ALLOC_FUNC_NAME] = stmt
+                @user_defined_alloc = true
                 indexes << idx
               elsif stmt.name == DEALLOC_FUNC_NAME
                 @auxillary_c_functions[DEALLOC_FUNC_NAME] = stmt
+                @user_defined_dealloc = true
+                modify_dealloc_func stmt
                 indexes << idx
               elsif stmt.name == MEMCOUNT_FUNC_NAME
                 @auxillary_c_functions[MEMCOUNT_FUNC_NAME] = stmt
+                @user_defined_memcount = true
                 indexes << idx
               elsif stmt.name == GET_STRUCT_FUNC_NAME
                 @auxillary_c_functions[GET_STRUCT_FUNC_NAME] = stmt
+                @user_defined_get_struct = true
                 indexes << idx
               end
             end 
@@ -491,6 +499,7 @@ module Rubex
           write_memcount_c_function code
         end
 
+        # Actually write the alloc function into C code.
         def write_alloc_c_function code
           if user_defined_alloc?
             @auxillary_c_functions[ALLOC_FUNC_NAME].generate_code code
@@ -523,6 +532,7 @@ module Rubex
           "data->#{Rubex::POINTER_PREFIX + @attached_type} = (#{c_name}*)xmalloc(sizeof(#{c_name}));\n"
         end
 
+        # Actually write the dealloc function into C code.
         def write_dealloc_c_function code
           if user_defined_dealloc?
             @auxillary_c_functions[DEALLOC_FUNC_NAME].generate_code code
@@ -531,6 +541,7 @@ module Rubex
           end
         end
 
+        # Actually write the memcount function into C code.
         def write_memcount_c_function code
           if user_defined_memcount?
             @auxillary_c_functions[MEMCOUNT_FUNC_NAME].generate_code code
@@ -547,6 +558,7 @@ module Rubex
           end
         end
 
+        # Actually write the get_struct function into C code.
         def write_get_struct_c_function code
           if user_defined_get_struct?
             @auxillary_c_functions[GET_STRUCT_FUNC_NAME].generate_code code
@@ -580,6 +592,8 @@ module Rubex
           code.new_line
         end
 
+        # Prepare the data holding struct 'data' that will hold a pointer to the
+        #   struct that is attached to this class.
         def prepare_data_holding_struct
           struct_name = @name + "_data_struct"
           declarations = declarations_for_data_struct
@@ -602,6 +616,8 @@ module Rubex
           @data_type_t = Rubex::ATTACH_CLASS_PREFIX + "_" + @name + "_data_type_t"
         end
 
+        # Prepare auxillary function in case they have not been supplied by user
+        #   and create ivars for their Symbol Table entries for easy accesss later.
         def prepare_auxillary_c_functions
           prepare_alloc_c_function
           prepare_memcount_c_function
@@ -613,6 +629,8 @@ module Rubex
           stmt.is_a?(RubyMethodDef) || stmt.is_a?(CFunctionDef)
         end
 
+        # Rewrite method `stmt` so that the `data` variable becomes available
+        #   inside the scope of the method.
         def rewrite_method_with_data_fetching stmt
           data_stmt = Statement::CPtrDecl.new(@data_struct.name, 'data', 
             get_struct_func_call(stmt), "*", @location)
@@ -624,6 +642,7 @@ module Rubex
             Statement::ArgumentList.new([]))
         end
 
+        # Create an alloc function if it is not supplied by user.
         def prepare_alloc_c_function
           if user_defined_alloc?
             @alloc_c_func = @scope.find(ALLOC_FUNC_NAME)
@@ -650,6 +669,7 @@ module Rubex
           end
         end
 
+        # Create a memcount function if it is not supplied by user.
         def prepare_memcount_c_function
           if user_defined_memcount?
             @memcount_c_func = @scope.find(MEMCOUNT_FUNC_NAME)
@@ -677,6 +697,7 @@ module Rubex
           end
         end
 
+        # Create a deallocate function if it is not supplied by user.
         def prepare_deallocation_c_function
           if user_defined_dealloc?
             @dealloc_c_func = @scope.find(DEALLOC_FUNC_NAME)
@@ -704,6 +725,7 @@ module Rubex
           end
         end
 
+        # Create a get_struct function if it is not supplied by user.
         def prepare_get_struct_c_function
           if user_defined_get_struct?
             @get_struct_c_func = @scope.find(GET_STRUCT_FUNC_NAME)
@@ -736,23 +758,10 @@ module Rubex
           end
         end
 
-        def check_or_modify_auxillary_c_functions
-          @statements.each do |stmt|
-            if stmt.is_a?(CFunctionDef)
-              if stmt.name == ALLOC_FUNC_NAME
-                @user_defined_alloc = true
-              elsif stmt.name == DEALLOC_FUNC_NAME
-                @user_defined_dealloc = true
-                modify_dealloc_func stmt
-              elsif stmt.name == MEMCOUNT_FUNC_NAME
-                @user_defined_memcount = true
-              elsif stmt.name == GET_STRUCT_FUNC_NAME
-                @user_defined_get_struct = true
-              end
-            end
-          end
-        end
-
+        # Modify the dealloc function by adding an argument of type void* so
+        #   that it is compatible with what Ruby expects. This is done so that
+        #   the user is not burdened with additional knowledge of knowing the
+        #   the correct argument for deallocate.
         def modify_dealloc_func func
           func.arg_list = Statement::ArgumentList.new([
               Expression::ArgDeclaration.new({

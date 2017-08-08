@@ -135,6 +135,11 @@ module Rubex
 
   C_MACRO_INT2BOOL = Rubex::RUBEX_PREFIX + "INT2BOOL"
   C_FUNC_CHAR2RUBYSTR = Rubex::RUBEX_PREFIX + "char2rubystr"
+  
+  ALLOC_FUNC_NAME      = 'allocate'
+  DEALLOC_FUNC_NAME    = 'deallocate'
+  MEMCOUNT_FUNC_NAME   = 'memcount'
+  GET_STRUCT_FUNC_NAME = 'get_struct'
 
   # Maps regexes to the type of the variable for conversion from literal
   # to the correct type of Ruby object.
