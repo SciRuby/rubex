@@ -236,11 +236,9 @@ module Rubex
         end
       end # class Binary
 
-      class Unary < Base
-        attr_reader :operator, :expr, :type
-
-        def initialize operator, expr
-          @operator, @expr = operator, expr
+      class UnaryBase < Base
+        def initialize expr
+          @expr = expr
         end
 
         def analyse_statement local_scope
@@ -251,6 +249,83 @@ module Rubex
           @expr.release_temps local_scope
           @expr.release_temp local_scope
           @expr = @expr.to_ruby_object if @type.object?
+        end
+
+        def generate_evaluation_code code, local_scope
+          @expr.generate_evaluation_code code, local_scope         
+        end
+      end
+
+      class UnaryNot < UnaryBase
+        attr_reader :type
+
+        def c_code local_scope
+          code = @expr.c_code(local_scope)
+          if @type.object?
+            "rb_funcall(#{code}, rb_intern(\"!\"), 0)"
+          else
+            "!#{code}"
+          end
+        end
+      end
+
+      class UnarySub < UnaryBase
+        attr_reader :type
+
+        def c_code local_scope
+          code = @expr.c_code(local_scope)
+          if @type.object?
+            "rb_funcall(#{code}, rb_intern(\"-\"), 0)"
+          else
+            "-#{code}"
+          end
+        end
+      end
+
+      class Ampersand < UnaryBase
+        attr_reader :type
+
+        def analyse_statement local_scope
+          @expr.analyse_statement local_scope
+          @type = DataType::CPtr.new @expr.type
+        end
+
+        def c_code local_scope
+          "&#{@expr.c_code(local_scope)}"
+        end
+      end
+
+      class UnaryBitNot < UnaryBase
+        attr_reader :type
+
+        def c_code local_scope
+          code = @expr.c_code(local_scope)
+          if @type.object?
+            "rb_funcall(#{code}, rb_intern(\"~\"), 0)"
+          else
+            "~#{code}"
+          end
+        end
+      end
+
+      class Unary < Base
+        attr_reader :operator, :expr, :type
+
+        OP_CLASS_MAP = {
+          '&' => Ampersand,
+          '-' => UnarySub,
+          '!' => UnaryNot,
+          '~' => UnaryBitNot
+        }
+
+        def initialize operator, expr
+          @operator, @expr = operator, expr
+        end
+
+        def analyse_statement local_scope
+          @expr = OP_CLASS_MAP[@operator].new(@expr)
+          @expr.analyse_statement local_scope
+          @type = @expr.type
           super
         end
 
@@ -261,11 +336,6 @@ module Rubex
         def c_code local_scope
           code = super
           code << @expr.c_code(local_scope)
-          if @type.object?
-            "rb_funcall(#{code}, rb_intern(\"#{@operator}\"), 0)"
-          else
-            "#{@operator} #{code}"
-          end
         end
       end # class Unary
 
@@ -457,7 +527,7 @@ module Rubex
           end
           # If the entry is a RubyMethod, it should be interpreted as a command
           # call. So, make the @name a CommandCall Node.
-          if @entry.type.ruby_method? || @entry.type.c_function?
+          if @entry.type.ruby_method? #|| @entry.type.c_function?
             @name = Rubex::AST::Expression::CommandCall.new(
               Expression::Self.new, @name, [])
             @name.analyse_statement local_scope

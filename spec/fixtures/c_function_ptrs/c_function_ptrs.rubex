@@ -47,6 +47,6 @@ class CFunctionPtrs
     int a = 5
     int b = 5
 
-    return bar(foo1, baz1, a, b)
+    return bar(&foo1, &baz1, a, b)
   end
 end

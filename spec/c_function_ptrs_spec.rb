@@ -30,7 +30,7 @@ describe Rubex do
 
           expect(cls.test_c_function_pointers(true)) .to eq(5)
           expect(cls.test_c_function_pointers(false)).to eq(7)
-          expect(cls.test_pass_by_name).to eq(5)
+          expect(cls.test_pass_by_name).to eq(17)
         end
       end
     end
