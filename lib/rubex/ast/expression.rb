@@ -270,7 +270,7 @@ module Rubex
       end # class Unary
 
       class ElementRef < Base
-        attr_reader :entry, :pos, :type, :name
+        attr_reader :entry, :pos, :type, :name, :object_ptr
 
         def initialize name, pos
           @name, @pos = name, pos
@@ -339,6 +339,21 @@ module Rubex
             code << "#{rhs.c_code(local_scope)};"
           end
           code.nl
+        end
+
+        # FIXME: This is jugaad. Change.
+        def generate_element_ref_code expr, code, local_scope
+          if !@object_ptr
+            @pos.generate_evaluation_code code, local_scope
+            str = "#{@c_code} = rb_funcall(#{expr.c_code(local_scope)}."
+            str << "#{@entry.c_name}, rb_intern(\"[]\"), 1, "
+            str << "#{@pos.c_code(local_scope)});"
+            code << str
+            code.nl
+            @pos.generate_disposal_code code
+          else
+            generate_evaluation_code code, local_scope
+          end
         end
 
         def c_code local_scope
@@ -673,18 +688,26 @@ module Rubex
           super
         end
 
+        # FIXME: refactor this method (or class). Too many ifs. Too much jagaad.
         def generate_evaluation_code code, local_scope
           @c_code = ""
           @arg_list.each do |arg|
             arg.generate_evaluation_code code, local_scope
           end
           @expr.generate_evaluation_code(code, local_scope) if @expr
-          @command.generate_evaluation_code code, local_scope
-          # Interpreted as a method call
-          if @command.is_a? Rubex::AST::Expression::MethodCall
-            @c_code << @command.c_code(local_scope)
-          else # interpreted as referencing the contents of a struct
-            @c_code << "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
+
+          if @expr && @type.object? && @command.is_a?(Rubex::AST::Expression::ElementRef) && 
+            !@command.object_ptr
+            @command.generate_element_ref_code @expr, code, local_scope
+            @c_code << "#{@command.c_code(local_scope)}"
+          else
+            @command.generate_evaluation_code code, local_scope
+            # Interpreted as a method call
+            if @command.is_a? Rubex::AST::Expression::MethodCall
+              @c_code << @command.c_code(local_scope)
+            else # interpreted as referencing the contents of a struct
+              @c_code << "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
+            end
           end
         end
 

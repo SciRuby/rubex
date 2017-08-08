@@ -42,4 +42,11 @@ class CFunctionPtrs
 
     return bar(func_ptr1, func_ptr2, a, b)
   end
+
+  def test_pass_by_name
+    int a = 5
+    int b = 5
+
+    return bar(foo1, baz1, a, b)
+  end
 end

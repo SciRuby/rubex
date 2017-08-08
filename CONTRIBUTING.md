@@ -72,3 +72,9 @@ The following features in Rubex need to be implemented or can be made better:
 * Compile time checking of types passed into functions and methods.
 * Perform type checks in C before implicit conversion between Ruby and C types.
 * Ability to define function at any location in the file witout caring for when it will be actually used.
+* Error checking for dereferencing of void pointer.
+* Prohibit structs (vector types) in if statements via compile time checks.
+
+# Contemplative features
+
+* Special operator (not `->`) for accessing elements from a struct pointer.

@@ -55,3 +55,16 @@ def struct_index
 
   return n.ptr[n.ptr1[n.a]]
 end
+
+def access_struct_obj
+  struct node
+    object arr
+  end
+
+  node a
+
+  a.arr = []
+  a.arr.push(1)
+
+  return a.arr[0]
+end

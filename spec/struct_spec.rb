@@ -17,6 +17,7 @@ describe Rubex do
     context ".compile", focus: true do
       it "compiles to valid C code" do
         t,c,e = Rubex.compile(@path + '.rubex', test: true)
+        puts c
       end
     end
 
@@ -27,6 +28,7 @@ describe Rubex do
 
           expect(structure("aa",2,3)).to eq(666)
           expect(struct_index).to eq(4)
+          expect(access_struct_obj).to eq(1)
         end
       end
     end

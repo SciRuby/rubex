@@ -98,7 +98,8 @@ class Rcsv
 
   cfunc void end_of_field_callback(void* field, size_t field_size, void* data)
     char* field_str = <char *>field
-    rcsv_metadata meta = <rcsv_metadata*>data[0]
+    rcsv_metadata* meta_p = <rcsv_metadata*>data
+    rcsv_metadata meta = meta_p[0]
     char row_conversion = 0
     object parsed_field
 
@@ -186,7 +187,8 @@ class Rcsv
   end
 
   cfunc void end_of_line_callback(int last_char, void* data)
-    rcsv_metadata meta = <rcsv_metadata *> data[0]
+    rcsv_metadata* meta_p = <rcsv_metadata *> data
+    rcsv_metadata meta = meta_p[0]
 
     # If filters didn't match, current row parsing is reverted */
     if meta.skip_current_row
@@ -224,11 +226,10 @@ class Rcsv
   end
 
   cfunc void free_all_memory(csv_parser *p_cp, rcsv_metadata *p_meta)
-    csv_parser cp = p_cp[0]
     rcsv_metadata meta = p_meta[0]
 
-    if cp
-      csv_free(&cp)
+    if p_cp
+      csv_free(p_cp)
     end
   end
 
@@ -349,8 +350,7 @@ class Rcsv
         char* csv_string = csvstr
         csv_string_len = csvstr.size
 
-        if csv_string_len != csv_parse(&cp, csv_string, csv_string_len, 
-          &end_of_field_callback, &end_of_line_callback)
+        if csv_string_len != csv_parse(cp, csv_string, csv_string_len, &end_of_field_callback, &end_of_line_callback)
           int error = csv_error(&cp)
 
           if error == CSV_EPARSE
