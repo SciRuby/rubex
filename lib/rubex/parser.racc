@@ -87,7 +87,6 @@ rule
   c_bindings:
     kLIB tSTRING opt_compilation_cmds c_declarations terms kEND
       {  
-        puts " >>>>>>. #{val[2]} .<<<<<<"
         result = TopStatement::CBindings.new val[1], val[2], val[3], location
       }
 

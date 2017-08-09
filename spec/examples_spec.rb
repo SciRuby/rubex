@@ -18,7 +18,6 @@ describe Rubex do
       context ".compile", now: true do
         it "compiles to valid C file" do
           t,c,e = Rubex.compile(@path + '.rubex', test: true)
-          puts c
         end
       end
 
@@ -27,7 +26,8 @@ describe Rubex do
           setup_and_teardown_compiled_files(test_case, example) do |dir|
             require_relative "#{dir}/#{example}.so"
 
-            Rcsv.parse('rcsv.csv', {})
+            a = Rcsv.parse('rcsv.csv', {})
+            puts a
           end
         end
       end

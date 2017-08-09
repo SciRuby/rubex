@@ -6,7 +6,6 @@ module Rubex
 
     def add_link link_str
       @links << link_str
-      puts ">>> #{@links}"
     end
 
     def link_flags

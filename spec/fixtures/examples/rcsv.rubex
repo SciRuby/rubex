@@ -110,7 +110,7 @@ class Rcsv
 
     # Skip the row if its position is less than specifed offset
     if (meta.current_row < meta.offset_rows)
-      meta.skip_current_row = true
+      meta_p[0].skip_current_row = true
       return
     end
 
@@ -154,9 +154,11 @@ class Rcsv
           raise_with_location(meta.current_row, meta.current_col, field_str)
         end
       end
-    else # { /* No conversion happens */
+    else # No conversion happens
       parsed_field = ENCODED_STR_NEW(field_str, field_size, meta.encoding_index)
     end
+
+    print "HLLOO >>>>", parsed_field
 
     # Filter by row values listed in meta->only_rows */
     if ((meta.only_rows != NULL) && (meta.current_col < meta.num_only_rows) && (meta.only_rows[meta.current_col] != nil) && (!rb_ary_includes(meta.only_rows[meta.current_col], parsed_field)))
@@ -174,14 +176,14 @@ class Rcsv
       if meta.current_col >= meta.num_columns
         raise_with_location(meta.current_row, meta.current_col, field_str)
       else
-        meta.last_entry[meta.column_names[meta.current_col]] = parsed_field
+        meta_p[0].last_entry[meta.column_names[meta.current_col]] = parsed_field
       end
     else # Parse into Array
-      meta.last_entry.push(parsed_field) # /* last_entry << field */
+      meta_p[0].last_entry.push(parsed_field) # /* last_entry << field */
     end
 
     # Increment column counter */
-    meta.current_col += 1
+    meta_p[0].current_col += 1
     return
   end
 
@@ -194,12 +196,12 @@ class Rcsv
 
     # If filters didn't match, current row parsing is reverted */
     if meta.skip_current_row
-      meta.skip_current_row = false;
+      meta.skip_current_row = false
     else
       if block_given? # STREAMING
         yield(meta.last_entry)
       else
-        meta.result[0].push(meta.last_entry)
+        meta_p[0].result.push(meta.last_entry)
       end
     end
 
@@ -224,7 +226,7 @@ class Rcsv
     if (enc_index != -1)
       rb_enc_associate_index(_string, enc_index)
     end
-    _string
+    return _string
   end
 
   cfunc void free_all_memory(csv_parser *p_cp, rcsv_metadata *p_meta)
@@ -234,26 +236,24 @@ class Rcsv
   end
 
   cfunc void setup_rcsv_metadata_defaults(rcsv_metadata *p_meta)
-    rcsv_metadata meta = p_meta[0]
-
-    meta.row_as_hash = 0
-    meta.empty_field_is_nil = 0
-    meta.skip_current_row = 0
-    meta.encoding_index = -1
-    meta.num_columns = 0
-    meta.current_col = 0
-    meta.current_row = 0
-    meta.offset_rows = 0
-    meta.num_only_rows = 0
-    meta.num_except_rows = 0
-    meta.num_row_defaults = 0
-    meta.num_row_conversions = 0
-    meta.only_rows = NULL
-    meta.except_rows = NULL
-    meta.row_defaults = NULL
-    meta.row_conversions = NULL
-    meta.column_names = NULL
-    meta.result = []
+    p_meta[0].row_as_hash = 0
+    p_meta[0].empty_field_is_nil = 0
+    p_meta[0].skip_current_row = 0
+    p_meta[0].encoding_index = -1
+    p_meta[0].num_columns = 0
+    p_meta[0].current_col = 0
+    p_meta[0].current_row = 0
+    p_meta[0].offset_rows = 0
+    p_meta[0].num_only_rows = 0
+    p_meta[0].num_except_rows = 0
+    p_meta[0].num_row_defaults = 0
+    p_meta[0].num_row_conversions = 0
+    p_meta[0].only_rows = NULL
+    p_meta[0].except_rows = NULL
+    p_meta[0].row_defaults = NULL
+    p_meta[0].row_conversions = NULL
+    p_meta[0].column_names = NULL
+    p_meta[0].result = []
   end
 
   def self.parse(file_name, opts)
@@ -338,7 +338,7 @@ class Rcsv
     else
       meta.last_entry = []
     end
-
+    print "HALLLOWWWW"
     #begin
       while true do
         csvstr = csvio.read
@@ -346,7 +346,7 @@ class Rcsv
         if csvstr.nil? || csvstr.size == 0
           break
         end
-
+        print "AGAININNNNN"
         char* csv_string = csvstr
         csv_string_len = csvstr.size
 
@@ -366,12 +366,14 @@ class Rcsv
           end
         end
       end
+      print "NOOOOOO"
     #ensure
-      free_all_memory(&cp, &meta)
+
     #end
-
+    print "BRUUUU"
     csv_fini(&cp, &end_of_field_callback, &end_of_line_callback, &meta)
-
+    free_all_memory(&cp, &meta)
+    print "UUUUBBBBB"
     return meta.result
   end
 end

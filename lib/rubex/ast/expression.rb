@@ -1182,14 +1182,53 @@ module Rubex
         class True < Literal::Base
           def initialize name
             super
+          end
+
+          def analyse_for_target_type target_type, local_scope
+            puts "hello #{target_type}"
+            if target_type.object?
+              @type = Rubex::DataType::TrueType.new
+            else
+              @type = Rubex::DataType::CBoolean.new
+            end
+          end
+
+          def analyse_statement local_scope
             @type = Rubex::DataType::TrueType.new
+          end
+
+          def c_code local_scope
+            if @type.object?
+              @name
+            else
+              "1"
+            end
           end
         end # class True
 
         class False < Literal::Base
           def initialize name
             super
+          end
+
+          def analyse_for_target_type target_type, local_scope
+            if target_type.object?
+              @type = Rubex::DataType::FalseType.new
+            else
+              @type = Rubex::DataType::CBoolean.new
+            end
+          end
+
+          def analyse_statement local_scope
             @type = Rubex::DataType::FalseType.new
+          end
+
+          def c_code local_scope
+            if @type.object?
+              @name
+            else
+              "0"
+            end
           end
         end # class False
 
