@@ -26,8 +26,10 @@ describe Rubex do
           setup_and_teardown_compiled_files(test_case, example) do |dir|
             require_relative "#{dir}/#{example}.so"
 
-            a = Rcsv.parse('rcsv.csv', {})
-            puts a
+            a = Rcsv.parse(File.read('spec/fixtures/examples/rcsv.csv'), {})
+            puts "\n\n\n>>>>"
+            puts "#{a.inspect}"
+            puts "\n\n\n<<<<"
           end
         end
       end

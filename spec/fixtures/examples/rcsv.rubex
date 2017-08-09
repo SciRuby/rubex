@@ -2,6 +2,10 @@ lib "rubex/ruby"; end
 lib "rubex/ruby/encoding"; end
 lib "rubex/stdlib"; end
 
+lib "<stdio.h>"
+  int printf(char*, char*)
+end
+
 lib "csv.h", link: "csv"
   struct csv_parser
   end
@@ -104,9 +108,11 @@ class Rcsv
     rcsv_metadata meta = meta_p[0]
     char row_conversion = 0
     object parsed_field
+    # s = rb_str_new(field_str, field_size)
+    # print "HALLOW", s
 
     # No need to parse anything until the end of the line if skip_current_row is set */
-    return if meta.skip_current_row
+    # return if meta.skip_current_row
 
     # Skip the row if its position is less than specifed offset
     if (meta.current_row < meta.offset_rows)
@@ -114,55 +120,54 @@ class Rcsv
       return
     end
 
-    # Get row conversion char specifier
-    if meta.current_col < meta.num_row_conversions
-      row_conversion = <char>meta.row_conversions[meta.current_col]
-    end
+    # # Get row conversion char specifier
+    # if meta.current_col < meta.num_row_conversions
+    #   row_conversion = <char>meta.row_conversions[meta.current_col]
+    # end
 
-    # Convert the field from string into Ruby type specified by row_conversion
-    if row_conversion != ' ' # spacebar skips the column
-      if field_size == 0
-        # Assigning appropriate default value if applicable.
-        if meta.current_col < meta.num_row_defaults
-          parsed_field = meta.row_defaults[meta.current_col]
-        else # It depends on empty_field_is_nil if we convert empty strings to nils */
-          if meta.empty_field_is_nil || field_str == NULL
-            parsed_field = nil
-          else
-            parsed_field = ENCODED_STR_NEW("", 0, meta.encoding_index)
-          end
-        end
-      else
-        if meta.current_col < meta.num_row_conversions
-          if row_conversion == 's' # string
-            parsed_field = ENCODED_STR_NEW(field_str, field_size, meta.encoding_index)
-          elsif row_conversion == 'i' # integer
-            parsed_field = atoll(field_str)
-          elsif row_conversion == 'f' # float
-            parsed_field = atof(field_str)
-          elsif row_conversion == 'b' # boolean
-            char field_0 = field_str[0]
-            if field_0 == 't' || field_0 == 'T' || field_0 == '1'
-              parsed_field = true
-            elsif field_0 == 'f' || field_0 == 'F' || field_0 == '0'
-              parsed_field = false
-            else
-              raise_with_location(meta.current_row, meta.current_col, field_str)
-            end
-          end
-        else
-          raise_with_location(meta.current_row, meta.current_col, field_str)
-        end
-      end
-    else # No conversion happens
+    # # Convert the field from string into Ruby type specified by row_conversion
+    # if row_conversion != ' ' # spacebar skips the column
+    #   if field_size == 0
+    #     # Assigning appropriate default value if applicable.
+    #     if meta.current_col < meta.num_row_defaults
+    #       parsed_field = meta.row_defaults[meta.current_col]
+    #     else # It depends on empty_field_is_nil if we convert empty strings to nils */
+    #       if meta.empty_field_is_nil || field_str == NULL
+    #         parsed_field = nil
+    #       else
+    #         parsed_field = ENCODED_STR_NEW("", 0, meta.encoding_index)
+    #       end
+    #     end
+    #   else
+    #     if meta.current_col < meta.num_row_conversions
+    #       if row_conversion == 's' # string
+    #         parsed_field = ENCODED_STR_NEW(field_str, field_size, meta.encoding_index)
+    #       elsif row_conversion == 'i' # integer
+    #         parsed_field = atoll(field_str)
+    #       elsif row_conversion == 'f' # float
+    #         parsed_field = atof(field_str)
+    #       elsif row_conversion == 'b' # boolean
+    #         char field_0 = field_str[0]
+    #         if field_0 == 't' || field_0 == 'T' || field_0 == '1'
+    #           parsed_field = true
+    #         elsif field_0 == 'f' || field_0 == 'F' || field_0 == '0'
+    #           parsed_field = false
+    #         else
+    #           raise_with_location(meta.current_row, meta.current_col, field_str)
+    #         end
+    #       end
+    #     else
+    #       raise_with_location(meta.current_row, meta.current_col, field_str)
+    #     end
+    #   end
+    # else # No conversion happens
+    #   raise
       parsed_field = ENCODED_STR_NEW(field_str, field_size, meta.encoding_index)
-    end
-
-    print "HLLOO >>>>", parsed_field
+    # end
 
     # Filter by row values listed in meta->only_rows */
     if ((meta.only_rows != NULL) && (meta.current_col < meta.num_only_rows) && (meta.only_rows[meta.current_col] != nil) && (!rb_ary_includes(meta.only_rows[meta.current_col], parsed_field)))
-      meta.skip_current_row = true
+      meta_p[0].skip_current_row = true
       return
     end
     # Filter out by row values listed in meta->except_rows
@@ -210,7 +215,7 @@ class Rcsv
       if meta.row_as_hash
         meta.last_entry = {}
       else
-        meta.last_entry = []
+        meta_p[0].last_entry = []
       end
     end
 
@@ -338,11 +343,11 @@ class Rcsv
     else
       meta.last_entry = []
     end
-    print "HALLLOWWWW"
+    # print "HALLLOWWWW"
     #begin
       while true do
         csvstr = csvio.read
-
+        # print csvstr
         if csvstr.nil? || csvstr.size == 0
           break
         end

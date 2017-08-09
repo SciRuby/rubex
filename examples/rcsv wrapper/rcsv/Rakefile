@@ -1,0 +1,4 @@
+require 'rubex/rake_task'
+require 'rake'
+require 'rake/extensiontask'
+

@@ -469,6 +469,10 @@ module Rubex
         @type = type
       end
 
+      def p_formatter
+        "%s" if char_ptr?  
+      end
+
       def cptr?; true; end
 
       def to_s
