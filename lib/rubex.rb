@@ -1,3 +1,4 @@
+require 'rubex/compiler_config'
 require 'rubex/error'
 require 'rubex/helpers'
 require 'rubex/code_writer'
@@ -8,12 +9,15 @@ require 'rubex/symbol_table'
 require 'rubex/parser.racc.rb'
 
 module Rubex
+  COMPILER_CONFIG = Rubex::CompilerConfig.new
+
   class << self
     def compile path, test: false, directory: nil
       tree = ast path, test: test
       target_name = extract_target_name path
       code = generate_code tree, target_name
       ext = extconf target_name, directory: directory
+      COMPILER_CONFIG.flush
       
       return [tree, code, ext] if test
       write_files target_name, code, ext, directory: directory
@@ -30,7 +34,7 @@ module Rubex
           parser.parse(path)
           parser.do_parse
         rescue Racc::ParseError => e
-          error_msg = "PARSE ERROR:\n"
+          error_msg = "\nPARSE ERROR:\n"
           error_msg << "Line: #{parser.string.split("\n")[parser.lineno-1]}\n"
           error_msg << "Location: #{parser.location}\n"
           error_msg << "Error:\n#{e}"
@@ -43,6 +47,7 @@ module Rubex
       path = directory ? directory : "#{Dir.pwd}/#{target_name}"
       extconf = ""
       extconf << "require 'mkmf'\n"
+      extconf << "$libs += \" #{COMPILER_CONFIG.link_flags}\"\n"
       extconf << "create_makefile('#{path}/#{target_name}')\n"
       extconf
     end

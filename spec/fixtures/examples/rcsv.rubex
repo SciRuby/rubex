@@ -2,7 +2,7 @@ lib "rubex/ruby"; end
 lib "rubex/ruby/encoding"; end
 lib "rubex/stdlib"; end
 
-lib "csv.h"
+lib "csv.h", link: "csv"
   struct csv_parser
   end
 
@@ -15,6 +15,8 @@ lib "csv.h"
   int CSV_ENOMEM
   int CSV_ETOOBIG
   int CSV_EINVALID
+  int CSV_STRICT
+  int CSV_EMPTY_IS_NULL
 
   int csv_init(csv_parser, unsigned char)
   int csv_fini(csv_parser, void (*cb1)(void *, size_t, void *), void (*cb2)(int, void *), void *)
@@ -226,8 +228,6 @@ class Rcsv
   end
 
   cfunc void free_all_memory(csv_parser *p_cp, rcsv_metadata *p_meta)
-    rcsv_metadata meta = p_meta[0]
-
     if p_cp
       csv_free(p_cp)
     end
@@ -350,7 +350,7 @@ class Rcsv
         char* csv_string = csvstr
         csv_string_len = csvstr.size
 
-        if csv_string_len != csv_parse(cp, csv_string, csv_string_len, &end_of_field_callback, &end_of_line_callback)
+        if csv_string_len != csv_parse(&cp, csv_string, csv_string_len, &end_of_field_callback, &end_of_line_callback, &meta)
           int error = csv_error(&cp)
 
           if error == CSV_EPARSE
@@ -370,6 +370,8 @@ class Rcsv
       free_all_memory(&cp, &meta)
     #end
 
-    csv_fini(cp, &end_of_field_callback, &end_of_line_callback, meta)
+    csv_fini(&cp, &end_of_field_callback, &end_of_line_callback, &meta)
+
+    return meta.result
   end
 end

@@ -51,7 +51,7 @@ def setup_and_teardown_compiled_files test_case, example=nil, &block
   begin
     block.call(dir)
   ensure
-    delete_generated_files test_case
+    delete_generated_files test_case, example
   end
 end
 

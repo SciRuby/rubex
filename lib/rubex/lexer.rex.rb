@@ -45,6 +45,7 @@ class Rubex::Lexer
   SQUOTE            = /'/
   DQUOTE            = /"/
   SCOLON            = /;/
+  COLON             = /:/
   INTEGER           = /-?\d+/
   FLOAT             = /-?\d+\.\d+/
   DOT               = /\./
@@ -220,6 +221,8 @@ class Rubex::Lexer
             action { [:tQMARK, text]}
           when text = ss.scan(/#{DOT}/) then
             action { [:tDOT, text]    }
+          when text = ss.scan(/#{COLON}/) then
+            action { [:tCOLON, text]  }
           when text = ss.scan(/#{PLUSASSIGN}/) then
             action { [:tOP_ASSIGN, text]}
           when text = ss.scan(/#{MINUSASSIGN}/) then

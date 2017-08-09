@@ -10,8 +10,8 @@ token
   kDTYPE_ULLINT kDTYPE_VOID kDTYPE_SIZE_T kDTYPE_RB_STR kDTYPE_UCHAR kDTYPE_BOOL
   tCUSTOM_DTYPE
 
-  tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL tCOMMA tSQUOTE tSCOLON
-  EOF     tDOT    tQMARK   tSYMBOL  tLBRACE     tRBRACE
+  tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL     tCOMMA tSQUOTE tSCOLON
+  EOF     tDOT    tQMARK   tSYMBOL  tLBRACE     tRBRACE tCOLON
 
   tPLUS tMINUS tSTAR tDIVIDE tEXPO      tMODULUS tASSIGN tEQ tLT tLTEQ tGT
   tGTEQ tANDOP tOROP tBANG   tOP_ASSIGN tSTRING  kSIZEOF
@@ -85,9 +85,23 @@ rule
   | tLT tIDENTIFIER { result = val[1] }
 
   c_bindings:
-    kLIB tSTRING c_declarations terms kEND { result = val[1] }
-      {
-        result = TopStatement::CBindings.new val[1], val[2], location
+    kLIB tSTRING opt_compilation_cmds c_declarations terms kEND
+      {  
+        puts " >>>>>>. #{val[2]} .<<<<<<"
+        result = TopStatement::CBindings.new val[1], val[2], val[3], location
+      }
+
+  opt_compilation_cmds:
+    opt_compilation_cmd { result = [val[0]] }
+  | opt_compilation_cmds tCOMMA opt_compilation_cmd { result = [*val[0], val[2]] }
+
+  opt_compilation_cmd:
+     { result = {} }
+  | tIDENTIFIER tCOLON tSTRING 
+      { 
+        if val[0] == 'link'
+          result = { link: val[2] }
+        end
       }
 
   c_declarations:

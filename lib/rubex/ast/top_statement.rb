@@ -4,8 +4,9 @@ module Rubex
       class CBindings
         attr_reader :lib, :declarations, :location
 
-        def initialize lib, declarations, location
-          @lib, @declarations, @location = lib, declarations, location
+        def initialize lib, comp_opts, declarations, location
+          @lib, @comp_opts, @declarations, @location = lib, comp_opts, 
+            declarations, location
         end
 
         def analyse_statement local_scope
@@ -18,6 +19,7 @@ module Rubex
             stat.analyse_statement local_scope, extern: true
           end
           local_scope.include_files.push @lib
+          update_compiler_config
         end
 
         def generate_code code
@@ -25,6 +27,13 @@ module Rubex
         end
 
       private
+        def update_compiler_config
+          @comp_opts.each do |h|
+            if h[:link]
+              Rubex::COMPILER_CONFIG.add_link h[:link]
+            end
+          end
+        end
 
         def load_predecided_declarations
           if @lib == 'rubex/ruby'

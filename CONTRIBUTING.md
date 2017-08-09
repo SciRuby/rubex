@@ -74,6 +74,7 @@ The following features in Rubex need to be implemented or can be made better:
 * Ability to define function at any location in the file witout caring for when it will be actually used.
 * Error checking for dereferencing of void pointer.
 * Prohibit structs (vector types) in if statements via compile time checks.
+* Ability to provide default values to method arguments.
 
 # Contemplative features
 

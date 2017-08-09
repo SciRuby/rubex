@@ -42,6 +42,7 @@ macros
   SQUOTE          /'/
   DQUOTE          /"/
   SCOLON          /;/
+  COLON           /:/
   INTEGER         /-?\d+/
   FLOAT           /-?\d+\.\d+/
   DOT             /\./
@@ -156,6 +157,7 @@ rules
   /#{NL}/                 { [:tNL, text] }
   /#{QMARK}/              { [:tQMARK, text]}
   /#{DOT}/                { [:tDOT, text]    }
+  /#{COLON}/              { [:tCOLON, text]  }
 
   # operators
 
