@@ -1,3 +1,5 @@
+require 'forwardable'
+
 require 'rubex/compiler_config'
 require 'rubex/error'
 require 'rubex/helpers'
