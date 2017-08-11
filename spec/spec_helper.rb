@@ -25,7 +25,7 @@ def generate_shared_object test_case, example=nil
   path = path_str test_case, example
   dir = dir_str test_case
 
-  Rubex.compile(path + '.rubex', directory: dir)
+  Rubex::Compiler.compile(path + '.rubex', directory: dir)
   Dir.chdir(dir) do
     `ruby extconf.rb`
     `make`

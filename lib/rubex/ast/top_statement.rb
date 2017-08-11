@@ -30,7 +30,7 @@ module Rubex
         def update_compiler_config
           @comp_opts.each do |h|
             if h[:link]
-              Rubex::COMPILER_CONFIG.add_link h[:link]
+              Rubex::Compiler::CONFIG.add_link h[:link]
             end
           end
         end

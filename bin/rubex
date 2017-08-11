@@ -7,4 +7,4 @@ if File.exists? file_name
   file_name = Dir.pwd + "/#{file_name}"
 end
 
-Rubex.compile file_name
+Rubex::Compiler.compile file_name

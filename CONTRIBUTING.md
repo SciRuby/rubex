@@ -75,6 +75,7 @@ The following features in Rubex need to be implemented or can be made better:
 * Error checking for dereferencing of void pointer.
 * Prohibit structs (vector types) in if statements via compile time checks.
 * Ability to provide default values to method arguments.
+* Ability to write Rubex programs spanning multiple files.
 
 # Contemplative features
 

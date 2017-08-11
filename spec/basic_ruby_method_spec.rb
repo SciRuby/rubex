@@ -11,13 +11,13 @@ describe Rubex do
 
     context ".ast" do
       it "returns a valid Abstract Syntax Tree" do
-        t = Rubex.ast @path + ".rubex"
+        t = Rubex::Compiler.ast @path + ".rubex"
       end
     end
 
     context ".compile" do
       it "generates valid C code" do
-        t, c, e = Rubex.compile @path + ".rubex", test: true
+        t, c, e = Rubex::Compiler.compile @path + ".rubex", test: true
       end
     end
 

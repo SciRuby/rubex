@@ -10,13 +10,13 @@ describe Rubex do
 
     context ".ast" do
       it "generates the AST" do
-        t = Rubex.ast(@path + '.rubex')
+        t = Rubex::Compiler.ast(@path + '.rubex')
       end
     end
 
     context ".compile", free: true do
       it "compiles to valid C file" do
-        t,c,e = Rubex.compile((@path + '.rubex'), test: true)
+        t,c,e = Rubex::Compiler.compile((@path + '.rubex'), test: true)
       end
     end
 
