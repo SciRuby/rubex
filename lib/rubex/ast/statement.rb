@@ -913,7 +913,40 @@ module Rubex
             a.generate_disposal_code code
           end
         end
-      end
+      end # class Yield
+
+      module BeginBlock
+        class Base < Statement::Base
+          attr_reader :statements
+
+          def initialize statements, location
+            @statements = statements
+            super(location)
+          end
+        end # class Base
+
+        class Begin < Base
+          def initialize statements, tails, location
+            @tails = tails
+            super(statements, location)
+          end
+        end # class Begin
+
+        class Else < Base
+
+        end # class Else
+
+        class Rescue < Base
+          def initialize error_klass, error_obj, statements, location
+            super(statements, location)
+            @error_klass, @error_obj = error_klass, error_obj
+          end
+        end # class Rescue
+
+        class Ensure < Base
+
+        end # class Ensure
+      end # module BeginBlock
     end # module Statement
   end # module AST
 end # module Rubex

@@ -1,8 +1,9 @@
 class Rubex::Parser
 token
-  kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE   kTHEN  kSTATIC_ARRAY kFOR kWHILE
-  kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS        kLIB kCLASS
-  kCFUNC     kSELF  kNULL  kFWD   kATTACH kRAISE kBREAK kBLOCK_GIVEN  kYIELD
+  kDEF kEND kRETURN kPRINT  kIF    kELSIF  kELSE   kTHEN  kSTATIC_ARRAY kFOR 
+  kDOT_EACH kDO     kTRUE   kFALSE kNIL    kSTRUCT kUNION kALIAS        kLIB 
+  kCFUNC    kSELF   kNULL   kFWD   kATTACH kRAISE kBREAK kBLOCK_GIVEN  kYIELD
+  kBEGIN    kRESCUE kENSURE kWHILE  kCLASS
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT  kDTYPE_CHAR   kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8    kDTYPE_UI16   kDTYPE_UI32 kDTYPE_UI64
@@ -324,6 +325,43 @@ rule
       {
         result = Statement::Yield.new(Statement::ActualArgList.new(val[2]))
       }
+  | begin_block
+
+  begin_block:
+    kBEGIN terms compstmt opt_begin_block_tails kEND
+      { 
+        result = Statement::BeginBlock::Begin.new val[2], val[3], location
+      }
+
+  opt_begin_block_tails:
+    opt_rescue_blocks opt_else_block opt_ensure_block
+      { 
+        tails = []
+        tails.concat(val[0]) if val[0]
+        tails << val[1]      if val[1]
+        tails << val[2]      if val[2]
+
+        result = tails
+      }
+
+  opt_rescue_blocks:
+      { result = nil }
+  | rescue_block { result = [val[0]] }
+  | opt_rescue_blocks rescue_block { result = [*val[0], val[1]]  }
+
+  rescue_block:
+    kRESCUE tIDENTIFIER terms compstmt
+      { result = Statement::BeginBlock::Rescue.new val[1], nil, val[3], location }
+
+  opt_else_block:
+      { result = nil }
+  | kELSE terms compstmt
+      { result = Statement::BeginBlock::Else.new val[2], location }
+
+  opt_ensure_block:
+      { result = nil }
+  | kENSURE terms compstmt
+      { result = Statement::BeginBlock::Ensure.new val[2], location }
 
   forward_declaration:
     kFWD kSTRUCT tIDENTIFIER
@@ -757,6 +795,12 @@ def check_for_keyword token
     return [:kRAISE, match]
   elsif match == "break"
     return [:kBREAK, match]
+  elsif match == "begin"
+    return [:kBEGIN, match]
+  elsif match == "ensure"
+    return [:kENSURE, match]
+  elsif match == "rescue"
+    return [:kRESCUE, match]
   end
 
   return token

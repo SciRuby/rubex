@@ -1185,7 +1185,6 @@ module Rubex
           end
 
           def analyse_for_target_type target_type, local_scope
-            puts "hello #{target_type}"
             if target_type.object?
               @type = Rubex::DataType::TrueType.new
             else

@@ -15,21 +15,18 @@ describe Rubex do
         end
       end
 
-      context ".compile", now: true do
+      context ".compile", focus: true do
         it "compiles to valid C file" do
           t,c,e = Rubex::Compiler.compile(@path + '.rubex', test: true)
         end
       end
 
-      context "Black Box testing", now: true do
+      context "Black Box testing", focus: true do
         it "compiles and checks for valid output" do
           setup_and_teardown_compiled_files(test_case, example) do |dir|
             require_relative "#{dir}/#{example}.so"
 
             a = Rcsv.parse(File.read('spec/fixtures/examples/rcsv.csv'), {})
-            puts "\n\n\n>>>>"
-            puts "#{a.inspect}"
-            puts "\n\n\n<<<<"
           end
         end
       end

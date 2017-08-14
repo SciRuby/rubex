@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Rubex do
   test_case = "error_handling"
 
-  context "Case: #{test_case}" do
+  context "Case: #{test_case}", now: true do
     before do
       @path = path_str test_case
     end
