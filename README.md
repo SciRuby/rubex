@@ -14,7 +14,7 @@ Rubex is complimentary to Ruby. It DOES NOT aim to be a replacement for Ruby.
 
 The gem as of now has not reached v0.1. However, you can try it out with:
 ```
-git clone https://github.com/v0dro/Rubex::Compiler.git
+git clone https://github.com/v0dro/rubex.git
 cd rubex
 bundle install
 rake install
@@ -250,7 +250,7 @@ end
 
 ## Statements and Expressions
 
-All expressions that are supported in Ruby are supported in Rubex::Compiler. You can also intermingle C and Ruby types in the same expression, subject to some restrictions.
+All expressions that are supported in Ruby are supported in Rubex. You can also intermingle C and Ruby types in the same expression, subject to some restrictions.
 
 ### Implicit type conversions
 
