@@ -163,14 +163,11 @@ module Rubex
         end
 
         def analyse_statement outer_scope
-          # @scope = Rubex::SymbolTable::Scope::Local.new @name, outer_scope
           @entry = outer_scope.find @name
           @scope = @entry.type.scope
           @scope.type = @entry.type
           @scope.self_name = @self_name
           @arg_list = @entry.type.arg_list
-          # @arg_list.analyse_statement(@scope) if @arg_list
-          # @entry.type.arg_list = @arg_list
           @statements.each do |stat|
             stat.analyse_statement @scope
           end

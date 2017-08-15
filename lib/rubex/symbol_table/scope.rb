@@ -17,6 +17,7 @@ module Rubex
       attr_accessor :self_name
       attr_accessor :temp_entries
       attr_accessor :free_temp_entries
+      attr_accessor :global_entries
       attr_reader   :klass_name, :name
 
       def initialize outer_scope=nil
@@ -209,11 +210,13 @@ module Rubex
 
       class Local
         include Rubex::SymbolTable::Scope
+        attr_reader :begin_block_counter
 
         def initialize name, outer_scope
           super(outer_scope)
           @name = name
           @klass_name = outer_scope.klass_name
+          @begin_block_counter = 0
         end
 
         # args - Rubex::AST::ArgumentList. Creates sym. table entries for args.
@@ -225,7 +228,37 @@ module Rubex
 
           entry
         end
+
+        def found_begin_block
+          @begin_block_counter += 1
+        end
       end # class Local
+
+      class BeginBlock
+        def initialize name, outer_scope
+          @outer_scope = outer_scope
+          @name = name
+          @block_entries = []
+        end
+
+        def upgrade_symbols_to_global
+          
+        end
+
+        def method_missing meth, *args, &block
+          # if meth.to_s.match(/declare_.*/) || meth.to_s.match(/add_.*/)
+          #   puts ">>>> #{args}"
+          ret = @outer_scope.send(meth, *args, &block)
+          if ret.is_a?(Rubex::SymbolTable::Entry)
+            @block_entries << ret
+            return ret
+          end
+          # elsif meth == :allocate_temp
+          #   c_name = @outer_scope.send(meth, *args, &block)
+          #   return c_name
+          # end
+        end
+      end # class BeginBlock
 
       class StructOrUnion
         include Rubex::SymbolTable::Scope

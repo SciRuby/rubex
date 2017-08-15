@@ -930,6 +930,30 @@ module Rubex
             @tails = tails
             super(statements, location)
           end
+
+          def analyse_statement local_scope
+            local_scope.found_begin_block
+            block_name = Rubex::RUBEX_PREFIX + local_scope.klass_name + "_" +
+              local_scope.name + "_" + local_scope.begin_block_counter.to_s
+            @block_scope = Rubex::SymbolTable::Scope::BeginBlock.new(
+              block_name, local_scope)
+            @statements.each do |stmt|
+              stmt.analyse_statement @block_scope
+            end
+            @block_scope.upgrade_symbols_to_global
+            create_c_function_to_house_statements
+            analyse_tails
+          end
+
+        private
+
+          def create_c_function_to_house_statements
+            
+          end
+
+          def analyse_tails
+            
+          end
         end # class Begin
 
         class Else < Base
