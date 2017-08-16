@@ -67,9 +67,25 @@ module Rubex
           declare_types code, klass.scope
         end
         write_user_klasses code
+        write_global_variable_declarations code
         write_function_declarations code
         write_usability_functions code
         code.nl
+      end
+
+      def write_global_variable_declarations code
+        @statements.each do |stmt|
+          if stmt.is_a?(TopStatement::Klass)
+            stmt.statements.each do |s|
+              if s.is_a?(TopStatement::MethodDef)
+                s.scope.global_entries.each do |g|
+                  code << "static #{g.type} #{g.c_name};"
+                  code.nl
+                end # .each
+              end # if
+            end # .each
+          end # if
+        end # .each
       end
 
       def write_user_klasses code

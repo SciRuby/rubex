@@ -4,9 +4,9 @@ class Handler
     int j = 0
 
     begin
-      raise(ArgumentError) if i == 1
-      raise(LoadError) if i == 2
-      raise(SyntaxError) if i == 3
+      raise(ArgumentError, "Horrible error.") if i == 1
+      raise(LoadError, "Bad error.") if i == 2
+      raise(SyntaxError, "Disgusting error.") if i == 3
     rescue ArgumentError
       j = 1
     rescue LoadError
@@ -14,6 +14,7 @@ class Handler
     rescue SyntaxError
       j = 3
     else
+      print "hi!"
       j = 4
     ensure
       j += 5

@@ -940,7 +940,7 @@ module Rubex
               block_name(local_scope), local_scope)
             create_c_function_to_house_statements local_scope.outer_scope
             analyse_tails local_scope
-            @ensure_block_goto = @block_scope.name + "_ensure_pos:"
+            @ensure_block_goto = @block_scope.name + "_ensure_pos"
           end
 
           def generate_code code, local_scope
@@ -950,7 +950,7 @@ module Rubex
             super
             cb_c_name = local_scope.find(@begin_func.name).c_name
             state_var = local_scope.find(@state_var_name).c_name
-            code << "rb_protect(#{cb_c_name}, Qnil, &#{state_var});"
+            code << "rb_protect(#{cb_c_name}, Qtrue, &#{state_var});"
             code.nl
             generate_rescue_else_ensure code, local_scope
           end
@@ -961,6 +961,51 @@ module Rubex
             err_state_var = local_scope.find(@error_var_name).c_name
             set_error_state_variable err_state_var, code, local_scope
             generate_rescue_blocks err_state_var, code, local_scope
+            generate_else_block code, local_scope
+            generate_ensure_block code, local_scope
+            generate_rb_jump_tag code, local_scope
+            code << "rb_set_errinfo(Qnil);\n"
+          end
+
+          def generate_rb_jump_tag code, local_scope
+            state_var = local_scope.find(@state_var_name).c_name
+            code << "if (#{state_var})"
+            code.block do
+              code << "rb_jump_tag(#{state_var});"
+              code.nl
+            end
+          end
+
+          def generate_ensure_block code, local_scope
+            code << "#{@ensure_block_goto}:"
+            @tails.select { |e| e.is_a?(Ensure) }[0].generate_code code, local_scope
+          end
+
+          # We use a goto statement to jump to the ensure block so that when a
+          # condition arises where no error is raised, the ensure statement will
+          # be executed, after which rb_jump_tag() will be called.
+          def generate_else_block code, local_scope
+            else_block = @tails.select { |t| t.is_a?(Else) }[0]
+            
+            code << "else"
+            code.block do
+              if else_block
+                state_var = local_scope.find(@state_var_name).c_name
+                code << "/* Exception not among those captured in raise */"
+                code.nl
+
+                code << "if (#{state_var})"
+                code.block do
+                  code << "goto #{@ensure_block_goto};"
+                  code.nl
+                end
+
+                code << "else"
+                code.block do
+                  else_block.generate_code code, local_scope
+                end 
+              end
+            end
           end
 
           def set_error_state_variable err_state_var, code, local_scope
