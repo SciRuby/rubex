@@ -329,6 +329,10 @@ module Rubex
         end
 
         def generate_code code
+          @scope.begin_block_callbacks.each do |cb|
+            cb.generate_code code
+          end
+
           @statements.each do |stat|
             stat.generate_code code
           end

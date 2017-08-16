@@ -59,13 +59,13 @@ module Rubex
           # TODO: Have type checks for knowing if correct literal assignment
           # is taking place. For example, a char should not be assigned a float.
           @type = Helpers.determine_dtype @type, ""
-          @c_name = extern ? @name : Rubex::VAR_PREFIX + @name
+          c_name = extern ? @name : Rubex::VAR_PREFIX + @name
           if @value
             @value.analyse_for_target_type(@type, local_scope)
             @value = Helpers.to_lhs_type(self, @value)
           end
 
-          local_scope.declare_var name: @name, c_name: @c_name, type: @type,
+          local_scope.declare_var name: @name, c_name: c_name, type: @type,
             value: @value, extern: extern
         end
 
@@ -79,12 +79,13 @@ module Rubex
         def generate_code code, local_scope
           if @value
             @value.generate_evaluation_code code, local_scope
-            code << "#{@c_name} = #{@value.c_code(local_scope)};"
+            lhs = local_scope.find(@name).c_name
+            code << "#{lhs} = #{@value.c_code(local_scope)};"
             code.nl
             @value.generate_disposal_code code
           end
         end
-      end
+      end # class VarDecl
 
       class CPtrDecl < Base
         attr_reader :entry, :type
@@ -933,42 +934,155 @@ module Rubex
 
           def analyse_statement local_scope
             local_scope.found_begin_block
-            block_name = Rubex::RUBEX_PREFIX + local_scope.klass_name + "_" +
-              local_scope.name + "_" + local_scope.begin_block_counter.to_s
+            declare_error_state_variable local_scope
+            declare_error_klass_variable local_scope
             @block_scope = Rubex::SymbolTable::Scope::BeginBlock.new(
-              block_name, local_scope)
-            @statements.each do |stmt|
-              stmt.analyse_statement @block_scope
-            end
-            @block_scope.upgrade_symbols_to_global
-            create_c_function_to_house_statements
-            analyse_tails
+              block_name(local_scope), local_scope)
+            create_c_function_to_house_statements local_scope.outer_scope
+            analyse_tails local_scope
+            @ensure_block_goto = @block_scope.name + "_ensure_pos:"
+          end
+
+          def generate_code code, local_scope
+            code.nl
+            code << "/* begin-rescue-else-ensure-end block begins: */"
+            code.nl
+            super
+            cb_c_name = local_scope.find(@begin_func.name).c_name
+            state_var = local_scope.find(@state_var_name).c_name
+            code << "rb_protect(#{cb_c_name}, Qnil, &#{state_var});"
+            code.nl
+            generate_rescue_else_ensure code, local_scope
           end
 
         private
 
-          def create_c_function_to_house_statements
-            
+          def generate_rescue_else_ensure code, local_scope
+            err_state_var = local_scope.find(@state_var_name).c_name
+            set_error_state_variable err_state_var, code, local_scope
+            generate_rescue_blocks code, local_scope
           end
 
-          def analyse_tails
-            
+          def set_error_state_variable err_state_var, code, local_scope
+            code << "#{err_state_var} = rb_errinfo();"
+            code.nl
+          end
+
+          def generate_rescue_blocks err_state_var, code, local_scope
+            if @tails[0].is_a?(Rescue)
+              generate_first_rescue_block err_state_var, code, local_scope
+              
+              @tails.grep(Rescue).each do |resc|
+
+              end
+            end   
+          end
+
+          def generate_first_rescue_block err_state_var, code, local_scope
+            @tails[0].error_klass.generate_evaluation_code code, local_scope
+            if_stmt = "if (RTEST(rb_funcall(#{err_state_var}, rb_intern(\"===\")"
+            if_stmt << ", 1, #{@tails[0].error_klass.c_code(local_scope)})"
+            code << if_stmt
+            code.block do
+              
+            end
+          end
+
+          def declare_error_state_variable local_scope
+            @state_var_name = "begin_block_" + local_scope.begin_block_counter.to_s + "_state"
+            local_scope.declare_var(
+              name: @state_var_name,
+              c_name: Rubex::VAR_PREFIX + @state_var_name,
+              type: DataType::Int.new
+            )
+          end
+
+          def declare_error_klass_variable local_scope
+            @error_var_name = "begin_block_" + local_scope.begin_block_counter.to_s + "_exec"
+            local_scope.declare_var(
+              name: @error_var_name,
+              c_name: Rubex::VAR_PREFIX + @error_var_name,
+              type: DataType::RubyObject.new
+            )
+          end
+
+          def block_name local_scope
+            local_scope.klass_name + "_" + local_scope.name + "_" +
+              local_scope.begin_block_counter.to_s
+          end
+
+          def create_c_function_to_house_statements scope
+            func_name = "begin_block_" + @block_scope.name
+            arg_list = Statement::ArgumentList.new([
+                AST::Expression::ArgDeclaration.new(
+                  { dtype:'object', variables: [{ident: 'dummy'}]})
+              ])
+            @begin_func = TopStatement::CFunctionDef.new(
+              'object', '', func_name, arg_list, @statements) 
+            arg_list.analyse_statement @block_scope
+            add_to_symbol_table @begin_func.name, arg_list, scope
+            @begin_func.analyse_statement @block_scope
+            @block_scope.upgrade_symbols_to_global
+            scope.add_begin_block_callback @begin_func
+          end
+
+          def add_to_symbol_table func_name, arg_list, scope
+            c_name = Rubex::C_FUNC_PREFIX + func_name
+            scope.add_c_method(
+              name: func_name, 
+              c_name: c_name, 
+              extern: false,
+              return_type: DataType::RubyObject.new,
+              arg_list: arg_list,
+              scope: @block_scope
+            )
+          end
+
+          def analyse_tails local_scope
+            @tails.each do |tail|
+              tail.analyse_statement local_scope
+            end
           end
         end # class Begin
 
         class Else < Base
-
+          def analyse_statement local_scope
+            @statements.each do |stmt|
+              stmt.analyse_statement local_scope
+            end
+          end
         end # class Else
 
         class Rescue < Base
+          attr_reader :error_klass
+
           def initialize error_klass, error_obj, statements, location
             super(statements, location)
             @error_klass, @error_obj = error_klass, error_obj
           end
+
+          def analyse_statement local_scope
+            @error_klass.analyse_statement local_scope
+            if !@error_klass.name.type.ruby_constant?
+              raise "Must pass an error class to raise. Location #{@location}."
+            end
+
+            @statements.each do |stmt|
+              stmt.analyse_statement local_scope
+            end
+          end
+
+          def generate_code code, local_scope
+
+          end
         end # class Rescue
 
         class Ensure < Base
-
+          def analyse_statement local_scope
+            @statements.each do |stmt|
+              stmt.analyse_statement local_scope
+            end
+          end
         end # class Ensure
       end # module BeginBlock
     end # module Statement

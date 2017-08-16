@@ -351,7 +351,10 @@ rule
 
   rescue_block:
     kRESCUE tIDENTIFIER terms compstmt
-      { result = Statement::BeginBlock::Rescue.new val[1], nil, val[3], location }
+      { 
+        err = Expression::Name.new(val[1]) 
+        result = Statement::BeginBlock::Rescue.new err, nil, val[3], location 
+      }
 
   opt_else_block:
       { result = nil }

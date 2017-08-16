@@ -38,6 +38,7 @@ module Rubex
         @klass_name = ""
         @temp_entries = []
         @free_temp_entries = []
+        @global_entries = []
         @temp_counter = 0
       end
 
@@ -190,12 +191,14 @@ module Rubex
       class Klass
         include Rubex::SymbolTable::Scope
         attr_accessor :include_files #TODO: this should probably not be here.
+        attr_accessor :begin_block_callbacks
 
         def initialize name, outer_scope
           super(outer_scope)
           @name = name
           @klass_name = @name
           @include_files = []
+          @begin_block_callbacks = []
         end
 
         def object_scope
@@ -205,6 +208,11 @@ module Rubex
           end
 
           temp
+        end
+
+        # Stores CFunctionDef nodes that represent begin block callbacks.
+        def add_begin_block_callback func
+          @begin_block_callbacks << func
         end
       end # class Klass
 
@@ -235,6 +243,8 @@ module Rubex
       end # class Local
 
       class BeginBlock
+        attr_reader :name, :outer_scope
+
         def initialize name, outer_scope
           @outer_scope = outer_scope
           @name = name
@@ -242,21 +252,63 @@ module Rubex
         end
 
         def upgrade_symbols_to_global
-          
+          @block_entries.uniq!
+          @block_entries.each do |entry|
+            entry.c_name = Rubex::GLOBAL_PREFIX + @name + entry.c_name
+            @outer_scope.global_entries << entry
+          end
+
+          remove_global_from_local_entries
         end
 
+        # IMPORTANT NOTE TO PROGRAMMER:
+        #
+        # A problem with the BeginBlock is that in the Ruby world, it must share
+        # scope with the method above and below it. However, when translating to
+        # C, the begin block must be put inside its own C function, which is then
+        # sent as a callback to rb_protect().
+        #
+        # As a result, it is necesary to 'upgrade' the local variables present
+        # inside the begin block to C global variables so that they can be shared
+        # between the callback C function encapsulating the begin block and the 
+        # ruby method that has a begin block defined inside it.
+        #
+        # Now, since variables must be shared, it is also necessary to share the
+        # scopes between these functions. Therefore, the BeginBlock scope uses
+        # method_missing to capture whatever methods calls it has received and 
+        # redirect those to @outer_scope, which is the scope of the method that
+        # contains the begin block. Whenever a method call to @outer_scope returns
+        # a SymbolTable::Entry object, that object is read to check if it is a
+        # variable. If yes, it is added into the @block_entries Array which
+        # stores the entries that need to be upgraded to C global variables.
+        #
+        # Now as a side effect of this behaviour, the various *_entries Arrays
+        # of @outer_scope get carried forward into this begin block callback.
+        # Therefore these variables get declared inside the begin block callback
+        # as well. So whenever one of these Arrays is called for this particular
+        # scope, we return an empty array so that nothing gets declared.
         def method_missing meth, *args, &block
-          # if meth.to_s.match(/declare_.*/) || meth.to_s.match(/add_.*/)
-          #   puts ">>>> #{args}"
+          return [] if meth == :var_entries
           ret = @outer_scope.send(meth, *args, &block)
           if ret.is_a?(Rubex::SymbolTable::Entry)
-            @block_entries << ret
-            return ret
+            if !ret.type.c_function? && !ret.type.ruby_method?
+              @block_entries << ret
+            end
           end
-          # elsif meth == :allocate_temp
-          #   c_name = @outer_scope.send(meth, *args, &block)
-          #   return c_name
-          # end
+
+          ret
+        end
+
+      private
+
+        def remove_global_from_local_entries
+          @outer_scope.arg_entries      -= @outer_scope.global_entries
+          @outer_scope.var_entries      -= @outer_scope.global_entries
+          @outer_scope.ruby_obj_entries -= @outer_scope.global_entries
+          @outer_scope.carray_entries   -= @outer_scope.global_entries
+          @outer_scope.sue_entries      -= @outer_scope.global_entries
+          @outer_scope.c_method_entries -= @outer_scope.global_entries
+          @outer_scope.type_entries     -= @outer_scope.global_entries
         end
       end # class BeginBlock
 

@@ -26,6 +26,8 @@ describe Rubex do
           require_relative "#{dir}/#{test_case}.so"
 
           expect(maths(3,5,"hello")).to be_within(0.001).of(300.763)
+          expect(stray_cos).to be_within(0.001).of(-0.210)
+          expect(A.new.ruby_cos).to be_within(0.001).of(-0.210)
         end
       end
     end

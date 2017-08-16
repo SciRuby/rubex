@@ -36,3 +36,13 @@ def maths(double a, double b, c)
 
   return pow(6.7, s.a)
 end
+
+def stray_cos
+  return cos(4.5)
+end
+
+class A
+  def ruby_cos
+    return cos(4.5)
+  end
+end

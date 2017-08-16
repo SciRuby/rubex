@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Rubex do
   test_case = "error_handling"
 
-  context "Case: #{test_case}", now: true do
+  context "Case: #{test_case}" do
     before do
       @path = path_str test_case
     end
@@ -14,7 +14,7 @@ describe Rubex do
       end
     end
 
-    context ".compile" do
+    context ".compile", now: true do
       it "compiles to valid C file" do
         t,c,e = Rubex::Compiler.compile(@path + '.rubex', test: true)
         puts c
