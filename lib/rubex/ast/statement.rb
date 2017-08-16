@@ -984,7 +984,7 @@ module Rubex
             if_stmt << ", 1, #{@tails[0].error_klass.c_code(local_scope)})"
             code << if_stmt
             code.block do
-              
+              @tails[0].generate_code code, local_scope
             end
           end
 
