@@ -950,7 +950,8 @@ module Rubex
             super
             cb_c_name = local_scope.find(@begin_func.name).c_name
             state_var = local_scope.find(@state_var_name).c_name
-            code << "rb_protect(#{cb_c_name}, Qtrue, &#{state_var});"
+            code << "#{state_var} = 0;\n"
+            code << "rb_protect(#{cb_c_name}, INT2NUM(0), &#{state_var});"
             code.nl
             generate_rescue_else_ensure code, local_scope
           end
