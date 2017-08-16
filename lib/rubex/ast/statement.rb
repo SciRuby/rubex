@@ -958,9 +958,9 @@ module Rubex
         private
 
           def generate_rescue_else_ensure code, local_scope
-            err_state_var = local_scope.find(@state_var_name).c_name
+            err_state_var = local_scope.find(@error_var_name).c_name
             set_error_state_variable err_state_var, code, local_scope
-            generate_rescue_blocks code, local_scope
+            generate_rescue_blocks err_state_var, code, local_scope
           end
 
           def set_error_state_variable err_state_var, code, local_scope
@@ -972,20 +972,29 @@ module Rubex
             if @tails[0].is_a?(Rescue)
               generate_first_rescue_block err_state_var, code, local_scope
               
-              @tails.grep(Rescue).each do |resc|
-
+              @tails[1..-1].grep(Rescue).each do |resc|
+                else_if_cond = rescue_condition err_state_var, resc, code, local_scope
+                code << "else if (#{else_if_cond})"
+                code.block do
+                  resc.generate_code code, local_scope
+                end
               end
             end   
           end
 
           def generate_first_rescue_block err_state_var, code, local_scope
-            @tails[0].error_klass.generate_evaluation_code code, local_scope
-            if_stmt = "if (RTEST(rb_funcall(#{err_state_var}, rb_intern(\"===\")"
-            if_stmt << ", 1, #{@tails[0].error_klass.c_code(local_scope)})"
-            code << if_stmt
+            code << "if (#{rescue_condition(err_state_var, @tails[0], code, local_scope)})"
             code.block do
               @tails[0].generate_code code, local_scope
             end
+          end
+
+          def rescue_condition err_state_var, resc, code, local_scope
+            resc.error_klass.generate_evaluation_code code, local_scope
+            cond = "RTEST(rb_funcall(#{err_state_var}, rb_intern(\"===\")"
+            cond << ", 1, #{resc.error_klass.c_code(local_scope)}))"
+
+            cond
           end
 
           def declare_error_state_variable local_scope
@@ -1051,6 +1060,12 @@ module Rubex
               stmt.analyse_statement local_scope
             end
           end
+
+          def generate_code code, local_scope
+            @statements.each do |stmt|
+              stmt.generate_code code, local_scope
+            end
+          end
         end # class Else
 
         class Rescue < Base
@@ -1073,7 +1088,9 @@ module Rubex
           end
 
           def generate_code code, local_scope
-
+            @statements.each do |stmt|
+              stmt.generate_code code, local_scope
+            end
           end
         end # class Rescue
 
@@ -1081,6 +1098,12 @@ module Rubex
           def analyse_statement local_scope
             @statements.each do |stmt|
               stmt.analyse_statement local_scope
+            end
+          end
+
+          def generate_code code, local_scope
+            @statements.each do |stmt|
+              stmt.generate_code code, local_scope
             end
           end
         end # class Ensure
