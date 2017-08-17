@@ -936,11 +936,11 @@ module Rubex
             local_scope.found_begin_block
             declare_error_state_variable local_scope
             declare_error_klass_variable local_scope
+            declare_unhandled_error_variable local_scope
             @block_scope = Rubex::SymbolTable::Scope::BeginBlock.new(
               block_name(local_scope), local_scope)
             create_c_function_to_house_statements local_scope.outer_scope
             analyse_tails local_scope
-            @ensure_block_goto = @block_scope.name + "_ensure_pos"
           end
 
           def generate_code code, local_scope
@@ -951,7 +951,7 @@ module Rubex
             cb_c_name = local_scope.find(@begin_func.name).c_name
             state_var = local_scope.find(@state_var_name).c_name
             code << "#{state_var} = 0;\n"
-            code << "rb_protect(#{cb_c_name}, INT2NUM(0), &#{state_var});"
+            code << "rb_protect(#{cb_c_name}, Qnil, &#{state_var});"
             code.nl
             generate_rescue_else_ensure code, local_scope
           end
@@ -961,16 +961,32 @@ module Rubex
           def generate_rescue_else_ensure code, local_scope
             err_state_var = local_scope.find(@error_var_name).c_name
             set_error_state_variable err_state_var, code, local_scope
+            set_unhandled_error_variable code, local_scope
             generate_rescue_blocks err_state_var, code, local_scope
             generate_else_block code, local_scope
             generate_ensure_block code, local_scope
-            generate_rb_jump_tag code, local_scope
+            generate_rb_jump_tag err_state_var, code, local_scope
             code << "rb_set_errinfo(Qnil);\n"
           end
 
-          def generate_rb_jump_tag code, local_scope
+          def declare_unhandled_error_variable local_scope
+            @unhandled_err_var_name = "begin_block_" + local_scope.begin_block_counter.to_s + "_unhandled_error"
+            local_scope.declare_var(
+              name: @unhandled_err_var_name,
+              c_name: Rubex::VAR_PREFIX + @unhandled_err_var_name,
+              type: DataType::Int.new
+            )            
+          end
+
+          def set_unhandled_error_variable code, local_scope
+            n = local_scope.find(@unhandled_err_var_name).c_name
+            code << "#{n} = 0;"
+            code.nl
+          end
+
+          def generate_rb_jump_tag err_state_var, code, local_scope
             state_var = local_scope.find(@state_var_name).c_name
-            code << "if (#{state_var})"
+            code << "if (#{local_scope.find(@unhandled_err_var_name).c_name})"
             code.block do
               code << "rb_jump_tag(#{state_var});"
               code.nl
@@ -978,8 +994,8 @@ module Rubex
           end
 
           def generate_ensure_block code, local_scope
-            code << "#{@ensure_block_goto}:"
-            @tails.select { |e| e.is_a?(Ensure) }[0].generate_code code, local_scope
+            ensure_block = @tails.select { |e| e.is_a?(Ensure) }[0]
+            ensure_block.generate_code(code, local_scope) unless ensure_block.nil?
           end
 
           # We use a goto statement to jump to the ensure block so that when a
@@ -990,17 +1006,17 @@ module Rubex
             
             code << "else"
             code.block do
-              if else_block
                 state_var = local_scope.find(@state_var_name).c_name
-                code << "/* Exception not among those captured in raise */"
+                code << "/* If exception not among those captured in raise */"
                 code.nl
 
                 code << "if (#{state_var})"
                 code.block do
-                  code << "goto #{@ensure_block_goto};"
+                  code << "#{local_scope.find(@unhandled_err_var_name).c_name} = 1;"
                   code.nl
                 end
 
+              if else_block
                 code << "else"
                 code.block do
                   else_block.generate_code code, local_scope
@@ -1037,7 +1053,7 @@ module Rubex
 
           def rescue_condition err_state_var, resc, code, local_scope
             resc.error_klass.generate_evaluation_code code, local_scope
-            cond = "RTEST(rb_funcall(#{err_state_var}, rb_intern(\"===\")"
+            cond = "RTEST(rb_funcall(#{err_state_var}, rb_intern(\"kind_of?\")"
             cond << ", 1, #{resc.error_klass.c_code(local_scope)}))"
 
             cond

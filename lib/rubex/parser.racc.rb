@@ -1994,7 +1994,7 @@ module_eval(<<'.,.,', 'parser.racc', 349)
 module_eval(<<'.,.,', 'parser.racc', 354)
   def _reduce_84(val, _values, result)
             err = Expression::Name.new(val[1]) 
-        result = Statement::BeginBlock::Rescue.new err, nil, val[3], location 
+        result = Statement::BeginBlock::Rescue.new err, nil, val[3] || [], location 
       
     result
   end
@@ -2009,7 +2009,7 @@ module_eval(<<'.,.,', 'parser.racc', 359)
 
 module_eval(<<'.,.,', 'parser.racc', 361)
   def _reduce_86(val, _values, result)
-     result = Statement::BeginBlock::Else.new val[2], location 
+     result = Statement::BeginBlock::Else.new val[2] || [], location 
     result
   end
 .,.,
@@ -2023,7 +2023,7 @@ module_eval(<<'.,.,', 'parser.racc', 364)
 
 module_eval(<<'.,.,', 'parser.racc', 366)
   def _reduce_88(val, _values, result)
-     result = Statement::BeginBlock::Ensure.new val[2], location 
+     result = Statement::BeginBlock::Ensure.new val[2] || [], location 
     result
   end
 .,.,

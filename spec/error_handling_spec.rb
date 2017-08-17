@@ -32,6 +32,8 @@ describe Rubex do
           expect(cls.error_test(2)).to eq(7)
           expect(cls.error_test(3)).to eq(8)
           expect(cls.error_test(4)).to eq(9)
+
+          expect {cls.test_uncaught_error}.to raise_error(ArgumentError)
         end
       end
     end

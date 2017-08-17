@@ -353,18 +353,18 @@ rule
     kRESCUE tIDENTIFIER terms compstmt
       { 
         err = Expression::Name.new(val[1]) 
-        result = Statement::BeginBlock::Rescue.new err, nil, val[3], location 
+        result = Statement::BeginBlock::Rescue.new err, nil, val[3] || [], location 
       }
 
   opt_else_block:
       { result = nil }
   | kELSE terms compstmt
-      { result = Statement::BeginBlock::Else.new val[2], location }
+      { result = Statement::BeginBlock::Else.new val[2] || [], location }
 
   opt_ensure_block:
       { result = nil }
   | kENSURE terms compstmt
-      { result = Statement::BeginBlock::Ensure.new val[2], location }
+      { result = Statement::BeginBlock::Ensure.new val[2] || [], location }
 
   forward_declaration:
     kFWD kSTRUCT tIDENTIFIER

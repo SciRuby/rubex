@@ -14,12 +14,18 @@ class Handler
     rescue SyntaxError
       j = 3
     else
-      print "hi!"
       j = 4
     ensure
       j += 5
     end
 
     return j
+  end
+
+  def test_uncaught_error
+    begin
+      raise ArgumentError
+    rescue SyntaxError
+    end
   end
 end
