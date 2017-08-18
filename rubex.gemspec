@@ -4,7 +4,9 @@ $:.unshift File.expand_path("../lib", __FILE__)
 require 'rubex/version.rb'
 
 Rubex::DESCRIPTION = <<MSG
-A Crystal-inspired language for writing Ruby extensions
+A Ruby-like language for writing Ruby C extensions.
+
+Rubex keeps you happy even when writing C extensions.
 MSG
 
 Gem::Specification.new do |spec|
