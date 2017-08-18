@@ -1,14 +1,12 @@
 # Rubex
 
-rubex - A Crystal-inspired language for writing Ruby extensions.
+rubex - A Ruby-like language for writing Ruby C extensions.
 
 # Overview
 
-Rubex is a language that makes writing CRuby C extensions as simple as writing Ruby itself. It is a super set of Ruby with some special syntax that is specially developed for making it easy for binding C libraries and easily porting your Ruby code to C for increased speed.
+Rubex is a language that makes writing CRuby C extensions as simple as writing Ruby. It does this by providing a syntax that is the perfect blend of the elegance of Ruby and the power of C. Rubex compiles to C and implicitly interfaces with the Ruby VM in a manner that is completely transparent to the programmer.
 
-It allows you to mix Ruby data types and C data types in the same program.
-
-Rubex is complimentary to Ruby. It DOES NOT aim to be a replacement for Ruby.
+Rubex keeps you happy even when writing C extensions.
 
 # Installation
 
@@ -34,41 +32,94 @@ ruby extconf.rb
 
 This will produce a `Makefile`. Run `make` to compile the generated C file and generate a `.so` shared object file that can be used in any Ruby script.
 
-# Sample Programs
+# Quick Start
 
-A sample Rubex program that computes the first `n` fibonnaci numbers and prints each of them would look like this:
+Consider this Ruby code for computing a fibonnaci series and returning it in an Array:
 ``` ruby
 class Fibonnaci
-  def compute(int n)
-    int i = 1, prev = 1, current = 1, temp
-
-    print 1, "\n"
-    print 1, "\n"
+  def compute(n)
+    i = 1, prev = 1, current = 1, temp
+    arr = []
 
     while i < n do
       temp = current
       current = current + prev
       prev = temp
-      print current, "\n"
-
+      arr.push(prev)
       i += 1
     end
+
+    arr
   end
 end
 ```
 
-Notice that the only difference between Rubex and this program is that we have defined the `compute` method to receive a number of type `int`. The variables `i`, `prev`, `current` and `temp` are defined as `int` using a syntax very similar to C.
+If you decide to port this to a C extension, the code will look like so:
+``` c
+#include <ruby.h>
+#include <stdint.h>
 
-You can now run the above program using a script like this:
-``` ruby
-require_relative 'fibo.so'
+void Init_a ();
+static VALUE Fibonnaci_compute (int argc,VALUE* argv,VALUE self);
 
-Fibonnaci.new.compute(10)
+static VALUE Fibonnaci_compute (int argc,VALUE* argv,VALUE self)
+{
+  int n,i,prev,current,temp;
+  VALUE arr;
+
+  if (argc < 1) {
+    rb_raise(rb_eArgError, "Need 1 args, not %d", argc);
+  }
+
+  n       = NUM2INT(argv[0]);
+  i       = 1;
+  prev    = 1;
+  current = 1;
+  arr     = rb_ary_new2(0);
+
+  while (i < n)
+  {
+    temp = current;
+    current = current + prev;
+    prev = temp;
+    rb_funcall(arr, rb_intern("push"), 1 ,INT2NUM(prev));
+    i = i + 1;
+  }
+
+  return arr;
+}
+
+void Init_a ()
+{
+  VALUE cls_Fibonnaci;
+
+  cls_Fibonnaci = rb_define_class("Fibonnaci", rb_cObject);
+
+  rb_define_method(cls_Fibonnaci ,"compute", Fibonnaci_compute, -1);
+}
 ```
 
-This will print the first 10 fibonnaci numbers on your terminal.
+However, if you decide to write a C extension using Rubex, the code will look like this!:
+``` ruby
+class Fibonnaci
+  def compute(int n)
+    int i = 1, prev = 1, current = 1, temp
+    arr = []
 
-Let us now dive deeper into the Rubex syntax.
+    while i < n do
+      temp = current
+      current = current + prev
+      prev = temp
+      arr.push(prev)
+      i += 1
+    end
+
+    return arr
+  end
+end
+```
+
+Above Rubex code will automatically compile into C code and will also implicitly interface with the Ruby VM without you having to remember any of the APIs!
 
 # Syntax
 
