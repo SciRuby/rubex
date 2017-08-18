@@ -5,24 +5,24 @@ Rubex is a language designed to keep you happy even when writing C extension.
 Read on for the full specifications of the Rubex language.
 
 # Table of Contents
-<!-- MarkdownTOC autolink="true" -->
+<!-- MarkdownTOC autolink="true" bracket="round"-->
 
-- [Comments][comments]
-- [The Basics][the-basics]
-  - [Ruby instance methods][ruby-instance-methods]
-  - [Ruby class methods][ruby-class-methods]
-  - [C functions][c-functions]
-- [Interfacing with external C libraries][interfacing-with-external-c-libraries]
-- [Literals][literals]
-- [Data Types][data-types]
-  - [C pointers][c-pointers]
-- [Statements and Expressions][statements-and-expressions]
-  - [Implicit type conversions][implicit-type-conversions]
-  - [The print statement][the-print-statement]
-  - [Conditional statement \(if-elsif-else\)][conditional-statement-if-elsif-else]
-  - [Loops][loops]
-- [Callbacks][callbacks]
-- [Interfacing with C structs][interfacing-with-c-structs]
+- [Comments](#comments)
+- [The Basics](#the-basics)
+  - [Ruby instance methods](#ruby-instance-methods)
+  - [Ruby class methods](#ruby-class-methods)
+  - [C functions](#c-functions)
+- [Interfacing with external C libraries](#interfacing-with-external-c-libraries)
+- [Literals](#literals)
+- [Data Types](#data-types)
+  - [C pointers](#c-pointers)
+- [Statements and Expressions](#statements-and-expressions)
+  - [Implicit type conversions](#implicit-type-conversions)
+  - [The print statement](#the-print-statement)
+  - [Conditional statement \(if-elsif-else\)](#conditional-statement-if-elsif-else)
+  - [Loops](#loops)
+- [Callbacks](#callbacks)
+- [Interfacing with C structs](#interfacing-with-c-structs)
 
 <!-- /MarkdownTOC -->
 

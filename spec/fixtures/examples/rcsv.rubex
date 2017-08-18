@@ -344,14 +344,14 @@ class Rcsv
       meta.last_entry = []
     end
     # print "HALLLOWWWW"
-    #begin
+    begin
       while true do
         csvstr = csvio.read
         # print csvstr
         if csvstr.nil? || csvstr.size == 0
           break
         end
-        print "AGAININNNNN"
+
         char* csv_string = csvstr
         csv_string_len = csvstr.size
 
@@ -371,14 +371,12 @@ class Rcsv
           end
         end
       end
-      print "NOOOOOO"
-    #ensure
 
-    #end
-    print "BRUUUU"
-    csv_fini(&cp, &end_of_field_callback, &end_of_line_callback, &meta)
-    free_all_memory(&cp, &meta)
-    print "UUUUBBBBB"
+      csv_fini(&cp, &end_of_field_callback, &end_of_line_callback, &meta)
+    ensure
+      free_all_memory(&cp, &meta)
+    end
+
     return meta.result
   end
 end

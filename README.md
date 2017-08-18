@@ -8,15 +8,15 @@ Rubex keeps you happy even when writing C extensions.
 
 # Table of Contents
 
-<!-- MarkdownTOC autolink="true"-->
+<!-- MarkdownTOC autolink="true" bracket="round"-->
 
-- [Quick Introduction][quick-introduction]
-- [Installation][installation]
-- [Usage][usage]
-- [Tutorial][tutorial]
-- [Syntax][syntax]
-- [Roadmap][roadmap]
-- [Acknowledgements][acknowledgements]
+- [Quick Introduction](#quick-introduction)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Tutorial](#tutorial)
+- [Syntax](#syntax)
+- [Roadmap](#roadmap)
+- [Acknowledgements](#acknowledgements)
 
 <!-- /MarkdownTOC -->
 
@@ -137,7 +137,7 @@ This will produce a `Makefile`. Run `make` to compile the generated C file and g
 
 # Tutorial
 
-Head over to [TUTORIAL](TUTORIAL.md) for a whirlwind tour of Rubex.
+Give yourself 5 min and go through the [TUTORIAL](TUTORIAL.md). Convert a part of your C extension to Rubex and see the jump in cleanliness and productivity for yourself.
 
 # Syntax
 
