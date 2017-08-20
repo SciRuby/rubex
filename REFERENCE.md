@@ -26,17 +26,70 @@ Read on for the full specifications of the Rubex language.
 
 <!-- /MarkdownTOC -->
 
-## Comments
+# Comments
 
-Similar to Ruby, comments in code can be made using `#`.
+Similar to Ruby, comments start with `#`.
 
 Example:
-``` ruby
+```
 # This is a comment.
 def funky(int j) # ...so is this.
   return j
 end
 ```
+
+# C data types
+
+## Primitive data types
+
+## C struct, union and enum
+
+## Pointers
+
+# Literals
+
+## Integer
+
+## Float
+
+## Character
+
+## String
+
+## Ruby Literals
+
+### Ruby Array
+
+### Ruby Hash
+
+### Ruby String
+
+# C Functions and Ruby Methods
+
+# Loops
+
+## The while loop
+
+## The for loop
+
+# Conditionals
+
+# Interfacing C libraries with lib
+
+## Basic Usage
+
+## Linking Libraries
+
+## Ready-to-use C functions
+
+# Exception Handling
+
+# 'Attach' Classes
+
+# Conversions between Ruby and C data
+
+# Limitations
+
 
 ## The Basics
 
@@ -208,7 +261,7 @@ The `print` statement makes it easy to print something to the console using C's 
 def print_demo(a, b)
   int i = 5
 
-  print "Obj a is : ", a, ".", " b is: ", b, "... and i is: ", i 
+  print "Obj a is : ", a, ".", " b is: ", b, "... and i is: ", i
 end
 ```
 
