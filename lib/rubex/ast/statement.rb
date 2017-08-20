@@ -101,14 +101,14 @@ module Rubex
         end
 
         def analyse_statement local_scope, extern: false
-          @c_name = extern ? @name : Rubex::POINTER_PREFIX + @name
+          c_name = extern ? @name : Rubex::POINTER_PREFIX + @name
           
           if @type.is_a?(Hash) # function ptr
             ident = @type[:ident]
             ident[:arg_list].analyse_statement(local_scope, inside_func_ptr: true)
             @type = DataType::CFunction.new(
               @name,
-              @c_name,
+              c_name,
               ident[:arg_list],
               Helpers.determine_dtype(@type[:dtype], ident[:return_ptr_level]),
               nil
@@ -120,7 +120,7 @@ module Rubex
             @value = Helpers.to_lhs_type(self, @value)
           end
 
-          @entry = local_scope.declare_var name: @name, c_name: @c_name,
+          @entry = local_scope.declare_var name: @name, c_name: c_name,
             type: @type, value: @value, extern: extern
         end
 
@@ -137,7 +137,7 @@ module Rubex
         def generate_code code, local_scope
           if @value
             @value.generate_evaluation_code code, local_scope
-            code << "#{@c_name} = #{@value.c_code(local_scope)};"
+            code << "#{local_scope.find(@name).c_name} = #{@value.c_code(local_scope)};"
             code.nl
             @value.generate_disposal_code code
           end
@@ -1041,6 +1041,8 @@ module Rubex
                   resc.generate_code code, local_scope
                 end
               end
+            else # no rescue blocks present
+              code << "if (0) {}\n"
             end   
           end
 
@@ -1078,12 +1080,12 @@ module Rubex
           end
 
           def block_name local_scope
-            local_scope.klass_name + "_" + local_scope.name + "_" +
+            "begin_block_" + local_scope.klass_name + "_" + local_scope.name + "_" +
               local_scope.begin_block_counter.to_s
           end
 
           def create_c_function_to_house_statements scope
-            func_name = "begin_block_" + @block_scope.name
+            func_name = @block_scope.name
             arg_list = Statement::ArgumentList.new([
                 AST::Expression::ArgDeclaration.new(
                   { dtype:'object', variables: [{ident: 'dummy'}]})

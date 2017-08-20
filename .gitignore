@@ -51,3 +51,4 @@ Gemfile.lock
 
 lib/rubex/parser.output
 lib/rubex/parser.tab.rb
+/.idea/

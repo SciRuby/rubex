@@ -28,4 +28,27 @@ class Handler
     rescue SyntaxError
     end
   end
+
+  def test_without_rescue
+    int i = 1
+    begin
+      raise ArgumentError
+    ensure
+      return i
+    end
+  end
+
+  def test_decl_inside_begin
+    int i
+    string = "hello world"
+
+    begin
+      char* s = string
+      raise(ArgumentError) if s[0] == 'h'
+    rescue ArgumentError
+      i = 44
+    end
+
+    return i
+  end
 end

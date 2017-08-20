@@ -596,9 +596,7 @@ module Rubex
       end
     end
 
-    class RubyConstant
-      include Helpers
-
+    class RubyConstant < RubyObject
       attr_reader :name, :type
 
       def initialize name
@@ -612,8 +610,6 @@ module Rubex
     end
 
     class RubyClass < RubyConstant
-      include Helpers
-
       attr_reader :name, :c_name, :scope, :ancestor
 
       def initialize name, c_name, scope, ancestor

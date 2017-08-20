@@ -108,11 +108,6 @@ class Rcsv
     rcsv_metadata meta = meta_p[0]
     char row_conversion = 0
     object parsed_field
-    # s = rb_str_new(field_str, field_size)
-    # print "HALLOW", s
-
-    # No need to parse anything until the end of the line if skip_current_row is set */
-    # return if meta.skip_current_row
 
     # Skip the row if its position is less than specifed offset
     if (meta.current_row < meta.offset_rows)

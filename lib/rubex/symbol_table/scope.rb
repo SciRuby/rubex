@@ -291,8 +291,11 @@ module Rubex
           return [] if meth == :var_entries
           ret = @outer_scope.send(meth, *args, &block)
           if ret.is_a?(Rubex::SymbolTable::Entry)
-            if !ret.type.c_function? && !ret.type.ruby_method?
-              @block_entries << ret
+            if !ret.extern?
+              if !ret.type.c_function? && !ret.type.ruby_method? &&
+                 !ret.type.ruby_class?
+                @block_entries << ret
+              end
             end
           end
 
