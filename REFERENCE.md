@@ -42,9 +42,39 @@ end
 
 ## Primitive data types
 
+Following are the Rubex keywords for data types and their corresponding C types and description.
+
+|rubex keyword         | C type         | Description  |
+|:---                  |:---            |:---          |
+|char                  |char            |Character              |
+|i8                    |int8_t          |8 bit integer |
+|i16                   |int16_t         |16 bit integer              |
+|i32                   |int32_t         |32 bit integer              |
+|i64                   |int64_t         |64 bit integer              |
+|u8                    |uint8_t         |8 bit  unsigned integer               |
+|u16                   |uint16_t        |16 bit unsigned integer              |
+|u32                   |uint32_t        |32 bit unsigned integer              |
+|u64                   |uint64_t        |64 bit unsigned integer              |
+|int                   |int             | Integer >= 16 bits. |
+|unsigned int          |unsigned int    | Unsigned integer >= 16 bits. |
+|long int              |long int        | Integer >= 32 bits.|
+|unsigned long int     |unsigned long int|Unsigned Integer >= 32 bits. |
+|long long int         |long long int    |Integer >= 64 bits.|
+|unsigned long long int|unsigned long long int|Unsigned Integer >= 64 bits.|
+|f32/float             |float            |32 bit floating point              |
+|f64/double            |double           |64 bit floating point              |
+|long f64/long double  |long double      |Long double >= 96 bits. |
+|object                |VALUE            |Ruby object |
+
 ## C struct, union and enum
 
 ## Pointers
+
+You can define pointers and pass them to functions just like you do in C. Pointers can be specified using the `*` operator and addresses of variables can be accessed using the `&` (address-of) operator.
+
+Keep in mind that Rubex does not support the `*` operator for dereferencing a pointer. You will need to use the `[]` operator and access the value of pointer with `[0]` (since accessing the value of a pointer is analogous to accessing the value of an array in C).
+
+For example:
 
 # Literals
 
@@ -68,11 +98,61 @@ end
 
 # Loops
 
+Loops in Rubex are directly translated to C loops, thus giving massive gains in speed by just porting Ruby loops to Rubex. Rubex supports two kinds of loops: `while` loops and `for` loops.
+
 ## The while loop
+
+The `while` loop in Rubex looks exactly like that in Ruby. Keep in mind that using C types for the conditional will save you the additional burden of a Ruby method call (which is takes non-trivial time for a long running loop).
+``` ruby
+def while_loop
+  int i = 0, j
+
+  while i < 100 do
+    j += 1
+    i += 1
+  end
+
+  return j
+end
+```
 
 ## The for loop
 
+For loops look slightly different in Rubex than they do in Ruby. This has mainly been done to accommodate for the fact that Ruby for loops normally work with Ranges, but since that would make the code slow, Rubex `for` loops are directly translated into C `for` loops and thus follow a slightly different syntax. For example:
+``` ruby
+def for_loop_demo
+  int i, j = 0
+
+  for 0 <= i < 100 do
+    j += 1
+  end
+
+  return j
+end
+```
+Above code will initialize `i` to `0` and iterate through it until it does not satisfy the second conditional. The inequalities must belong to the set `{<|<=}` OR `{>|>=}`.
+
 # Conditionals
+
+Similar to Ruby, conditionals in Rubex can be written as follows:
+``` ruby
+def foo(a)
+  int i = 3
+
+  return true if a == i
+  return false
+end
+```
+
+In the above case, since `a` is a Ruby object and `i` is an `int`, `i` will be implicitly converted into a Ruby `Integer` and the comparison with the `==` operator will take place as though the two variables are Ruby objects (using `.send(:==)`).
+
+## Important Note
+
+If the expression in an `if` statements consists only of C variables, the values `0` and `NULL` (null pointer) are treated as _falsey_ and everything else is _truthy_ (exactly like C).
+
+However, in case you intermingle Ruby and C types, Rubex will use the convention used in Ruby, i.e. `nil` (NilClass) and `false` (FalseClass) are _falsey_ whereas everything else (including zero, i.e. a Ruby `Integer` with value `0`) is _truthy_.
+
+`0` and `NULL` will NOT be treated as _falsey_ if the expression type evaluates to a Ruby object.
 
 # Interfacing C libraries with lib
 
@@ -86,10 +166,27 @@ end
 
 # 'Attach' Classes
 
+## The attach keyword
+
+## The data~ variable
+
+## Special C functions in attach classes
+
+### deallocate
+
+### allocate
+
+### memcount
+
+### get_struct
+
 # Conversions between Ruby and C data
 
-# Limitations
+# C callbacks
 
+# Inline C
+
+# Limitations
 
 ## The Basics
 
@@ -197,33 +294,9 @@ end
 
 Rubex supports most primitive C data types out of the box. Following are the ones supported and their respective Rubex keywords:
 
-|rubex keyword         | C type | Description  |
-|:---                  |:---    |:---          |
-|char                  |char        |Character              |
-|i8                    |int8_t        |8 bit integer |
-|i16                   |int16_t        |16 bit integer              |
-|i32                   |int32_t        |32 bit integer              |
-|i64                   |int64_t        |64 bit integer              |
-|u8                    |uint8_t        |8 bit  unsigned integer               |
-|u16                   |uint16_t        |16 bit unsigned integer              |
-|u32                   |uint32_t        |32 bit unsigned integer              |
-|u64                   |uint64_t        |64 bit unsigned integer              |
-|int                   |int  | Integer >= 16 bits. |
-|unsigned int          |unsigned int| Unsigned integer >= 16 bits. |
-|long int              |long int| Integer >= 32 bits.|
-|unsigned long int     |unsigned long int|Unsigned Integer >= 32 bits. |
-|long long int         |long long int|Integer >= 64 bits.|
-|unsigned long long int|unsigned long long int|Unsigned Integer >= 64 bits.|
-|f32/float             |float        |32 bit floating point              |
-|f64/double            |double        |64 bit floating point              |
-|long f64/long double  |long double|Long double >= 96 bits. |
-|object                |VALUE        |Ruby object |
 
 ### C pointers
 
-You can define pointers and pass them to functions just like you do in C. Pointers can be specified using the `*` operator and addresses of variables can be accessed using the `&` (address-of) operator.
-
-Keep in mind that Rubex does not support the `*` operator for deferencing a pointer. You will need to use the `[]` operator and access the value of pointer with `[0]` (since accessing the value of a pointer is analogous to accessing the value of an array in C).
 
 Here's an example of declaring an array and passing its address to a C function from a Ruby method:
 ``` ruby
@@ -266,51 +339,6 @@ end
 ```
 
 ### Conditional statement (if-elsif-else)
-
-Similar to Ruby, conditionals in Rubex can be written as follows:
-``` ruby
-def foo(a)
-  int i = 3
-
-  return true if a == i
-  return false
-end
-```
-
-In the above case, since `a` is a Ruby object and `i` is an `int`, `i` will be implicitly converted into a Ruby `Integer` and the comparison with the `==` operator will take place as though the two variables are Ruby objects (`.send(:==)`).
-
-If the expression in an `if` statements consists only of C variables, the values `0` and `NULL` (null pointer) are treated as 'falsey' and everything else is truthy (exactly like C).
-
-However, in case you intermingle Ruby and C types, Rubex will use the convention used in Ruby, i.e. `nil` (NilClass) and `false` (FalseClass) are 'falsey' whereas everything else (including zero) is 'truthy'. `0` and `NULL` will NOT be treated as 'falsey' in this scenario.
-
-### Loops
-
-Rubex supports `while` and `for` loops that look exactly like their Ruby counterparts, but are internally translated to C for speed.
-
-A `while` loop can be defined like so:
-``` ruby
-def while_loop_demo
-  int i = 0
-
-  while i < 10 do
-    print i, "\n"
-    i += 1
-  end
-end
-```
-
-Rubex has its own syntax for `for` loops that is slightly different than the Ruby syntax. These loops are translated directly to efficient C code:
-``` ruby
-def for_loop_demo
-  int i, j
-  j = 1
-  for 0 < i <= 10 do
-    j += i
-  end
-
-  return j
-end
-```
 
 ## Callbacks
 

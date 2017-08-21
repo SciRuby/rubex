@@ -107,7 +107,7 @@ class Fibonnaci
 end
 ```
 
-Above Rubex code will automatically compile into C code and will also implicitly interface with the Ruby VM without you having to remember any of the APIs!
+Notice the only difference between the above Rubex code and Ruby is the specification of explicit `int` types for the variables. Above Rubex code will automatically compile into C code and will also implicitly interface with the Ruby VM without you having to remember any of the APIs.
 
 Rubex also takes care of the initial setup and compilation of the C files, so all you need to do is execute a bunch of commands and your extension is up and running!
 

@@ -90,7 +90,55 @@ These functions can be used in a similar manner to our hello_world program above
 
 Read what you can do more with `lib` in the [REFERENCE](REFERENCE.md).
 
+# C Functions
+
 # 'Attach' Classes
+
+Rubex introduces a special syntax that allows you to directly interface Ruby with C structs using some special language constructs, called 'attach' classes. These are normal Ruby classes and can be instantiated and used just like any other Ruby class, but with one caveat - they are permanently attached to a C struct and implicitly interface this struct with the Ruby VM.
+
+Let me demonstrate with an example:
+``` ruby
+struct mp3info
+  int id
+  char* title
+end
+
+class Music attach mp3info
+  def initialize(id, title)
+    mp3info* mp3 = data~.mp3info
+
+    mp3[0].id = id
+    mp3[0].title = title
+  end
+
+  def id
+    return data~.id
+  end
+
+  def title
+    return data~.title
+  end
+
+  cfunc void deallocate
+    xfree(data~.mp3info[0].title)
+    xfree(data~.mp3info)
+  end
+end
+```
+
+The above example has some notable Rubex constructs:
+
+### The attach keyword
+
+The 'attach' keyword is a special keyword that is used for associating a particular struct with a Ruby class. Once this keyword is used, the Rubex compiler will take care of allocation, deallocation and fetching of the struct (more about this in the [REFERENCE](REFERENCE.md)). The user only needs to concern themselves with 
+
+In the above case, `attach` creates tells the class `Music` that it will be associated with a C struct of type `mp3info`.
+
+### The data~ variable
+
+The `data~` variable is a special variable keyword that available _only_ inside attach classes. It makes the
+
+### The deallocate C function
 
 # Error Handling
 
@@ -122,8 +170,8 @@ Calling `rake compile` will generate `hello_world.c` and `extconf.rb` in your `e
 
 ## Interfacing C structs
 
-[This example]() is a program that interfaces with a C struct and creates getters and setters for C struct elements through a Ruby interface.
+[This example](https://github.com/v0dro/rubex/tree/master/examples/c_struct_interface) is a program that interfaces with a C struct and creates reader and writer methods for C struct elements through a Ruby interface.
 
 ## Fully Functional Ruby Gem
 
-See the [rcsv example]() for a fully functional rubygem that wraps around the [libcsv]() C library for parsing CSV files.
+See the [rcsv example](https://github.com/v0dro/rubex/tree/master/examples/rcsv%20wrapper/rcsv) for a fully functional rubygem that wraps around the [libcsv](https://sourceforge.net/projects/libcsv/) C library for parsing CSV files.
