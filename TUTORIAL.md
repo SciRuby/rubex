@@ -4,7 +4,18 @@ Here's a quick tutorial of Rubex to get you up and started. Once you're through,
 
 <!-- MarkdownTOC autolink="true" bracket="round" -->
 
-- [A simple Ruby method](#a-simple-ruby-method)
+- [Basics of Rubex](#basics-of-rubex)
+  - [Rubex Hello World](#rubex-hello-world)
+  - [String#blank?](#stringblank)
+- [Calling C Functions](#calling-c-functions)
+- [C Functions](#c-functions)
+- ['Attach' Classes](#attach-classes)
+- [Error Handling](#error-handling)
+- [Handling Strings](#handling-strings)
+- [Using Rubex Inside A Gem](#using-rubex-inside-a-gem)
+- [Examples](#examples)
+  - [Interfacing C structs](#interfacing-c-structs)
+  - [Fully Functional Ruby Gem](#fully-functional-ruby-gem)
 
 <!-- /MarkdownTOC -->
 
@@ -42,7 +53,7 @@ require_relative 'hello_world.so'
 hello_world
 ```
 
-## blank?
+## String#blank?
 
 Sam Saffron's famous [`fast_blank`](https://github.com/SamSaffron/fast_blank) gem is something that most Rubyists probably use a lot of times in their daily life. It is also a classic example of porting a Ruby gem to a C extension for reasons of speed.
 
@@ -106,23 +117,22 @@ end
 
 class Music attach mp3info
   def initialize(id, title)
-    mp3info* mp3 = data~.mp3info
+    mp3info* mp3 = data$.mp3info
 
     mp3[0].id = id
     mp3[0].title = title
   end
 
   def id
-    return data~.id
+    return data$.id
   end
 
   def title
-    return data~.title
+    return data$.title
   end
 
   cfunc void deallocate
-    xfree(data~.mp3info[0].title)
-    xfree(data~.mp3info)
+    xfree(data$.mp3info)
   end
 end
 ```
@@ -144,15 +154,15 @@ The 'attach' keyword is a special keyword that is used for associating a particu
 
 In the above case, `attach` creates tells the class `Music` that it will be associated with a C struct of type `mp3info`.
 
-### The data~ variable
+### The data$ variable
 
-The `data~` variable is a special variable keyword that is available _only_ inside attach classes. The `data~` variable allows access to the `mp3info` struct. In order to do this, it makes available a **pointer** to the struct that is of the same name as the struct (i.e. `mp3info` for `struct mp3info` or `foo` for `struct foo`). This pointer to the struct can then be used for reading or writing elements in the struct. Keep in mind that `data~.mp3info` is in fact a pointer to `struct mp3info` and therefore we use `[0]` to access its elements since Rubex does not have dereferencing operator.
+The `data$` variable is a special variable keyword that is available _only_ inside attach classes. The `data$` variable allows access to the `mp3info` struct. In order to do this, it makes available a **pointer** to the struct that is of the same name as the struct (i.e. `mp3info` for `struct mp3info` or `foo` for `struct foo`). This pointer to the struct can then be used for reading or writing elements in the struct. Keep in mind that `data$.mp3info` is in fact a pointer to `struct mp3info` and therefore we use `[0]` to access its elements since Rubex does not have dereferencing operator.
 
 ### The deallocate C function
 
 Once you are done using an instance of your newly created attach class, Ruby's GC will want to clean up the memory used by it so that it can be used by other objects. In order to not have any memory leaks later, it is important to tell the GC that the memory that was used up by the `mp3info` struct needs to be freed. This freeing up of memory should be done inside the `deallocate` function.
 
-The `xfree` function, which is the standard memory freeing function provided by the Ruby interpreter is used for this purpose. Take note that all pointers within the struct must be freed.
+The `xfree` function, which is the standard memory freeing function provided by the Ruby interpreter is used for this purpose.
 
 # Error Handling
 

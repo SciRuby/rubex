@@ -8,21 +8,42 @@ Read on for the full specifications of the Rubex language.
 <!-- MarkdownTOC autolink="true" bracket="round"-->
 
 - [Comments](#comments)
-- [The Basics](#the-basics)
-  - [Ruby instance methods](#ruby-instance-methods)
-  - [Ruby class methods](#ruby-class-methods)
-  - [C functions](#c-functions)
-- [Interfacing with external C libraries](#interfacing-with-external-c-libraries)
+- [C data types](#c-data-types)
+  - [Primitive data types](#primitive-data-types)
+  - [C struct, union and enum](#c-struct-union-and-enum)
+  - [Pointers](#pointers)
 - [Literals](#literals)
-- [Data Types](#data-types)
-  - [C pointers](#c-pointers)
-- [Statements and Expressions](#statements-and-expressions)
-  - [Implicit type conversions](#implicit-type-conversions)
-  - [The print statement](#the-print-statement)
-  - [Conditional statement \(if-elsif-else\)](#conditional-statement-if-elsif-else)
-  - [Loops](#loops)
-- [Callbacks](#callbacks)
-- [Interfacing with C structs](#interfacing-with-c-structs)
+  - [Integer](#integer)
+  - [Float](#float)
+  - [Character](#character)
+  - [String](#string)
+  - [Ruby Literals](#ruby-literals)
+- [C Functions and Ruby Methods](#c-functions-and-ruby-methods)
+- [Loops](#loops)
+  - [The while loop](#the-while-loop)
+  - [The for loop](#the-for-loop)
+- [Conditionals](#conditionals)
+  - [Important Note](#important-note)
+- [Interfacing C libraries with lib](#interfacing-c-libraries-with-lib)
+  - [Basic Usage](#basic-usage)
+  - [Linking Libraries](#linking-libraries)
+  - [Ready-to-use C functions](#ready-to-use-c-functions)
+- [Exception Handling](#exception-handling)
+- ['Attach' Classes](#attach-classes)
+  - [The attach keyword](#the-attach-keyword)
+  - [The data~ variable](#the-data%7E-variable)
+  - [Special C functions in attach classes](#special-c-functions-in-attach-classes)
+- [Conversions between Ruby and C data](#conversions-between-ruby-and-c-data)
+- [C callbacks](#c-callbacks)
+- [Inline C](#inline-c)
+- [Limitations](#limitations)
+  - [The Basics](#the-basics)
+  - [Interfacing with external C libraries](#interfacing-with-external-c-libraries)
+  - [Literals](#literals-1)
+  - [Data Types](#data-types)
+  - [Statements and Expressions](#statements-and-expressions)
+  - [Callbacks](#callbacks)
+  - [Interfacing with C structs](#interfacing-with-c-structs)
 
 <!-- /MarkdownTOC -->
 
@@ -67,6 +88,8 @@ Following are the Rubex keywords for data types and their corresponding C types 
 |object                |VALUE            |Ruby object |
 
 ## C struct, union and enum
+
+### Forward declarations
 
 ## Pointers
 

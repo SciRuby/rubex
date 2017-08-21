@@ -3,7 +3,7 @@ token
   kDEF kEND kRETURN kPRINT  kIF    kELSIF  kELSE   kTHEN  kSTATIC_ARRAY kFOR 
   kDOT_EACH kDO     kTRUE   kFALSE kNIL    kSTRUCT kUNION kALIAS        kLIB 
   kCFUNC    kSELF   kNULL   kFWD   kATTACH kRAISE kBREAK kBLOCK_GIVEN  kYIELD
-  kBEGIN    kRESCUE kENSURE kWHILE  kCLASS
+  kBEGIN    kRESCUE kENSURE kWHILE  kCLASS kDATA_VAR
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT  kDTYPE_CHAR   kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8    kDTYPE_UI16   kDTYPE_UI32 kDTYPE_UI64
@@ -637,6 +637,11 @@ rule
         result = Expression::SizeOf.new(val[2], val[3])
       }
   | kBLOCK_GIVEN { result = Expression::BlockGiven.new }
+  | kDATA_VAR 
+      { 
+        result = Expression::ElementRef.new('data',
+          Expression::Literal::Int.new('0'))
+      }
 
   command_call:
     method_or_attr command_opt_args

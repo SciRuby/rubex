@@ -125,6 +125,7 @@ rules
 
   # Method hacks
 
+  /data\$/                { [:kDATA_VAR, text] }
   /#{DOT}#{EACH}/ { [:kDOT_EACH, text] }
 
   # Data Types

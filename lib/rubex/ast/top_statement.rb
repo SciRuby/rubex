@@ -788,7 +788,11 @@ module Rubex
           value.typecast = Expression::Typecast.new(@data_struct.name, "*")
           data_var = Statement::CPtrDecl.new(@data_struct.name, 'data', value, 
             "*", @location)
+          xfree = Expression::CommandCall.new(nil, 'xfree', 
+            [Expression::Name.new('data')])
+          data_xfree = Statement::Expression.new xfree, @location
           func.statements.unshift data_var
+          func.statements.push data_xfree
         end
 
         def user_defined_dealloc?

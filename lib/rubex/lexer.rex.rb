@@ -175,6 +175,8 @@ class Rubex::Lexer
             action { [:kATTACH, text] }
           when text = ss.scan(/#{BLOCK_GIVEN}/) then
             action { [:kBLOCK_GIVEN, text] }
+          when text = ss.scan(/data\$/) then
+            action { [:kDATA_VAR, text] }
           when text = ss.scan(/#{DOT}#{EACH}/) then
             action { [:kDOT_EACH, text] }
           when text = ss.scan(/unsigned long long int/) then
