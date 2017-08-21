@@ -98,6 +98,7 @@ Rubex introduces a special syntax that allows you to directly interface Ruby wit
 
 Let me demonstrate with an example:
 ``` ruby
+# file: structs.rubex
 struct mp3info
   int id
   char* title
@@ -125,26 +126,59 @@ class Music attach mp3info
   end
 end
 ```
+This program can be used in a Ruby script like this:
+``` ruby
+require 'structs.so'
+
+id = 1
+title = "CAFO"
+m = Music.new id, title
+puts m.id, m.title
+```
 
 The above example has some notable Rubex constructs:
 
 ### The attach keyword
 
-The 'attach' keyword is a special keyword that is used for associating a particular struct with a Ruby class. Once this keyword is used, the Rubex compiler will take care of allocation, deallocation and fetching of the struct (more about this in the [REFERENCE](REFERENCE.md)). The user only needs to concern themselves with 
+The 'attach' keyword is a special keyword that is used for associating a particular struct with a Ruby class. Once this keyword is used, the Rubex compiler will take care of allocation, deallocation and fetching of the struct (more about this in the [REFERENCE](REFERENCE.md)). The user only needs to concern themselves with
 
 In the above case, `attach` creates tells the class `Music` that it will be associated with a C struct of type `mp3info`.
 
 ### The data~ variable
 
-The `data~` variable is a special variable keyword that available _only_ inside attach classes. It makes the
+The `data~` variable is a special variable keyword that is available _only_ inside attach classes. The `data~` variable allows access to the `mp3info` struct. In order to do this, it makes available a **pointer** to the struct that is of the same name as the struct (i.e. `mp3info` for `struct mp3info` or `foo` for `struct foo`). This pointer to the struct can then be used for reading or writing elements in the struct. Keep in mind that `data~.mp3info` is in fact a pointer to `struct mp3info` and therefore we use `[0]` to access its elements since Rubex does not have dereferencing operator.
 
 ### The deallocate C function
 
+Once you are done using an instance of your newly created attach class, Ruby's GC will want to clean up the memory used by it so that it can be used by other objects. In order to not have any memory leaks later, it is important to tell the GC that the memory that was used up by the `mp3info` struct needs to be freed. This freeing up of memory should be done inside the `deallocate` function.
+
+The `xfree` function, which is the standard memory freeing function provided by the Ruby interpreter is used for this purpose. Take note that all pointers within the struct must be freed.
+
 # Error Handling
+
+Rubex greatly simplifies error handling for C extensions. It now gives you the full power of a Ruby `begin-rescue-else-ensure` block. You can also define variables inside these blocks!
+
+Here's an example:
+``` ruby
+def error_example(int n)
+  begin
+    raise ArgumentError if n == 1
+    raise SyntaxError if n == 2
+  rescue ArgumentError
+    n += 10
+  rescue SyntaxError
+    n += 20
+  ensure
+    n += 5
+  end
+
+  return n
+end
+```
 
 # Handling Strings
 
-For purposes of optimization and compatibility with C, Rubex makes certain assumptions
+For purposes of optimization and compatibility with C, Rubex makes certain assumptions about strings. When you assign a Ruby object to a `char*`, Rubex will automatically pass a pointer to the C string contained inside the object to the `char*`, thereby increasing the efficiency of your program dramatically. The resulting string is a regular `\0` delimited C string.
 
 # Using Rubex Inside A Gem
 
