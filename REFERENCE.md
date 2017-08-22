@@ -33,6 +33,11 @@ Read on for the full specifications of the Rubex language.
 - [Interfacing C libraries with lib](#interfacing-c-libraries-with-lib)
   - [Basic Usage](#basic-usage)
   - [Supported declarations](#supported-declarations)
+    - [Functions](#functions)
+    - [Variables](#variables)
+    - [Macros](#macros)
+    - [Types](#types)
+    - [Typedefs](#typedefs)
   - [Linking Libraries](#linking-libraries)
   - [Ready-to-use C functions](#ready-to-use-c-functions)
     - [Filename: "rubex/ruby"](#filename-rubexruby)
@@ -52,7 +57,6 @@ Read on for the full specifications of the Rubex language.
 - [Conversions between Ruby and C data](#conversions-between-ruby-and-c-data)
 - [C callbacks](#c-callbacks)
 - [Inline C](#inline-c)
-- [Limitations](#limitations)
 - [Differences from C](#differences-from-c)
 
 <!-- /MarkdownTOC -->
@@ -99,7 +103,36 @@ Following are the Rubex keywords for data types and their corresponding C types 
 
 ## C struct, union and enum
 
+C structs can defined using the `struct` keyword. For example:
+``` ruby
+struct node
+  int a
+end
+
+def foo
+  node a
+  a.a = 3
+
+  return a.a
+end
+```
+
+Structs can either be at the global, class or method scope. Their accessibility will differ according to the scope they are defined in. Take note that once you define a `struct node`, the only way to define a variable of type `struct node` is just use `node` for the variable definition, not `struct node`. So `node a` will work but `struct node a` will not work.
+
 ### Forward declarations
+
+In case your struct has a member of a type whose definition has to be after your struct, you can use a forward declaration with the `fwd` keyword.
+``` ruby
+fwd struct other_node
+struct node
+  i32 a, b
+  other_node *hello
+end
+
+struct other_node
+  i64 a, b
+end
+```
 
 ## Pointers
 
@@ -280,6 +313,54 @@ These can then be directly called from the Rubex program like any other function
 
 ## Supported declarations
 
+Following statements can be used inside the `lib` directive for telling rubex about functions/variables to be used from an external C library:
+
+### Functions
+
+Specify the return type and arguments of the functions that you will be using in your program:
+``` ruby
+lib "<math.h>"
+  double cos(double)
+end
+```
+
+### Variables
+
+You can specify to the Rubex compiler that you will be using constants or error values defined in C header files by specifying the name and type of the variable just like a normal variable declaration. For example:
+
+``` ruby
+lib "<ruby.h>"
+  int HAVE_RUBY_DEFINES_H
+end
+
+def have_ruby_h
+  return HAVE_RUBY_DEFINES_H
+end
+```
+
+### Macros
+
+Macros that work like functions, i.e. accept values and can be said to have 'return values' can be declared like any other C function:
+``` ruby
+lib "<ruby.h>"
+  object INT2FIX(int)
+end
+```
+
+### Types
+
+If the C library uses structs or unions, you need to specify the exact name of the type and its members that you will be using so that Rubex knows what to expect from the type that you will be using. If you will not be using a certain member of the struct, there is no need to specify it. If the struct is just an argument to a function or no members are being accessed, just leave the definition empty.
+``` ruby
+lib "<math.h>"
+  struct exception
+    int type
+    char *name
+  end
+end
+```
+
+### Typedefs
+
 ## Linking Libraries
 
 Frequently it is necessary to link external C binaries with the compiler in order to effectively compile the C file. This is normally done by passing `-l` flags to the compiler.
@@ -393,6 +474,23 @@ Do not attempt typecasting between C and Ruby types. It will lead to problems. L
 
 # Alias
 
+The `alias` keyword can be used for aliasing data types. It is akin to `typedef` in C. Once the alias is declared, you can use it in your program just like any other data type.
+
+``` ruby
+def foo
+  struct node
+    int a, b
+  end
+
+  alias node_69 = node
+
+  node_69 n
+  n.a = 4
+
+  return n.a
+end
+```
+
 # Conversions between Ruby and C data
 
 Rubex will implicitly convert most primitive C types like `char`, `int` and `float` to their equivalent Ruby types and vice versa. However, types conversions for user defined types like structs and unions are not supported.
@@ -441,6 +539,8 @@ end
 
 # Inline C
 
-# Limitations
-
 # Differences from C
+
+* Rubex does not have dereferencing operator (`*`). Instead use `[0]` to access values pointed to by pointers.
+* There is no `->` operator for accessing struct elements from a pointer to a struct. Use the `.` operator directly.
+
