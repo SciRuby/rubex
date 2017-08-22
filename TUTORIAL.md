@@ -103,6 +103,22 @@ Read what you can do more with `lib` in the [REFERENCE](REFERENCE.md).
 
 # C Functions
 
+Apart from Ruby class methods and instance methods, Rubex allows you to define 'C functions' that are only accessible inside classes from within Rubex. These functions _cannot_ be accessed from an external Ruby script.
+
+C functions are defined used the `cfunc` keyword. You also need to specify the return type of the function along with its definition. For example:
+``` ruby
+class CFunctionTest
+  def foo(int n)
+    return bar(n)
+  end
+
+  # bar is a C function.
+  cfunc int bar(int n)
+    return n + 5
+  end
+end
+```
+
 # 'Attach' Classes
 
 Rubex introduces a special syntax that allows you to directly interface Ruby with C structs using some special language constructs, called 'attach' classes. These are normal Ruby classes and can be instantiated and used just like any other Ruby class, but with one caveat - they are permanently attached to a C struct and implicitly interface this struct with the Ruby VM.
@@ -110,6 +126,8 @@ Rubex introduces a special syntax that allows you to directly interface Ruby wit
 Let me demonstrate with an example:
 ``` ruby
 # file: structs.rubex
+lib "rubex/ruby"; end
+
 struct mp3info
   int id
   char* title

@@ -68,3 +68,15 @@ def access_struct_obj
 
   return a.arr[0]
 end
+
+def struct_ptr
+  struct node
+    int i, j
+  end
+
+  node *a
+  a.i = 3
+  a.j = 4
+
+  return a.i + a.j
+end

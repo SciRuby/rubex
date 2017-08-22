@@ -28,6 +28,7 @@ describe Rubex do
           expect(structure("aa",2,3)).to eq(666)
           expect(struct_index).to eq(4)
           expect(access_struct_obj).to eq(1)
+          expect(struct_ptr).to eq(7)
         end
       end
     end

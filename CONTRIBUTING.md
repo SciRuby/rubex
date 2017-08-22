@@ -78,7 +78,7 @@ The following features in Rubex need to be implemented or can be made better:
 * Ability to write Rubex programs spanning multiple files.
 * If a Ruby method and extern C function have the same name the program malfunctions. Either namespace C functions or disallow Ruby methods with same names as extern C functions.
 * Clean up classes under Statement such that they don't have attr_reader's like `:name` and `:type` which are really not a part of statement attributes.
-* Support for instance variables (with `@`) and class variables (with `@@`).
+* Support for multi-file programs (maybe using `require`?).
 
 # Contemplative features
 

@@ -5,20 +5,26 @@ Rubex is a language designed to keep you happy even when writing C extension.
 Read on for the full specifications of the Rubex language.
 
 # Table of Contents
-<!-- MarkdownTOC autolink="true" bracket="round"-->
+<!-- MarkdownTOC autolink="true" bracket="round" depth="3"-->
 
 - [Comments](#comments)
 - [C data types](#c-data-types)
   - [Primitive data types](#primitive-data-types)
   - [C struct, union and enum](#c-struct-union-and-enum)
+    - [Forward declarations](#forward-declarations)
   - [Pointers](#pointers)
+- [Ruby Objects](#ruby-objects)
 - [Literals](#literals)
   - [Integer](#integer)
   - [Float](#float)
   - [Character](#character)
   - [String](#string)
   - [Ruby Literals](#ruby-literals)
+    - [Ruby Array](#ruby-array)
+    - [Ruby Hash](#ruby-hash)
+    - [Ruby String](#ruby-string)
 - [C Functions and Ruby Methods](#c-functions-and-ruby-methods)
+- [The print statement](#the-print-statement)
 - [Loops](#loops)
   - [The while loop](#the-while-loop)
   - [The for loop](#the-for-loop)
@@ -26,24 +32,28 @@ Read on for the full specifications of the Rubex language.
   - [Important Note](#important-note)
 - [Interfacing C libraries with lib](#interfacing-c-libraries-with-lib)
   - [Basic Usage](#basic-usage)
+  - [Supported declarations](#supported-declarations)
   - [Linking Libraries](#linking-libraries)
   - [Ready-to-use C functions](#ready-to-use-c-functions)
+    - [Filename: "rubex/ruby"](#filename-rubexruby)
+    - [Filename: "rubex/ruby/encoding"](#filename-rubexrubyencoding)
+    - [Filename: "rubex/stdlib"](#filename-rubexstdlib)
 - [Exception Handling](#exception-handling)
 - ['Attach' Classes](#attach-classes)
   - [The attach keyword](#the-attach-keyword)
-  - [The data~ variable](#the-data%7E-variable)
+  - [The data$ variable](#the-data-variable)
   - [Special C functions in attach classes](#special-c-functions-in-attach-classes)
+    - [deallocate](#deallocate)
+    - [allocate](#allocate)
+    - [memcount](#memcount)
+    - [get_struct](#getstruct)
+- [Typecast](#typecast)
+- [Alias](#alias)
 - [Conversions between Ruby and C data](#conversions-between-ruby-and-c-data)
 - [C callbacks](#c-callbacks)
 - [Inline C](#inline-c)
 - [Limitations](#limitations)
-  - [The Basics](#the-basics)
-  - [Interfacing with external C libraries](#interfacing-with-external-c-libraries)
-  - [Literals](#literals-1)
-  - [Data Types](#data-types)
-  - [Statements and Expressions](#statements-and-expressions)
-  - [Callbacks](#callbacks)
-  - [Interfacing with C structs](#interfacing-with-c-structs)
+- [Differences from C](#differences-from-c)
 
 <!-- /MarkdownTOC -->
 
@@ -98,8 +108,41 @@ You can define pointers and pass them to functions just like you do in C. Pointe
 Keep in mind that Rubex does not support the `*` operator for dereferencing a pointer. You will need to use the `[]` operator and access the value of pointer with `[0]` (since accessing the value of a pointer is analogous to accessing the value of an array in C).
 
 For example:
+``` ruby
+class CPointersDemo
+  def foo
+    int *i
+    int *j
+
+    i[0] = 5
+    j = i
+
+    return j[0] 
+  end
+end
+```
+
+# Ruby Objects
+
+Any variable of type `object` is a Ruby object. You must take care to not manually free objects as it will inevitably lead to memory leaks. Let the GC take care of them.
+
+Variables that are assigned values without actually specifying the data type are also assumed to be objects.
+
+For example:
+``` ruby
+def ruby_obj_demo
+  object a = "string!"
+  b = "string!"
+
+  return a == b
+end
+```
+
+Above function will return `true`.
 
 # Literals
+
+Literals in Rubex can either be represented as C data or Ruby objects depending on the type of the variable that they are assigned to. Therefore, something like `a = 1` will cause 
 
 ## Integer
 
@@ -118,6 +161,34 @@ For example:
 ### Ruby String
 
 # C Functions and Ruby Methods
+
+Apart from Ruby class methods and instance methods, Rubex allows you to define 'C functions' that are only accessible inside classes from within Rubex. These functions cannot be accessed from an external Ruby script.
+
+C functions are defined used the `cfunc` keyword. You also need to specify the return type of the function along with its definition. For example:
+``` ruby
+class CFunctionTest
+  def foo(int n)
+    return bar(n)
+  end
+
+  cfunc int bar(int n)
+    return n + 5
+  end
+end
+```
+
+C functions are 'lexically scoped' and are available inside both Ruby instance and class methods of the class and its hierarchy.
+
+# The print statement
+
+The `print` statement makes it easy to print something to the console using C's `printf` function underneath. If it is passed a Ruby object instead of a C data type, the `#inspect` method will be called on the object and the resultant string will be printed. `print` can accept multiple comma-separated arguments and will concatenate them into a single string.
+``` ruby
+def foo(a, b)
+  int i = 5
+
+  print "Obj a is : ", a, ".", " b is: ", b, "... and i is: ", i
+end
+```
 
 # Loops
 
@@ -179,11 +250,114 @@ However, in case you intermingle Ruby and C types, Rubex will use the convention
 
 # Interfacing C libraries with lib
 
+The `lib` directive is used for interfacing external C libraries with Rubex.
+
 ## Basic Usage
+
+Say you want to interface the `cos` and `sin` functions from the `math.h` C header file. 
+
+It is best demonstrated by this example:
+``` ruby
+lib "<math.h>"
+  double sin(double)
+  double cos(double)
+end
+
+class CMath
+  def f_sin(double n)
+    return sin(n)
+  end
+
+  def f_cos(double n)
+    return cos(n)
+  end
+end
+```
+
+The string arugument (`"<math.h>"`) supplied to `lib` is the C header file that you want to interface your code with. You first need to tell Rubex that you will be using the functions `sin` and `cos` in your program, and that they accept a `double`as an argument and also return a `double`.
+
+These can then be directly called from the Rubex program like any other function. Keep in mind that any method/function name in your Rubex program cannot have the same names as the external C functions since they are not namespaced. This will probably be fixed in a later version.
+
+## Supported declarations
 
 ## Linking Libraries
 
+Frequently it is necessary to link external C binaries with the compiler in order to effectively compile the C file. This is normally done by passing `-l` flags to the compiler.
+
+Rubex allows you to do this directly inside the compiler using the `link:` option supplied to the `lib` directive. This is best demonstrated with the following example:
+``` ruby
+lib "csv.h", link: "csv"
+  # some functions ...
+end
+
+def foo
+  # some code ...
+end
+```
+
+The above code will add `-lcsv` option the compiler during the compilation phase.
+
 ## Ready-to-use C functions
+
+In order to simplify interfacing with the standard library and to call some specific functions from the Ruby C API (if you must), Rubex provides a whole bunch of ready-to-use C functions from various header files that are available by default in most systems.
+
+For example:
+``` ruby
+lib "rubex/ruby"; end
+
+def foo(a)
+  return true if TYPE(a) == T_INT
+  return false
+end
+```
+
+Above code will use the `TYPE()` macro from the `ruby.h` header file and check if the type is `Integer`, which is denoted by the `T_INT` macro, which is another macro from `ruby.h`. Many such libraries and their enclosing functions come as default with Rubex. Here is a complete list and the also the library names that you need to pass in order to make said functions visible to your program:
+
+### Filename: "rubex/ruby"
+
+Functions:
+
+|Name and prototype| Description|
+|:---     |:--- |
+|`void* xmalloc(void*)` | |
+|`void xfree(void*)` | |
+|`int TYPE(object)`||
+|`object rb_str_new(char* string, long lenghth)`||
+|`object rb_ary_includes(object array, object item)`||
+
+Variables:
+
+|Type|Name|Description|
+|:---|:---|:---       |
+|`int`|`T_ARRAY`||
+|`int`|`T_NIL`||
+|`int`|`T_TRUE`||
+|`int`|`T_FALSE`||
+|`int`|`T_FLOAT`||
+|`int`|`T_FIXNUM`||
+|`int`|`T_BIGNUM`||
+|`int`|`T_REGEXP`||
+|`int`|`T_STRING`||
+
+### Filename: "rubex/ruby/encoding"
+
+Functions:
+
+|Name and prototype| Description|
+|:---     |:--- |
+|`int rb_enc_find_index(char* encoding)`||
+|`object rb_enc_associate_index(object string, int encoding)`||
+
+### Filename: "rubex/stdlib"
+
+Functions:
+
+|Name and prototype|Description|
+|:---     |:--- |
+| `int atoi(char *string)`||
+| `long atol(char *string)`||
+| `long long atoll(char *string)`||
+| `double atof(char *string)`||
 
 # Exception Handling
 
@@ -191,7 +365,7 @@ However, in case you intermingle Ruby and C types, Rubex will use the convention
 
 ## The attach keyword
 
-## The data~ variable
+## The data$ variable
 
 ## Special C functions in attach classes
 
@@ -203,167 +377,27 @@ However, in case you intermingle Ruby and C types, Rubex will use the convention
 
 ### get_struct
 
+# Typecast
+
+You can use a C typecast using `<>`. For example:
+``` ruby
+def foo
+  float a = 4.5
+  int b = <int>a
+
+  return b
+end
+```
+
+Do not attempt typecasting between C and Ruby types. It will lead to problems. Let Rubex do that for you.
+
+# Alias
+
 # Conversions between Ruby and C data
-
-# C callbacks
-
-# Inline C
-
-# Limitations
-
-## The Basics
-
-The most basic that you can do in any language is to define and call methods and functions that do a specific job. For this purpose, Rubex supports three kinds of methods/functions:
-
-* Ruby instance methods
-* Ruby class methods
-* C functions
-
-Out of these Ruby instance and class methods are callable from external Ruby scripts, but C functions are callable ONLY FROM THE RUBEX CODE.
-
-### Ruby instance methods
-
-A Ruby instance method can be defined like so:
-``` ruby
-class Bar
-  def funk
-    print "oh funk!"
-  end
-end
-```
-
-When the file is compiled and included into a Ruby script, the funk method can be called using `Bar.new.funk`.
-
-Internally, Rubex compiles this code to the equivalent C code and makes calls to `rb_define_method` from the [Ruby C API](https://docs.ruby-lang.org/en/2.1.0/README_EXT.html#label-Extending+Ruby+with+C) so that the method `funk` can be registered with the CRuby interpreter as being an instance method under the class `Bar`.
-
-### Ruby class methods
-
-Ruby class methods can be defined with the exact same syntax that you use in Ruby - by using the `self` keyword before a method name. For example:
-``` ruby
-# In a Rubex file
-
-class Foo
-  def self.bar(int a)
-    return a + 1
-  end
-end
-```
-This will define a method callable as `Foo.bar(2)` from a Ruby script. Interconversions between primitive C types and Ruby types are performed implicitly.
-
-### C functions
-
-C functions can be scoped inside classes/modules like normal Ruby methods and will be accessible to both Ruby instance and class methods only inside the Rubex program. These functions are not individually accessible through an external Ruby script.
-
-C functions can be defined using the `cfunc` keyword. Keep in mind that you will also need to specify the return data type of the function since it will ultimately be compiled to simple C function that returns a value of a particular type.
-
-For example:
-``` ruby
-class Foo
-  cfunc int baz(float d)
-    int a = d / 5
-
-    return a
-  end
-
-  def bar(float d)
-    int c = baz(d)
-
-    return c
-  end
-end
-```
-
-## Interfacing with external C libraries
-
-One of the primary uses of Rubex is to make it extremely simple to interface Ruby with external C libraries. For example, say you want to interface the `sin()` and `cos()` functions from the `math.h` C header file.
-
-You use the `lib` keyword of Rubex and do that easily like this:
-``` ruby
-lib "<math.h>"
-  double sin(double)
-end
-
-class Trigonometry
-  def math_sin(double n)
-    return sin(n)
-  end
-end
-```
-
-You can simply call these functions through a Ruby script that uses the `math_sin` and/or `math_cos` methods inside the `Trigonometry` class.
-
-## Literals
-
-Rubex accepts number and string literals. If you do not specify the data type of a variable when assigning it to a literal, it will be automatically be converted to a Ruby object.
-
-For example:
-``` ruby
-def literals_demo
-  # Assigns int i as 44.
-  int i = 44
-
-  # The variable j will be assigned a Ruby Integer object with value 44.
-  j = 44
-
-  # The string will be implicitly converted to a Ruby String object.
-  string = "This is a Ruby string."
-
-  # This will stay on as a C string of type char*.
-  char* c_str = "This is a C string."
-end
-```
-
-## Data Types
-
-Rubex supports most primitive C data types out of the box. Following are the ones supported and their respective Rubex keywords:
-
-
-### C pointers
-
-
-Here's an example of declaring an array and passing its address to a C function from a Ruby method:
-``` ruby
-class CPointersDemo
-  def foo
-    int *i
-    int j = 55
-
-    i = &j
-
-    return bar(i)
-  end
-
-  cfunc int bar(int *i)
-    int j = 5, sum
-    int sum = j + i[0]
-
-    return sum
-  end
-end
-```
-
-## Statements and Expressions
-
-All expressions that are supported in Ruby are supported in Rubex. You can also intermingle C and Ruby types in the same expression, subject to some restrictions.
-
-### Implicit type conversions
 
 Rubex will implicitly convert most primitive C types like `char`, `int` and `float` to their equivalent Ruby types and vice versa. However, types conversions for user defined types like structs and unions are not supported.
 
-### The print statement
-
-The `print` statement makes it easy to print something to the console using C's `printf` function underneath. If it is passed a Ruby object instead of a C data type, the `#inspect` method will be called on the object and the resultant string will be printed. `print` can accept multiple comma-separated arguments and will concatenate them into a single string.
-``` ruby
-def print_demo(a, b)
-  int i = 5
-
-  print "Obj a is : ", a, ".", " b is: ", b, "... and i is: ", i
-end
-```
-
-### Conditional statement (if-elsif-else)
-
-## Callbacks
+# C callbacks
 
 Frequently, C libraries use C function pointers to pass functions to other functions as callbacks. Rubex supports this behaviour too.
 
@@ -372,7 +406,7 @@ A C function pointer for a function that returns an `int` and accepts two `int`s
 int (*foo)(int, int)
 ```
 
-You can also alias function pointers to something more readable with the `alias` statement:
+You can also alias function pointers with `alias`:
 ```
 alias foo = int (*)(int, int)
 ```
@@ -383,47 +417,30 @@ cfunc int foo1(int a)
   return a + 1
 end
 
-cfunc int foo2(int a)
-  return a + 2
-end
-
 cfunc int baz1(int a, int b)
   return a + b + 1
 end
 
-cfunc int baz2(int a, int b)
-  return a + b + 2
-end
-
 cfunc int bar(int (*func1)(int), int (*func2)(int, int), int a, int b)
-  int ans1
-  int ans2
-
-  ans1 = func1(a)
-  ans2 = func2(a, b)
-
-  return ans1 + ans2
+  return func1(a) + func2(a, b)
 end
 
-class CFunctionPtrs
-  def test_c_function_pointers(switch)
-    alias goswim = int (*ernub)(int, int)
-    int (*func_ptr1)(int)
-    goswim func_ptr2
-    int a = 1
-    int b = 1
+def foo
+  alias goswim = int (*ernub)(int, int)
+  int (*func_ptr1)(int)
+  goswim func_ptr2
+  int a = 1
+  int b = 1
 
-    if switch
-      func_ptr1 = foo1
-      func_ptr2 = baz1
-    else
-      func_ptr1 = foo2
-      func_ptr2 = baz2
-    end
+  func_ptr1 = foo1
+  func_ptr2 = baz1
 
-    return bar(func_ptr1, func_ptr2, a, b)
-  end
+  return bar(func_ptr1, func_ptr2, a, b)
 end
 ```
 
-## Interfacing with C structs
+# Inline C
+
+# Limitations
+
+# Differences from C
