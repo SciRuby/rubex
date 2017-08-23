@@ -776,7 +776,9 @@ module Rubex
             if @command.is_a? Rubex::AST::Expression::MethodCall
               @c_code << @command.c_code(local_scope)
             else # interpreted as referencing the contents of a struct
-              @c_code << "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
+              op = @expr.type.cptr? ? "->" : "."
+
+              @c_code << "#{@expr.c_code(local_scope)}#{op}#{@command.c_code(local_scope)}"
             end
           end
         end
@@ -804,8 +806,9 @@ module Rubex
       private
 
         def analyse_command_type local_scope
-          if @expr && @expr.type.struct_or_union?
-            scope = @expr.type.scope
+          if @expr && ((@expr.type.cptr? && @expr.type.type.struct_or_union?) || 
+              (@expr.type.struct_or_union?))
+            scope = @expr.type.base_type.scope
             if @command.is_a? String
               @command = Expression::Name.new @command
               @command.analyse_statement scope
