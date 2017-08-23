@@ -2,8 +2,6 @@
 
 Rubex is a language designed to keep you happy even when writing C extension.
 
-Read on for the full specifications of the Rubex language.
-
 # Table of Contents
 <!-- MarkdownTOC autolink="true" bracket="round" depth="3"-->
 
@@ -20,10 +18,11 @@ Read on for the full specifications of the Rubex language.
   - [Character](#character)
   - [String](#string)
   - [Ruby Literals](#ruby-literals)
+    - [Ruby Symbol](#ruby-symbol)
     - [Ruby Array](#ruby-array)
     - [Ruby Hash](#ruby-hash)
-    - [Ruby String](#ruby-string)
 - [C Functions and Ruby Methods](#c-functions-and-ruby-methods)
+- [Ruby Constants](#ruby-constants)
 - [The print statement](#the-print-statement)
 - [Loops](#loops)
   - [The while loop](#the-while-loop)
@@ -52,12 +51,16 @@ Read on for the full specifications of the Rubex language.
     - [allocate](#allocate)
     - [memcount](#memcount)
     - [get_struct](#getstruct)
+    - [gc_mark](#gcmark)
 - [Typecast](#typecast)
 - [Alias](#alias)
 - [Conversions between Ruby and C data](#conversions-between-ruby-and-c-data)
 - [C callbacks](#c-callbacks)
 - [Inline C](#inline-c)
+- [Handling Strings](#handling-strings)
 - [Differences from C](#differences-from-c)
+- [Differences from Ruby](#differences-from-ruby)
+- [Limitations](#limitations)
 
 <!-- /MarkdownTOC -->
 
@@ -119,6 +122,21 @@ end
 
 Structs can either be at the global, class or method scope. Their accessibility will differ according to the scope they are defined in. Take note that once you define a `struct node`, the only way to define a variable of type `struct node` is just use `node` for the variable definition, not `struct node`. So `node a` will work but `struct node a` will not work.
 
+In case you declare a pointer to a struct, the elements of the struct should still be accessed with `.` since the `->` operator is not supported in Rubex.
+Example:
+``` ruby
+def foo
+  struct bar
+    int a
+  end
+
+  bar *n
+  n.a = 3
+
+  return n.a
+end
+```
+
 ### Forward declarations
 
 In case your struct has a member of a type whose definition has to be after your struct, you can use a forward declaration with the `fwd` keyword.
@@ -175,23 +193,96 @@ Above function will return `true`.
 
 # Literals
 
-Literals in Rubex can either be represented as C data or Ruby objects depending on the type of the variable that they are assigned to. Therefore, something like `a = 1` will cause 
+Literals in Rubex can either be represented as C data or Ruby objects depending on the type of the variable that they are assigned to. Therefore, something like `a = 1` will cause `a` to be a Ruby object with an `Integer` value `1` and something like `int a = 1` will cause `a` to be of C type `int`.
 
 ## Integer
 
+Integers are supported. Assigning an integer to a C type has the same effect as the assignment would in C code.
+``` ruby
+def foo
+  float a = 3
+  int b = -2
+  char c = 34
+end
+```
+
 ## Float
+
+Similar to integers.
+``` ruby
+def foo
+  float i = 4.5
+  double j = -32.66
+  int c = 6.9
+end
+```
 
 ## Character
 
+Characters can be specified with a single quote. If assigning to a Ruby object, `char` will be implicitly converted to a Ruby `String`.
+``` ruby
+def foo
+  char c = 'a'
+
+  return c
+end
+```
+
 ## String
+
+Strings are specified with double quotes. Note that Ruby-like single quoted strings are _not_ supported in Rubex. String literals are C strings (`char*` arrays) by default but if you assign them to a Ruby object they are implicitly converted into Ruby strings.
+
+For example:
+``` ruby
+def foo
+  s = "hello world!"
+  char *cs = "hello world!"
+
+  return cs
+end
+```
+The `char*` can be implicitly converted to Ruby object. Read the [Handling Strings](#handling-strings) section to know more about string inter-conversion.
 
 ## Ruby Literals
 
+Apart from `String`, Rubex also supports creating basic Ruby objects like `Array`, `Hash` and `Symbol` from literals using the same familiar Ruby syntax.
+
+### Ruby Symbol
+
+Symbols are specified with `:` before the identifier.
+``` ruby
+def foo
+  a = :hello
+  return a
+end
+```
+
 ### Ruby Array
+
+Can be specified using `[]`. All members of the Array should be implicitly convertible to Ruby objects (like primitive C types or object). Putting instances of `struct` will lead to errors.
+``` ruby
+def foo
+  a = [1,2,3,"hello", "world", :symbol]
+  return a
+end
+```
 
 ### Ruby Hash
 
-### Ruby String
+Hashes can be specified with `{}`.
+
+Example:
+``` ruby
+def foo
+  a = {
+    :hello => "world",
+    3 => 4,
+    "foo" => :bar
+  }
+
+  return a
+end
+```
 
 # C Functions and Ruby Methods
 
@@ -211,6 +302,16 @@ end
 ```
 
 C functions are 'lexically scoped' and are available inside both Ruby instance and class methods of the class and its hierarchy.
+
+# Ruby Constants
+
+Ruby constants can be specified using identifiers that start with capital letters. Since many C libraries contain functions or macros that start with capital letters, the Rubex compiler will first search for such identifiers, and if it does not find any, will assume that the identifier is a Ruby constant.
+``` ruby
+def foo
+  a = String.new("foo bar")
+  return a
+end
+```
 
 # The print statement
 
@@ -442,21 +543,108 @@ Functions:
 
 # Exception Handling
 
+Exception handling in Rubex can be done exactly like that in Ruby. No more dealing with `rb_protect()` or [complex tutorials](https://silverhammermba.github.io/emberb/c/#exceptions) on error handling in C extensions.
+
+Just simply use `begin-rescue-else-ensure` blocks the way you would in Ruby. You can also make variable declarations inside these blocks and any value you define inside can be used outside too, just like in Ruby.
+
+Example:
+``` ruby
+def foo(int n)
+  begin
+    raise ArgumentError if n == 1
+    raise SyntaxError if n == 2
+  rescue ArgumentError
+    n += 1
+  rescue SyntaxError
+    n += 2
+  else
+    n += 5
+  ensure
+    n += 10
+  end
+
+  return n
+end
+```
+
 # 'Attach' Classes
+
+Rubex introduces a special syntax that allows you to directly interface Ruby with C structs using some special language constructs, called 'attach' classes. These are normal Ruby classes and can be instantiated and used just like any other Ruby class, but with one caveat - they are permanently attached to a C struct and implicitly interface this struct with the Ruby VM.
+
+Let me demonstrate with an example:
+``` ruby
+# file: structs.rubex
+lib "rubex/ruby"; end
+
+struct mp3info
+  int id
+  char* title
+end
+
+class Music attach mp3info
+  def initialize(id, title)
+    mp3info* mp3 = data$.mp3info
+
+    mp3.id = id
+    mp3.title = title
+  end
+
+  def id
+    return data$.id
+  end
+
+  def title
+    return data$.title
+  end
+
+  cfunc void deallocate
+    xfree(data$.mp3info)
+  end
+end
+```
+This program can be used in a Ruby script like this:
+``` ruby
+require 'structs.so'
+
+id = 1
+title = "CAFO"
+m = Music.new id, title
+puts m.id, m.title
+```
+
+The above example has some notable Rubex constructs:
 
 ## The attach keyword
 
+The 'attach' keyword is a special keyword that is used for associating a particular struct with a Ruby class. Once this keyword is used, the Rubex compiler will take care of allocation, deallocation and fetching of the struct, i.e. it will add calls to various functions essential for interfacing the struct with Ruby VM and the Garbage Collector. It will also create the `ruby_data_type_t` struct that [holds all the information](https://ruby-doc.org/core-2.3.0/doc/extension_rdoc.html#label-C+struct+to+Ruby+object)for interfacing structs with the Ruby VM, for example pointers to the marking and freeing functions.
+
+In the above case, `attach` creates tells the class `Music` that it will be associated with a C struct of type `mp3info`.
+
 ## The data$ variable
+
+The `data$` variable is a special variable keyword that is available _only_ inside attach classes. The `data$` variable allows access to the `mp3info` struct. In order to do this, it makes available a **pointer** to the struct that is of the same name as the struct (i.e. `mp3info` for `struct mp3info` or `foo` for `struct foo`). This pointer to the struct can then be used for reading or writing elements in the struct.
+
+Read the 'Internals' section in [CONTRIBUTING](CONTRIBUTING.md) if you want to know more about the `data$` variable.
 
 ## Special C functions in attach classes
 
+In most cases, the default configuration of the attach classes will suffice and you will not need to write any of the functions listed below by yourself (Rubex will write those functions in C for you), but if in some special cases where customization by the user is necessary, it can be done using some special functions that are translated directly into the relevant functions that need to interface with the Ruby VM for successfully interfacing a struct.
+
 ### deallocate
+
+This is the only function that you must write by yourself, since a lot of GC deallocation depends upon specific data inside the struct and it is best if specified by the user.
+
+Once you are done using an instance of your newly created attach class, Ruby's GC will want to clean up the memory used by it so that it can be used by other objects. In order to not have any memory leaks later, it is important to tell the GC that the memory that was used up by the `mp3info` struct needs to be freed. This freeing up of memory should be done inside the `deallocate` function.
+
+The `xfree` function, which is the standard memory freeing function provided by the Ruby interpreter is used for this purpose.
 
 ### allocate
 
 ### memcount
 
 ### get_struct
+
+### gc_mark
 
 # Typecast
 
@@ -539,8 +727,27 @@ end
 
 # Inline C
 
+# Handling Strings
+
+For purposes of optimization and compatibility with C, Rubex makes certain assumptions about strings. When you assign a Ruby object to a `char*`, Rubex will automatically pass a pointer to the C string contained inside the object to the `char*`, thereby increasing the efficiency of operations on the string. The resulting string is a regular `\0` delimited C string.
+
+It should be noted that strings MUST use the double quotation syntax (`""`) and not single quotes in all cases. Single quote is reserved for use by C `char` data. For example, to assign a literal value to a C char, you can write `char a = 'b'`, to assign a literal C string to a `char*` array, use `char* a = "hello"`.
+
 # Differences from C
 
 * Rubex does not have dereferencing operator (`*`). Instead use `[0]` to access values pointed to by pointers.
 * There is no `->` operator for accessing struct elements from a pointer to a struct. Use the `.` operator directly.
 
+# Differences from Ruby
+
+* The `return` statement must be specified to return a value. Unlike Ruby, Rubex does not return the last expression in a method.
+* Specify arguments for method definitions inside round brackets.
+* As of now, there is very limited support for metaprogramming.
+* Blocks are not supported yet, though this will change by v0.2.
+
+# Limitations
+
+Most of the below limitations are temporary and will be taken care of in future versions:
+
+* The `require` statement is currently not supported.
+* Multi-file Rubex programs are not yet possible.

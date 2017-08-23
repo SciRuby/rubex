@@ -11,7 +11,6 @@ Here's a quick tutorial of Rubex to get you up and started. Once you're through,
 - [C Functions](#c-functions)
 - ['Attach' Classes](#attach-classes)
 - [Error Handling](#error-handling)
-- [Handling Strings](#handling-strings)
 - [Using Rubex Inside A Gem](#using-rubex-inside-a-gem)
 - [Examples](#examples)
   - [Interfacing C structs](#interfacing-c-structs)
@@ -137,8 +136,8 @@ class Music attach mp3info
   def initialize(id, title)
     mp3info* mp3 = data$.mp3info
 
-    mp3[0].id = id
-    mp3[0].title = title
+    mp3.id = id
+    mp3.title = title
   end
 
   def id
@@ -168,13 +167,13 @@ The above example has some notable Rubex constructs:
 
 ### The attach keyword
 
-The 'attach' keyword is a special keyword that is used for associating a particular struct with a Ruby class. Once this keyword is used, the Rubex compiler will take care of allocation, deallocation and fetching of the struct (more about this in the [REFERENCE](REFERENCE.md)). The user only needs to concern themselves with
+The 'attach' keyword is a special keyword that is used for associating a particular struct with a Ruby class. Once this keyword is used, the Rubex compiler will take care of allocation, deallocation and fetching of the struct (more about this in the [REFERENCE](REFERENCE.md)). The user only needs to concern themselves with using and allocating the data inside the struct.
 
 In the above case, `attach` creates tells the class `Music` that it will be associated with a C struct of type `mp3info`.
 
 ### The data$ variable
 
-The `data$` variable is a special variable keyword that is available _only_ inside attach classes. The `data$` variable allows access to the `mp3info` struct. In order to do this, it makes available a **pointer** to the struct that is of the same name as the struct (i.e. `mp3info` for `struct mp3info` or `foo` for `struct foo`). This pointer to the struct can then be used for reading or writing elements in the struct. Keep in mind that `data$.mp3info` is in fact a pointer to `struct mp3info` and therefore we use `[0]` to access its elements since Rubex does not have dereferencing operator.
+The `data$` variable is a special variable keyword that is available _only_ inside attach classes. The `data$` variable allows access to the `mp3info` struct. In order to do this, it makes available a **pointer** to the struct that is of the same name as the struct (i.e. `mp3info` for `struct mp3info` or `foo` for `struct foo`). This pointer to the struct can then be used for reading or writing elements in the struct.
 
 ### The deallocate C function
 
@@ -203,10 +202,6 @@ def error_example(int n)
   return n
 end
 ```
-
-# Handling Strings
-
-For purposes of optimization and compatibility with C, Rubex makes certain assumptions about strings. When you assign a Ruby object to a `char*`, Rubex will automatically pass a pointer to the C string contained inside the object to the `char*`, thereby increasing the efficiency of your program dramatically. The resulting string is a regular `\0` delimited C string.
 
 # Using Rubex Inside A Gem
 

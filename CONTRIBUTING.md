@@ -1,3 +1,17 @@
+# Table of Contents
+
+<!-- MarkdownTOC autolink="true" bracket="round" -->
+
+- [Setup](#setup)
+- [Development notes](#development-notes)
+- [Important data representations](#important-data-representations)
+- [Internals](#internals)
+  - [Attach classes](#attach-classes)
+- [Future work](#future-work)
+- [Contemplative features](#contemplative-features)
+
+<!-- /MarkdownTOC -->
+
 # Setup
 
 If you wish to contribute to Rubex, you can setup rubex on your system with the following commands:
@@ -60,6 +74,12 @@ If Hash, it will look like this:
   arg_list:
 }
 ```
+
+# Internals
+
+## Attach classes
+
+
 
 # Future work
 
