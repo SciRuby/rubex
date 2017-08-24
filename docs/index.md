@@ -3,4 +3,6 @@ layout: page
 title: Rubex
 ---
 
-Quick description and example on Rubex. Inspired by [haml.info](http://haml.info/).
+The RUBy EXtension Language homepage.
+
+Add here a quick description and small example, check [haml.info](http://haml.info/) for inspiration.
