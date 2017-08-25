@@ -8,7 +8,6 @@
 - [Internals](#internals)
   - [Attach classes](#attach-classes)
 - [Future work](#future-work)
-- [Contemplative features](#contemplative-features)
 
 <!-- /MarkdownTOC -->
 
@@ -100,7 +99,3 @@ The following features in Rubex need to be implemented or can be made better:
 * Clean up classes under Statement such that they don't have attr_reader's like `:name` and `:type` which are really not a part of statement attributes.
 * Support for multi-file programs (maybe using `require`?).
 * Refactor classes to cleaner support for compound types like CFunctions and simple struct pointers that have the base type nested just one level deep.
-
-# Contemplative features
-
-* Special operator (not `->`) for accessing elements from a struct pointer.
