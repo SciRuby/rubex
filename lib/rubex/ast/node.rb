@@ -161,10 +161,9 @@ module Rubex
               ancestor_entry = @scope.find(stat.ancestor)
               if !ancestor_entry && Rubex::DEFAULT_CLASS_MAPPINGS[stat.ancestor]
                 ancestor_c_name = Rubex::DEFAULT_CLASS_MAPPINGS[stat.ancestor]
-                ancestor_scope = Rubex::SymbolTable::Scope::Klass.new(
-                  stat.ancestor, nil)
+                ancestor_scope = object_or_stdlib_klass_scope stat.ancestor
                 @scope.add_ruby_class(name: stat.ancestor, c_name: ancestor_c_name,
-                  scope: ancestor_scope, ancestor: nil, extern: true)
+                  scope: @scope, ancestor: nil, extern: true)
               else
                 ancestor_scope = ancestor_entry&.type&.scope || @scope
               end
@@ -180,6 +179,11 @@ module Rubex
               ancestor: ancestor_scope, extern: false)
           end
         end
+      end
+
+      def object_or_stdlib_klass_scope name
+        name != 'Object' ? Rubex::SymbolTable::Scope::Klass.new(name, nil) : 
+          @scope
       end
 
       def c_name_for_class name

@@ -747,9 +747,7 @@ module Rubex
           if @expr.nil?
             entry = local_scope.find(@command)
             @expr = Expression::Self.new if entry && !entry.extern?
-          end
-          # if command is extern @expr will be nil.
-          unless @expr.nil?
+          else
             @expr.analyse_statement(local_scope)
             @expr.allocate_temps local_scope
             @expr.allocate_temp local_scope, @expr.type

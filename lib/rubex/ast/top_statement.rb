@@ -14,7 +14,6 @@ module Rubex
             @declarations = []
             load_predecided_declarations
           end
-
           @declarations.each do |stat|
             stat.analyse_statement local_scope, extern: true
           end
