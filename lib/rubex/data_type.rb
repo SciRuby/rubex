@@ -324,6 +324,18 @@ module Rubex
       def lint?; true; end
 
       def p_formatter; "%ld"; end
+
+      def <=> other
+        if other.char? || other.int8? || other.int16? || other.int32? ||
+          other .int64? || other.uint8? || other.uint16? || other.uint32? ||
+          other.int?
+          return 1
+        elsif other.lint?
+          return 0
+        else
+          return -1
+        end
+      end
     end
 
     class ULInt

@@ -628,15 +628,9 @@ module Rubex
         end
 
         def generate_evaluation_code code, local_scope
-          # @arg_list.each do |arg|
-          #   arg.generate_evaluation_code code, local_scope
-          # end
         end
 
         def generate_disposal_code code
-          # @arg_list.each do |arg|
-          #   arg.generate_disposal_code code
-          # end
         end
 
         def c_code local_scope
@@ -783,7 +777,7 @@ module Rubex
 
         def generate_disposal_code code
           @expr.generate_disposal_code(code) if @expr
-          @command.generate_disposal_code code
+          # @command.generate_disposal_code code
           @arg_list.each do |arg|
             arg.generate_disposal_code code
           end

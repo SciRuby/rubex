@@ -676,6 +676,8 @@ module Rubex
 
         def analyse_statement local_scope
           @expr.analyse_statement local_scope
+          @expr.allocate_temps local_scope
+          @expr.allocate_temp local_scope, @expr.type
         end
 
         def generate_code code, local_scope
