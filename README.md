@@ -151,3 +151,4 @@ See the [CONTRIBUTING](CONTRIBUTING.md) and the GitHub issue tracker for future 
 
 * The Ruby Association (Japan) for providing the initial funding for this project through the Ruby Association Grant 2016.
 * Koichi Sasada (@ko1) and Kenta Murata (@mrkn) for their support and mentorship throughout this project.
+* Fukuoka Ruby Award 2017.

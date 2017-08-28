@@ -1,4 +1,4 @@
-require 'c_struct_interface.so'
+require_relative 'c_struct_interface/c_struct_interface.so'
 
 m = Music.new("Periphery", "Marigold", 1)
 
