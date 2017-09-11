@@ -1,17 +1,18 @@
+require 'fileutils'
 module Rubex
   class Compiler
     CONFIG = Rubex::CompilerConfig.new
 
     class << self
-      def compile path, test: false, directory: nil
+      def compile path, test: false, directory: nil, force: false
         tree = ast path, test: test
         target_name = extract_target_name path
         code = generate_code tree, target_name
         ext = extconf target_name, directory: directory
         CONFIG.flush
-        
+
         return [tree, code, ext] if test
-        write_files target_name, code, ext, directory: directory
+        write_files target_name, code, ext, directory: directory, force: force
       end
 
       def ast path, test: false
@@ -52,13 +53,14 @@ module Rubex
       end
 
       def extract_target_name path
-        File.basename(path).split('.')[0]      
+        File.basename(path).split('.')[0]
       end
 
-      def write_files target_name, code, ext, directory: nil
+      def write_files target_name, code, ext, directory: nil, force: false
         path = directory ? directory : "#{Dir.pwd}/#{target_name}"
+        FileUtils.rm_rf(path) if force && Dir.exist?(path)
         Dir.mkdir(path) unless directory
-        
+
         code_file = File.new "#{path}/#{target_name}.c", "w+"
         code_file.puts code.to_s
         code_file.close
@@ -67,6 +69,7 @@ module Rubex
         extconf_file.puts ext
         extconf_file.close
       end
+
     end
   end
 end
