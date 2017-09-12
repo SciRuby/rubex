@@ -1,0 +1,333 @@
+/* YOUR CUSTOM STYLES */
+
+
+/* padding */
+
+
+/** top **/
+
+.padding-top-1per {
+    padding-top: 1%;
+}
+
+.padding-top-2per {
+    padding-top: 2%;
+}
+
+.padding-top-3per {
+    padding-top: 3%;
+}
+
+.padding-top-4per {
+    padding-top: 4%;
+}
+
+.padding-top-5per {
+    padding-top: 5%;
+}
+
+
+/** /top **/
+
+
+/** bottom **/
+
+.padding-bottom-1per {
+    padding-bottom: 1%;
+}
+
+.padding-bottom-2per {
+    padding-bottom: 2%;
+}
+
+.padding-bottom-3per {
+    padding-bottom: 3%;
+}
+
+.padding-bottom-4per {
+    padding-bottom: 4%;
+}
+
+.padding-bottom-5per {
+    padding-bottom: 5%;
+}
+
+
+/** /bottom **/
+
+
+/** left **/
+
+.padding-left-1per {
+    padding-left: 1%;
+}
+
+.padding-left-2per {
+    padding-left: 2%;
+}
+
+.padding-left-3per {
+    padding-left: 3%;
+}
+
+.padding-left-4per {
+    padding-left: 4%;
+}
+
+.padding-left-5per {
+    padding-left: 5%;
+}
+
+
+/** /left **/
+
+
+/** right **/
+
+.padding-right-1per {
+    padding-right: 1%;
+}
+
+.padding-right-2per {
+    padding-right: 2%;
+}
+
+.padding-right-3per {
+    padding-right: 3%;
+}
+
+.padding-right-4per {
+    padding-right: 4%;
+}
+
+.padding-right-5per {
+    padding-right: 5%;
+}
+
+
+/** /right **/
+
+
+/** top **/
+
+.padding-top-1px {
+    padding-top: 1px;
+}
+
+.padding-top-2px {
+    padding-top: 2px;
+}
+
+.padding-top-3px {
+    padding-top: 3px;
+}
+
+.padding-top-4px {
+    padding-top: 4px;
+}
+
+.padding-top-5px {
+    padding-top: 5px;
+}
+
+
+/** /top **/
+
+
+/** bottom **/
+
+.padding-bottom-1px {
+    padding-bottom: 1px;
+}
+
+.padding-bottom-2px {
+    padding-bottom: 2px;
+}
+
+.padding-bottom-3px {
+    padding-bottom: 3px;
+}
+
+.padding-bottom-4px {
+    padding-bottom: 4px;
+}
+
+.padding-bottom-5px {
+    padding-bottom: 5px;
+}
+
+
+/** /bottom **/
+
+
+/** left **/
+
+.padding-left-1px {
+    padding-left: 1px;
+}
+
+.padding-left-2px {
+    padding-left: 2px;
+}
+
+.padding-left-3px {
+    padding-left: 3px;
+}
+
+.padding-left-4px {
+    padding-left: 4px;
+}
+
+.padding-left-5px {
+    padding-left: 5px;
+}
+
+
+/** /left **/
+
+
+/** right **/
+
+.padding-right-1px {
+    padding-right: 1px;
+}
+
+.padding-right-2px {
+    padding-right: 2px;
+}
+
+.padding-right-3px {
+    padding-right: 3px;
+}
+
+.padding-right-4px {
+    padding-right: 4px;
+}
+
+.padding-right-5px {
+    padding-right: 5px;
+}
+
+
+/** /right **/
+
+.header-link {
+    padding: 24px;
+    font-size: 17px;
+    color: #e64a2e !important;
+    font-weight: 500;
+}
+
+.header-link:hover {
+    color: #ffa616 !important;
+    font-weight: 600;
+}
+
+.logo {
+    color: #6b6a6a;
+    font-size: 50px;
+    font-weight: 500;
+}
+
+.loop {
+    font-size: 58px;
+}
+
+.love {
+    font-size: 39px;
+    font-weight: 500;
+    COLOR: #ec492f;
+}
+
+.lang {
+    color: #f79ee8;
+    font-weight: 500;
+}
+
+.des {
+    font-size: 22px;
+    margin-right: 0px;
+    background-color: #ff3547;
+    color: white;
+    font-weight: 700;
+    padding: 3%;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 115px;
+    border-bottom-left-radius: 115px;
+    margin-top: -3%;
+    letter-spacing: 1px;
+}
+
+.introsd {
+    font-size: 27px;
+    font-family: monospace;
+    padding: 4%;
+    font-weight: 100;
+}
+.btn.btn-lg {
+    font-size: .9rem;
+    padding: 1rem 2.4rem;
+    font-weight: 900;
+    letter-spacing: 7px;
+}
+.blinking-cursor {
+    font-weight: 900;
+    font-size: 39px;
+    padding-left: 5px;
+    color: #f79ee8;
+    -webkit-animation: 1s blink step-end infinite;
+    -moz-animation: 1s blink step-end infinite;
+    -ms-animation: 1s blink step-end infinite;
+    -o-animation: 1s blink step-end infinite;
+    animation: 1s blink step-end infinite;
+}
+
+@keyframes "blink" {
+    from,
+    to {
+        color: transparent;
+    }
+    50% {
+        color: #f79ee8;
+    }
+}
+
+@-moz-keyframes blink {
+    from,
+    to {
+        color: transparent;
+    }
+    50% {
+        color: #f79ee8;
+    }
+}
+
+@-webkit-keyframes "blink" {
+    from,
+    to {
+        color: transparent;
+    }
+    50% {
+        color: #f79ee8;
+    }
+}
+
+@-ms-keyframes "blink" {
+    from,
+    to {
+        color: transparent;
+    }
+    50% {
+        color: #f79ee8;
+    }
+}
+
+@-o-keyframes "blink" {
+    from,
+    to {
+        color: transparent;
+    }
+    50% {
+        color: #f79ee8;
+    }
+}
