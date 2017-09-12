@@ -14,18 +14,21 @@ describe Rubex do
       end
     end
 
-    context ".compile", free: true do
+    context ".compile" do
       it "compiles to valid C file" do
         t,c,e = Rubex::Compiler.compile((@path + '.rubex'), test: true)
       end
     end
 
-    context "Black Box testing", free: true do
+    context "Black Box testing" do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.so"
 
           expect(maths(3,5,"hello")).to be_within(0.001).of(300.763)
+          expect(stray_cos).to be_within(0.001).of(-0.210)
+          expect(A.new.ruby_cos).to be_within(0.001).of(-0.210)
+          expect(RMath.new.ruby_sin(90)).to be_within(0.001).of(0.893)
         end
       end
     end

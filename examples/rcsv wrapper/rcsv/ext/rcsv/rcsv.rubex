@@ -16,88 +16,28 @@ lib "csv.h", link: "csv"
   int CSV_ETOOBIG
   int CSV_EINVALID
   int CSV_STRICT
-  int CSV_EMPTY_IS_NULL
 
   int csv_init(csv_parser, unsigned char)
   int csv_fini(csv_parser, void (*cb1)(void *, size_t, void *), void (*cb2)(int, void *), void *)
   void csv_free(csv_parser *)
   int csv_error(csv_parser *)
-  char * csv_strerror(int)
   size_t csv_parse(csv_parser *p, void *, size_t, void (*cb1)(void *, size_t, void *), void (*cb2)(int, void *), void *)
-  size_t csv_write(void *, size_t, void *, size_t)
-  int csv_fwrite(FILE *, void *, size_t)
-  size_t csv_write2(void *, size_t, void *, size_t, unsigned char)
-  int csv_fwrite2(FILE *, void *, size_t, unsigned char)
-  int csv_get_opts(csv_parser *)
-  int csv_set_opts(csv_parser *, unsigned char)
-  void csv_set_delim(csv_parser *, unsigned char)
-  void csv_set_quote(csv_parser *, unsigned char)
-  unsigned char csv_get_delim(csv_parser *)
-  unsigned char csv_get_quote(csv_parser *)
-  void csv_set_space_func(csv_parser *, int (*f)(unsigned char))
-  void csv_set_term_func(csv_parser *, int (*f)(unsigned char))
-  void csv_set_realloc_func(csv_parser *, void *(*cb)(void *, size_t))
-  void csv_set_free_func(csv_parser *, void (*cb)(void *))
-  void csv_set_blk_size(csv_parser *, size_t)
-  size_t csv_get_buffer_size(csv_parser *)
 end
 
 struct rcsv_metadata
-  # Derived from user-specified options
-  bool row_as_hash             # Used to return array of hashes rather than array of arrays
-  bool empty_field_is_nil      # Do we convert empty fields to nils?
-  size_t offset_rows           # Number of rows to skip before parsing
-  int encoding_index           # If available, the encoding index of the original input
-
-  char * row_conversions      # A pointer to string/array of row conversions char specifiers
-  object * only_rows          # A pointer to array of row filters
-  object * except_rows        # A pointer to array of negative row filters
-  object * row_defaults       # A pointer to array of row defaults
-  object * column_names       # A pointer to array of column names to be used with hashes
-
-  # Pointer options lengths
-  size_t num_row_conversions  # Number of converter types in row_conversions array
-  size_t num_only_rows        # Number of items in only_rows filter
-  size_t num_except_rows      # Number of items in except_rows filter
-  size_t num_row_defaults     # Number of default values in row_defaults array
-  size_t num_columns          # Number of columns detected from column_names.size
-
   # Internal state
   bool skip_current_row       # Used by only_rows and except_rows filters to skip parsing of the row remainder
   size_t current_col          # Current column's index
   size_t current_row          # Current row's index
 
-  object last_entry           # A pointer to the last entry that's going to be appended to result
-  object result             # A pointer to the parsed data
+  object last_entry           # last entry that's going to be appended to result
+  object result               # parsed data
 end
 
 class RcsvParseError < StandardError
 end
 
 class Rcsv
-  cfunc object validate_filter_row(row)
-    if row == nil
-      return nil
-    elsif row.is_a?(Array)
-      size_t j
-      int r_size = row.size
-      int type
-      for (0 <= j < r_size) do
-        type = TYPE(row[i])
-
-        if type == T_NIL || type == T_TRUE || type == T_FALSE || type == T_FLOAT || type == T_FLOAT || type == T_FIXNUM || type == T_STRING
-          break
-        else
-          raise(RcsvParseError, "Wrong type passed.")
-        end
-      end
-      return row
-    else
-      raise(RcsvParseError, "Wrong type passed.")
-    end
-
-  end
-
   cfunc void end_of_field_callback(void* field, size_t field_size, void* data)
     char* field_str = <char *>field
     rcsv_metadata* meta_p = <rcsv_metadata*>data
@@ -105,111 +45,31 @@ class Rcsv
     char row_conversion = 0
     object parsed_field
 
-    # No need to parse anything until the end of the line if skip_current_row is set */
-    # return if meta.skip_current_row
+    parsed_field = ENCODED_STR_NEW(field_str, field_size)
 
-    # Skip the row if its position is less than specifed offset
-    if (meta.current_row < meta.offset_rows)
-      meta_p[0].skip_current_row = true
-      return
-    end
-
-    parsed_field = ENCODED_STR_NEW(field_str, field_size, meta.encoding_index)
-
-    # Filter by row values listed in meta->only_rows */
-    if ((meta.only_rows != NULL) && (meta.current_col < meta.num_only_rows) && (meta.only_rows[meta.current_col] != nil) && (!rb_ary_includes(meta.only_rows[meta.current_col], parsed_field)))
-      meta_p[0].skip_current_row = true
-      return
-    end
-    # Filter out by row values listed in meta->except_rows
-    if ((meta.except_rows != NULL) && (meta.current_col < meta.num_except_rows) && (meta.except_rows[meta.current_col] != nil) && (rb_ary_includes(meta.except_rows[meta.current_col], parsed_field)))
-      meta.skip_current_row = true
-      return
-    end
-
-    # Assign the value to appropriate hash key if parsing into Hash */
-    if meta.row_as_hash
-      if meta.current_col >= meta.num_columns
-        raise_with_location(meta.current_row, meta.current_col, field_str)
-      else
-        meta_p[0].last_entry[meta.column_names[meta.current_col]] = parsed_field
-      end
-    else # Parse into Array
-      meta_p[0].last_entry.push(parsed_field) # /* last_entry << field */
-    end
-
-    # Increment column counter */
+    meta_p[0].last_entry.push(parsed_field) # /* last_entry << field */
     meta_p[0].current_col += 1
     return
   end
 
-  cfunc void raise_with_location(size_t current_row, size_t current_col, char* string)
-  end
-
   cfunc void end_of_line_callback(int last_char, void* data)
-    rcsv_metadata* meta_p = <rcsv_metadata *> data
-    rcsv_metadata meta = meta_p[0]
-
-    # If filters didn't match, current row parsing is reverted */
-    if meta.skip_current_row
-      meta.skip_current_row = false
-    else
-      if block_given? # STREAMING
-        yield(meta.last_entry)
-      else
-        meta_p[0].result.push(meta.last_entry)
-      end
-    end
-
-    # /* Re-initialize last_entry unless EOF reached */
-    if last_char != -1
-      if meta.row_as_hash
-        meta.last_entry = {}
-      else
-        meta_p[0].last_entry = []
-      end
-    end
-
-    # Resetting column counter
+    rcsv_metadata* meta = <rcsv_metadata *> data
+    
+    meta.result.push(meta.last_entry)
+    meta.last_entry = [] if last_char != -1
     meta.current_col = 0
-
-    # Incrementing row counter
     meta.current_row += 1
   end
 
-  cfunc object ENCODED_STR_NEW(char* string, int length, int enc_index)
-    _string = rb_str_new(string, length)
-    if (enc_index != -1)
-      rb_enc_associate_index(_string, enc_index)
-    end
-    return _string
-  end
-
-  cfunc void free_all_memory(csv_parser *p_cp, rcsv_metadata *p_meta)
-    if p_cp
-      csv_free(p_cp)
-    end
+  cfunc object ENCODED_STR_NEW(char* string, int length)
+    return rb_str_new(string, length)
   end
 
   cfunc void setup_rcsv_metadata_defaults(rcsv_metadata *p_meta)
-    p_meta[0].row_as_hash = 0
-    p_meta[0].empty_field_is_nil = 0
-    p_meta[0].skip_current_row = 0
-    p_meta[0].encoding_index = -1
-    p_meta[0].num_columns = 0
-    p_meta[0].current_col = 0
-    p_meta[0].current_row = 0
-    p_meta[0].offset_rows = 0
-    p_meta[0].num_only_rows = 0
-    p_meta[0].num_except_rows = 0
-    p_meta[0].num_row_defaults = 0
-    p_meta[0].num_row_conversions = 0
-    p_meta[0].only_rows = NULL
-    p_meta[0].except_rows = NULL
-    p_meta[0].row_defaults = NULL
-    p_meta[0].row_conversions = NULL
-    p_meta[0].column_names = NULL
-    p_meta[0].result = []
+    p_meta.skip_current_row = 0
+    p_meta.current_col = 0
+    p_meta.current_row = 0
+    p_meta.result = []
   end
 
   def self.parse(file_name, opts)
@@ -223,107 +83,42 @@ class Rcsv
     setup_rcsv_metadata_defaults(&meta)
     csvio = StringIO.new(file_name)
 
-    if !opts[:nostrict]
-      csv_options |= CSV_STRICT
-    end
-
-    option = opts[:parse_empty_fields_as]
-
-    if option == nil || option == :nil_or_string
-      csv_options |= CSV_EMPTY_IS_NULL
-    elsif option.nil?
-      meta.empty_field_is_nil = 1
-    elsif option == :string
-      meta.empty_field_is_nil = 0
-    else
-      raise(RcsvParseError, "The only valid options for :parse_empty_fields_as are :nil, :string and :nil_or_string.")
-    end
-
     if csv_init(&cp, csv_options) == -1
       raise(RcsvParseError, "Failed to initialize libcsv.")
     end
+    meta.last_entry = []
 
-    buffer_size = opts[:buffer_size]
-    meta.row_as_hash = 1 if opts[:row_as_hash]
+    begin
+      while true do
+        csvstr = csvio.read
 
-    csv_set_delim(&cp, col_sep) if opts[:col_sep]
-    csv_set_quote(&cp, quote_char) if opts[:quote_char]
+        break if csvstr.nil? || csvstr.size == 0
 
-    meta.offset_rows = opts[:offset_rows] if opts[:offset_rows]
+        char* csv_string = csvstr
+        csv_string_len = csvstr.size
 
-    # Specify character encoding
-    option = opts[:output_encoding]
-    meta.encoding_index = rb_enc_find_index(<char*>option) if option != nil
+        if csv_string_len != csv_parse(&cp, csv_string, csv_string_len, &end_of_field_callback, &end_of_line_callback, &meta)
+          int error = csv_error(&cp)
 
-    # :only_rows is a list of values where row is only parsed
-    #   if its fields match those in the passed array.
-    option = opts[:only_rows]
-    if option
-      meta.num_only_rows = option.size
-      meta.only_rows = <object*>xmalloc(meta.num_only_rows * sizeof(object))
-
-      int i = 0
-
-      for 0 <= i < meta.num_only_rows do
-        only_row = option[i]
-        meta.only_rows[i] = validate_filter_row(only_row)
-      end
-    end
-    # TODO: row_defaults, row_conversions, column name declaration when parsing
-    #   fields as Hashes, 
-
-    # :row_conversions specifies Ruby types that CSV field values should be
-    #   converted into. Each char of row_conversions string represents Ruby
-    #   type for CSV field with matching position.
-    row_conversions = opts[:row_conversions]
-    if row_conversions
-      meta.num_row_conversions = row_conversions.size
-      meta.row_conversions = row_conversions
-    end
-
-    if meta.row_as_hash
-      column_names = opts[:column_names]
-
-      if column_names.nil?
-       # raise RcsvParseError, ":row_as_hash requires :column_names to be set."
-      else
-        meta.last_entry = {}
-        meta.num_columns = column_names.size
-        meta.column_names = column_names
-      end
-    else
-      meta.last_entry = []
-    end
-
-    while true do
-      csvstr = csvio.read
-      # print csvstr
-      if csvstr.nil? || csvstr.size == 0
-        break
-      end
-
-      char* csv_string = csvstr
-      csv_string_len = csvstr.size
-
-      if csv_string_len != csv_parse(&cp, csv_string, csv_string_len, &end_of_field_callback, &end_of_line_callback, &meta)
-        int error = csv_error(&cp)
-
-        if error == CSV_EPARSE
-          raise(RcsvParseError, "Error when parsing malformed data.")
-        elsif error == CSV_ENOMEM
-          raise(RcsvParseError, "No memory.")
-        elsif error == CSV_ETOOBIG
-          raise(RcsvParseError, "Field data data is too large.")
-        elsif error == CSV_EINVALID
-          raise(RcsvParseError, "#{csv_strerror(error)}")
-        else
-          raise(RcsvParseError, "Something went wrong.")
+          if error == CSV_EPARSE
+            raise(RcsvParseError, "Error when parsing malformed data.")
+          elsif error == CSV_ENOMEM
+            raise(RcsvParseError, "No memory.")
+          elsif error == CSV_ETOOBIG
+            raise(RcsvParseError, "Field data data is too large.")
+          elsif error == CSV_EINVALID
+            raise(RcsvParseError)
+          else
+            raise(RcsvParseError, "Something went wrong.")
+          end
         end
       end
+
+      csv_fini(&cp, &end_of_field_callback, &end_of_line_callback, &meta)
+    ensure
+      csv_free(&cp) if &cp
     end
 
-    csv_fini(&cp, &end_of_field_callback, &end_of_line_callback, &meta)
-    free_all_memory(&cp, &meta)
     return meta.result
   end
 end

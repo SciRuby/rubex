@@ -4,9 +4,9 @@ class Handler
     int j = 0
 
     begin
-      raise(ArgumentError) if i == 1
-      raise(LoadError) if i == 2
-      raise(SyntaxError) if i == 3
+      raise(ArgumentError, "Horrible error.") if i == 1
+      raise(LoadError, "Bad error.") if i == 2
+      raise(SyntaxError, "Disgusting error.") if i == 3
     rescue ArgumentError
       j = 1
     rescue LoadError
@@ -20,5 +20,35 @@ class Handler
     end
 
     return j
+  end
+
+  def test_uncaught_error
+    begin
+      raise ArgumentError
+    rescue SyntaxError
+    end
+  end
+
+  def test_without_rescue
+    int i = 1
+    begin
+      raise ArgumentError
+    ensure
+      return i
+    end
+  end
+
+  def test_decl_inside_begin
+    int i
+    string = "hello world"
+
+    begin
+      char* s = string
+      raise(ArgumentError) if s[0] == 'h'
+    rescue ArgumentError
+      i = 44
+    end
+
+    return i
   end
 end

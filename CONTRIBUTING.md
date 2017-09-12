@@ -1,3 +1,16 @@
+# Table of Contents
+
+<!-- MarkdownTOC autolink="true" bracket="round" -->
+
+- [Setup](#setup)
+- [Development notes](#development-notes)
+- [Important data representations](#important-data-representations)
+- [Internals](#internals)
+  - [Attach classes](#attach-classes)
+- [Future work](#future-work)
+
+<!-- /MarkdownTOC -->
+
 # Setup
 
 If you wish to contribute to Rubex, you can setup rubex on your system with the following commands:
@@ -61,6 +74,12 @@ If Hash, it will look like this:
 }
 ```
 
+# Internals
+
+## Attach classes
+
+
+
 # Future work
 
 The following features in Rubex need to be implemented or can be made better:
@@ -76,7 +95,7 @@ The following features in Rubex need to be implemented or can be made better:
 * Prohibit structs (vector types) in if statements via compile time checks.
 * Ability to provide default values to method arguments.
 * Ability to write Rubex programs spanning multiple files.
-
-# Contemplative features
-
-* Special operator (not `->`) for accessing elements from a struct pointer.
+* If a Ruby method and extern C function have the same name the program malfunctions. Either namespace C functions or disallow Ruby methods with same names as extern C functions.
+* Clean up classes under Statement such that they don't have attr_reader's like `:name` and `:type` which are really not a part of statement attributes.
+* Support for multi-file programs (maybe using `require`?).
+* Refactor classes to cleaner support for compound types like CFunctions and simple struct pointers that have the base type nested just one level deep.

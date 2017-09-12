@@ -445,16 +445,16 @@ module Rubex
 
       class RubyConstant < Base
         include Rubex::AST::Expression
-        attr_reader :name, :entry
+        attr_reader :name, :entry, :type
 
         def initialize name
           @name = name
         end
 
         def analyse_statement local_scope
-          type = Rubex::DataType::RubyConstant.new @name
+          @type = Rubex::DataType::RubyConstant.new @name
           c_name = Rubex::DEFAULT_CLASS_MAPPINGS[@name]
-          @entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
+          @entry = Rubex::SymbolTable::Entry.new name, c_name, @type, nil
         end
 
         def c_code local_scope
@@ -628,15 +628,9 @@ module Rubex
         end
 
         def generate_evaluation_code code, local_scope
-          # @arg_list.each do |arg|
-          #   arg.generate_evaluation_code code, local_scope
-          # end
         end
 
         def generate_disposal_code code
-          # @arg_list.each do |arg|
-          #   arg.generate_disposal_code code
-          # end
         end
 
         def c_code local_scope
@@ -747,9 +741,7 @@ module Rubex
           if @expr.nil?
             entry = local_scope.find(@command)
             @expr = Expression::Self.new if entry && !entry.extern?
-          end
-          # if command is extern @expr will be nil.
-          unless @expr.nil?
+          else
             @expr.analyse_statement(local_scope)
             @expr.allocate_temps local_scope
             @expr.allocate_temp local_scope, @expr.type
@@ -776,14 +768,16 @@ module Rubex
             if @command.is_a? Rubex::AST::Expression::MethodCall
               @c_code << @command.c_code(local_scope)
             else # interpreted as referencing the contents of a struct
-              @c_code << "#{@expr.c_code(local_scope)}.#{@command.c_code(local_scope)}"
+              op = @expr.type.cptr? ? "->" : "."
+
+              @c_code << "#{@expr.c_code(local_scope)}#{op}#{@command.c_code(local_scope)}"
             end
           end
         end
 
         def generate_disposal_code code
           @expr.generate_disposal_code(code) if @expr
-          @command.generate_disposal_code code
+          # @command.generate_disposal_code code
           @arg_list.each do |arg|
             arg.generate_disposal_code code
           end
@@ -804,8 +798,9 @@ module Rubex
       private
 
         def analyse_command_type local_scope
-          if @expr && @expr.type.struct_or_union?
-            scope = @expr.type.scope
+          if @expr && ((@expr.type.cptr? && @expr.type.type.struct_or_union?) || 
+              (@expr.type.struct_or_union?))
+            scope = @expr.type.base_type.scope
             if @command.is_a? String
               @command = Expression::Name.new @command
               @command.analyse_statement scope
@@ -1185,7 +1180,6 @@ module Rubex
           end
 
           def analyse_for_target_type target_type, local_scope
-            puts "hello #{target_type}"
             if target_type.object?
               @type = Rubex::DataType::TrueType.new
             else

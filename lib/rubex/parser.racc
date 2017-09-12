@@ -1,8 +1,9 @@
 class Rubex::Parser
 token
-  kDEF kEND kRETURN kPRINT kIF    kELSIF kELSE   kTHEN  kSTATIC_ARRAY kFOR kWHILE
-  kDOT_EACH kDO     kTRUE  kFALSE kNIL   kSTRUCT kUNION kALIAS        kLIB kCLASS
-  kCFUNC     kSELF  kNULL  kFWD   kATTACH kRAISE kBREAK kBLOCK_GIVEN  kYIELD
+  kDEF kEND kRETURN kPRINT  kIF    kELSIF  kELSE   kTHEN  kSTATIC_ARRAY kFOR 
+  kDOT_EACH kDO     kTRUE   kFALSE kNIL    kSTRUCT kUNION kALIAS        kLIB 
+  kCFUNC    kSELF   kNULL   kFWD   kATTACH kRAISE kBREAK kBLOCK_GIVEN  kYIELD
+  kBEGIN    kRESCUE kENSURE kWHILE  kCLASS kDATA_VAR
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT  kDTYPE_CHAR   kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8    kDTYPE_UI16   kDTYPE_UI32 kDTYPE_UI64
@@ -44,7 +45,7 @@ preclow
 rule
 
   program:
-    top_compstmts opt_terms {result = Node.new(val[0])}
+    opt_terms top_compstmts opt_terms {result = Node.new(val[1])}
 
   top_compstmts:
     top_compstmt { result = [val[0]] }
@@ -91,12 +92,12 @@ rule
       }
 
   opt_compilation_cmds:
-    opt_compilation_cmd { result = [val[0]] }
-  | opt_compilation_cmds tCOMMA opt_compilation_cmd { result = [*val[0], val[2]] }
+    { result = [{}]  }
+  | compilation_cmd { result = [val[0]] }
+  | opt_compilation_cmds tCOMMA compilation_cmd { result = [*val[0], val[2]] }
 
-  opt_compilation_cmd:
-     { result = {} }
-  | tIDENTIFIER tCOLON tSTRING 
+  compilation_cmd:
+    tIDENTIFIER tCOLON tSTRING 
       { 
         if val[0] == 'link'
           result = { link: val[2] }
@@ -324,6 +325,46 @@ rule
       {
         result = Statement::Yield.new(Statement::ActualArgList.new(val[2]))
       }
+  | begin_block
+
+  begin_block:
+    kBEGIN terms compstmt opt_begin_block_tails kEND
+      { 
+        result = Statement::BeginBlock::Begin.new val[2], val[3], location
+      }
+
+  opt_begin_block_tails:
+    opt_rescue_blocks opt_else_block opt_ensure_block
+      { 
+        tails = []
+        tails.concat(val[0]) if val[0]
+        tails << val[1]      if val[1]
+        tails << val[2]      if val[2]
+
+        result = tails
+      }
+
+  opt_rescue_blocks:
+      { result = nil }
+  | rescue_block { result = [val[0]] }
+  | opt_rescue_blocks rescue_block { result = [*val[0], val[1]]  }
+
+  rescue_block:
+    kRESCUE tIDENTIFIER terms compstmt
+      { 
+        err = Expression::Name.new(val[1]) 
+        result = Statement::BeginBlock::Rescue.new err, nil, val[3] || [], location 
+      }
+
+  opt_else_block:
+      { result = nil }
+  | kELSE terms compstmt
+      { result = Statement::BeginBlock::Else.new val[2] || [], location }
+
+  opt_ensure_block:
+      { result = nil }
+  | kENSURE terms compstmt
+      { result = Statement::BeginBlock::Ensure.new val[2] || [], location }
 
   forward_declaration:
     kFWD kSTRUCT tIDENTIFIER
@@ -596,6 +637,11 @@ rule
         result = Expression::SizeOf.new(val[2], val[3])
       }
   | kBLOCK_GIVEN { result = Expression::BlockGiven.new }
+  | kDATA_VAR 
+      { 
+        result = Expression::ElementRef.new('data',
+          Expression::Literal::Int.new('0'))
+      }
 
   command_call:
     method_or_attr command_opt_args
@@ -710,7 +756,6 @@ def next_token
   set_lineno
 
   t = @lexer.next_token
-
   if !t.nil?
     if t[0] == :tIDENTIFIER
       if @custom_dtypes.has_key?(t[1]) &&
@@ -757,6 +802,12 @@ def check_for_keyword token
     return [:kRAISE, match]
   elsif match == "break"
     return [:kBREAK, match]
+  elsif match == "begin"
+    return [:kBEGIN, match]
+  elsif match == "ensure"
+    return [:kENSURE, match]
+  elsif match == "rescue"
+    return [:kRESCUE, match]
   end
 
   return token

@@ -10,6 +10,16 @@ lib "<math.h>"
 
   alias exec = struct exception
 end
+            
+lib "<math.h>"
+  double sin(double)        
+end
+
+class RMath
+  def ruby_sin(double x)
+    return sin(x)
+  end
+end
 
 def maths(double a, double b, c)
   alias int_64 = i64
@@ -35,4 +45,14 @@ def maths(double a, double b, c)
   end
 
   return pow(6.7, s.a)
+end
+
+def stray_cos
+  return cos(4.5)
+end
+
+class A
+  def ruby_cos
+    return cos(4.5)
+  end
 end

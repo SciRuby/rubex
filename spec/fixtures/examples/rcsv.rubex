@@ -2,10 +2,6 @@ lib "rubex/ruby"; end
 lib "rubex/ruby/encoding"; end
 lib "rubex/stdlib"; end
 
-lib "<stdio.h>"
-  int printf(char*, char*)
-end
-
 lib "csv.h", link: "csv"
   struct csv_parser
   end
@@ -108,8 +104,6 @@ class Rcsv
     rcsv_metadata meta = meta_p[0]
     char row_conversion = 0
     object parsed_field
-    # s = rb_str_new(field_str, field_size)
-    # print "HALLOW", s
 
     # No need to parse anything until the end of the line if skip_current_row is set */
     # return if meta.skip_current_row
@@ -120,50 +114,7 @@ class Rcsv
       return
     end
 
-    # # Get row conversion char specifier
-    # if meta.current_col < meta.num_row_conversions
-    #   row_conversion = <char>meta.row_conversions[meta.current_col]
-    # end
-
-    # # Convert the field from string into Ruby type specified by row_conversion
-    # if row_conversion != ' ' # spacebar skips the column
-    #   if field_size == 0
-    #     # Assigning appropriate default value if applicable.
-    #     if meta.current_col < meta.num_row_defaults
-    #       parsed_field = meta.row_defaults[meta.current_col]
-    #     else # It depends on empty_field_is_nil if we convert empty strings to nils */
-    #       if meta.empty_field_is_nil || field_str == NULL
-    #         parsed_field = nil
-    #       else
-    #         parsed_field = ENCODED_STR_NEW("", 0, meta.encoding_index)
-    #       end
-    #     end
-    #   else
-    #     if meta.current_col < meta.num_row_conversions
-    #       if row_conversion == 's' # string
-    #         parsed_field = ENCODED_STR_NEW(field_str, field_size, meta.encoding_index)
-    #       elsif row_conversion == 'i' # integer
-    #         parsed_field = atoll(field_str)
-    #       elsif row_conversion == 'f' # float
-    #         parsed_field = atof(field_str)
-    #       elsif row_conversion == 'b' # boolean
-    #         char field_0 = field_str[0]
-    #         if field_0 == 't' || field_0 == 'T' || field_0 == '1'
-    #           parsed_field = true
-    #         elsif field_0 == 'f' || field_0 == 'F' || field_0 == '0'
-    #           parsed_field = false
-    #         else
-    #           raise_with_location(meta.current_row, meta.current_col, field_str)
-    #         end
-    #       end
-    #     else
-    #       raise_with_location(meta.current_row, meta.current_col, field_str)
-    #     end
-    #   end
-    # else # No conversion happens
-    #   raise
-      parsed_field = ENCODED_STR_NEW(field_str, field_size, meta.encoding_index)
-    # end
+    parsed_field = ENCODED_STR_NEW(field_str, field_size, meta.encoding_index)
 
     # Filter by row values listed in meta->only_rows */
     if ((meta.only_rows != NULL) && (meta.current_col < meta.num_only_rows) && (meta.only_rows[meta.current_col] != nil) && (!rb_ary_includes(meta.only_rows[meta.current_col], parsed_field)))
@@ -343,42 +294,36 @@ class Rcsv
     else
       meta.last_entry = []
     end
-    # print "HALLLOWWWW"
-    #begin
-      while true do
-        csvstr = csvio.read
-        # print csvstr
-        if csvstr.nil? || csvstr.size == 0
-          break
-        end
-        print "AGAININNNNN"
-        char* csv_string = csvstr
-        csv_string_len = csvstr.size
 
-        if csv_string_len != csv_parse(&cp, csv_string, csv_string_len, &end_of_field_callback, &end_of_line_callback, &meta)
-          int error = csv_error(&cp)
+    while true do
+      csvstr = csvio.read
+      # print csvstr
+      if csvstr.nil? || csvstr.size == 0
+        break
+      end
 
-          if error == CSV_EPARSE
-            raise(RcsvParseError, "Error when parsing malformed data.")
-          elsif error == CSV_ENOMEM
-            raise(RcsvParseError, "No memory.")
-          elsif error == CSV_ETOOBIG
-            raise(RcsvParseError, "Field data data is too large.")
-          elsif error == CSV_EINVALID
-            raise(RcsvParseError, "#{csv_strerror(error)}")
-          else
-            raise(RcsvParseError, "Something went wrong.")
-          end
+      char* csv_string = csvstr
+      csv_string_len = csvstr.size
+
+      if csv_string_len != csv_parse(&cp, csv_string, csv_string_len, &end_of_field_callback, &end_of_line_callback, &meta)
+        int error = csv_error(&cp)
+
+        if error == CSV_EPARSE
+          raise(RcsvParseError, "Error when parsing malformed data.")
+        elsif error == CSV_ENOMEM
+          raise(RcsvParseError, "No memory.")
+        elsif error == CSV_ETOOBIG
+          raise(RcsvParseError, "Field data data is too large.")
+        elsif error == CSV_EINVALID
+          raise(RcsvParseError, "#{csv_strerror(error)}")
+        else
+          raise(RcsvParseError, "Something went wrong.")
         end
       end
-      print "NOOOOOO"
-    #ensure
+    end
 
-    #end
-    print "BRUUUU"
     csv_fini(&cp, &end_of_field_callback, &end_of_line_callback, &meta)
     free_all_memory(&cp, &meta)
-    print "UUUUBBBBB"
     return meta.result
   end
 end

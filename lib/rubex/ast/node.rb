@@ -67,9 +67,25 @@ module Rubex
           declare_types code, klass.scope
         end
         write_user_klasses code
+        write_global_variable_declarations code
         write_function_declarations code
         write_usability_functions code
         code.nl
+      end
+
+      def write_global_variable_declarations code
+        @statements.each do |stmt|
+          if stmt.is_a?(TopStatement::Klass)
+            stmt.statements.each do |s|
+              if s.is_a?(TopStatement::MethodDef)
+                s.scope.global_entries.each do |g|
+                  code << "static #{g.type} #{g.c_name};"
+                  code.nl
+                end # .each
+              end # if
+            end # .each
+          end # if
+        end # .each
       end
 
       def write_user_klasses code
@@ -145,10 +161,9 @@ module Rubex
               ancestor_entry = @scope.find(stat.ancestor)
               if !ancestor_entry && Rubex::DEFAULT_CLASS_MAPPINGS[stat.ancestor]
                 ancestor_c_name = Rubex::DEFAULT_CLASS_MAPPINGS[stat.ancestor]
-                ancestor_scope = Rubex::SymbolTable::Scope::Klass.new(
-                  stat.ancestor, nil)
+                ancestor_scope = object_or_stdlib_klass_scope stat.ancestor
                 @scope.add_ruby_class(name: stat.ancestor, c_name: ancestor_c_name,
-                  scope: ancestor_scope, ancestor: nil, extern: true)
+                  scope: @scope, ancestor: nil, extern: true)
               else
                 ancestor_scope = ancestor_entry&.type&.scope || @scope
               end
@@ -164,6 +179,11 @@ module Rubex
               ancestor: ancestor_scope, extern: false)
           end
         end
+      end
+
+      def object_or_stdlib_klass_scope name
+        name != 'Object' ? Rubex::SymbolTable::Scope::Klass.new(name, nil) : 
+          @scope
       end
 
       def c_name_for_class name

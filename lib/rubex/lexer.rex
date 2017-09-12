@@ -125,6 +125,7 @@ rules
 
   # Method hacks
 
+  /data\$/                { [:kDATA_VAR, text] }
   /#{DOT}#{EACH}/ { [:kDOT_EACH, text] }
 
   # Data Types
@@ -207,6 +208,7 @@ rules
 
 inner
   def do_parse
+    self.ss.string = self.ss.string.split("\n").map! { |e| e.rstrip }.join("\n")
     self.ss << "\n"
   end
 end # Rubex::Lexer

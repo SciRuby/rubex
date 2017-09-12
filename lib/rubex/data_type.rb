@@ -324,6 +324,18 @@ module Rubex
       def lint?; true; end
 
       def p_formatter; "%ld"; end
+
+      def <=> other
+        if other.char? || other.int8? || other.int16? || other.int32? ||
+          other .int64? || other.uint8? || other.uint16? || other.uint32? ||
+          other.int?
+          return 1
+        elsif other.lint?
+          return 0
+        else
+          return -1
+        end
+      end
     end
 
     class ULInt
@@ -596,9 +608,7 @@ module Rubex
       end
     end
 
-    class RubyConstant
-      include Helpers
-
+    class RubyConstant < RubyObject
       attr_reader :name, :type
 
       def initialize name
@@ -612,8 +622,6 @@ module Rubex
     end
 
     class RubyClass < RubyConstant
-      include Helpers
-
       attr_reader :name, :c_name, :scope, :ancestor
 
       def initialize name, c_name, scope, ancestor

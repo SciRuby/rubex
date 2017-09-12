@@ -175,6 +175,8 @@ class Rubex::Lexer
             action { [:kATTACH, text] }
           when text = ss.scan(/#{BLOCK_GIVEN}/) then
             action { [:kBLOCK_GIVEN, text] }
+          when text = ss.scan(/data\$/) then
+            action { [:kDATA_VAR, text] }
           when text = ss.scan(/#{DOT}#{EACH}/) then
             action { [:kDOT_EACH, text] }
           when text = ss.scan(/unsigned long long int/) then
@@ -345,6 +347,7 @@ class Rubex::Lexer
     token
   end # def next_token
     def do_parse
+      self.ss.string = self.ss.string.split("\n").map! { |e| e.rstrip }.join("\n")
       self.ss << "\n"
     end
 end # class

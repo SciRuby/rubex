@@ -26,6 +26,8 @@ module Rubex
         end
       end
       Rake::ExtensionTask.new(@name)
+
+      desc "Compile Rubex code into a .so file for use in Ruby scripts."
       task :compile => "rubex:compile"
     end
   end # class RakeTask

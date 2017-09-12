@@ -1,0 +1,18 @@
+lib "<ruby.h>"
+  object rb_hash_aset(object, object, object)
+end
+
+class Array2Hash
+  def self.convert(a)
+    long int i = a.size
+    long int j = 0
+    result = {}
+
+    while j < i do
+      rb_hash_aset(result, a[j], j)
+      j += 1
+    end
+
+    return result
+  end
+end
