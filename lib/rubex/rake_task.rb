@@ -21,7 +21,7 @@ module Rubex
       namespace :rubex do
         desc "Compile a Rubex file into a shared object."
         task :compile do
-          file_name = "#{@ext_dir}/#{@name}#{@source_pattern[1..-1]}"
+          file_name = "#{Dir.pwd}/#{@ext_dir}/#{@name}#{@source_pattern[1..-1]}"
           Rubex::Compiler.compile file_name, directory: "#{@ext_dir}"
         end
       end

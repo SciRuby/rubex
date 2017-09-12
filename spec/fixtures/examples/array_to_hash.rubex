@@ -1,5 +1,6 @@
 lib "<ruby.h>"
   object rb_hash_aset(object, object, object)
+  object RARRAY_AREF(object, long int)
 end
 
 class Array2Hash
@@ -9,7 +10,7 @@ class Array2Hash
     result = {}
 
     while j < i do
-      rb_hash_aset(result, a[j], j)
+      rb_hash_aset(result, RARRAY_AREF(a, j), j)
       j += 1
     end
 

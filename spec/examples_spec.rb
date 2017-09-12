@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Rubex do
   test_case = 'examples'
 
-  examples = ['rcsv', 'array_to_hash'].each do |example|
+  examples = ['array_to_hash'].each do |example|
     context "Case: #{test_case}/#{example}" do
       before do
         @path = path_str test_case, example
@@ -15,13 +15,13 @@ describe Rubex do
         end
       end
 
-      context ".compile", now: true do
+      context ".compile", focus: true do
         it "compiles to valid C file" do
           t,c,e = Rubex::Compiler.compile(@path + '.rubex', test: true)
         end
       end
 
-      context "Black Box testing", now: true do
+      context "Black Box testing", focus: true do
         it "compiles and checks for valid output" do
           def rcsv
             result = [
@@ -37,10 +37,8 @@ describe Rubex do
           end
 
           def array_to_hash
-            a = (1..1000).to_a.map(&:to_s)
-            c = Array2Hash.convert a
-            d = a.each_with_index.to_h
-            expect(c == d).to eq(true)
+            a = ["a", "b"]
+            expect(Array2Hash.convert(a)).to eq({"a" => 0, "b" => 1})
           end
 
           setup_and_teardown_compiled_files(test_case, example) do |dir|

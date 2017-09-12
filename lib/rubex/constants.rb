@@ -42,7 +42,9 @@ module Rubex
     'object'                 => Rubex::DataType::RubyObject,
     'void'                   => Rubex::DataType::Void,
     'size_t'                 => Rubex::DataType::Size_t,
-    'str'                    => Rubex::DataType::RubyString
+    'str'                    => Rubex::DataType::RubyString,
+    'arr'                    => Rubex::DataType::RubyArray,
+    'hsh'                    => Rubex::DataType::RubyHash
   }
 
   CUSTOM_TYPES = {}

@@ -14,7 +14,7 @@ module Rubex
         :cptr?, :nil_type?, :struct_or_union?,
         :alias_type?, :string?, :cstr?, :ruby_class?,
         :ruby_method?, :c_function?, :ruby_constant?, :void?,
-        :ruby_string?, :uchar?
+        :ruby_string?, :uchar?, :ruby_array?, :ruby_hash?
       ].each do |dtype|
         define_method(dtype) { return false }
       end
@@ -84,6 +84,14 @@ module Rubex
 
     class RubyString < RubyObject
       def ruby_string?; true; end
+    end
+
+    class RubyArray < RubyObject
+      def ruby_array?; true; end
+    end
+
+    class RubyHash < RubyObject
+      def ruby_hash?; true; end
     end
 
     class Char
