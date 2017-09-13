@@ -1,6 +1,9 @@
-# Rubex (RUBy EXtension Language)
+---
+layout: page
+title: Reference
+---
 
-Rubex is a language designed to keep you happy even when writing C extension.
+Rubex (RUBy EXtension Language) is a language designed to keep you happy even when writing C extension.
 
 # Table of Contents
 <!-- MarkdownTOC autolink="true" bracket="round" depth="3"-->

@@ -1,4 +1,7 @@
-# Rubex tutorial
+---
+layout: page
+title: Tutorial
+---
 
 Here's a quick tutorial of Rubex to get you up and started. Once you're through, take a moment to convert one of your C extensions to Rubex and see the difference in speed of development and simplicity.
 
@@ -98,7 +101,7 @@ end
 
 These functions can be used in a similar manner to our hello_world program above. Keep in mind that you cannot (yet) have function names in your Rubex program that have the same name as that of the external C functions. This will cause name clashes and malfunction.
 
-Read what you can do more with `lib` in the [REFERENCE](REFERENCE.md).
+Read what you can do more with `lib` in the [REFERENCE](reference.md).
 
 # C Functions
 
@@ -167,7 +170,7 @@ The above example has some notable Rubex constructs:
 
 ### The attach keyword
 
-The 'attach' keyword is a special keyword that is used for associating a particular struct with a Ruby class. Once this keyword is used, the Rubex compiler will take care of allocation, deallocation and fetching of the struct (more about this in the [REFERENCE](REFERENCE.md)). The user only needs to concern themselves with using and allocating the data inside the struct.
+The 'attach' keyword is a special keyword that is used for associating a particular struct with a Ruby class. Once this keyword is used, the Rubex compiler will take care of allocation, deallocation and fetching of the struct (more about this in the [REFERENCE](reference.md)). The user only needs to concern themselves with using and allocating the data inside the struct.
 
 In the above case, `attach` creates tells the class `Music` that it will be associated with a C struct of type `mp3info`.
 

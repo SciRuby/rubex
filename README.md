@@ -137,11 +137,11 @@ This will produce a `Makefile`. Run `make` to compile the generated C file and g
 
 # Tutorial
 
-Give yourself 5 min and go through the [TUTORIAL](TUTORIAL.md). Convert a part of your C extension to Rubex and see the jump in cleanliness and productivity for yourself.
+Give yourself 5 min and go through the [TUTORIAL](docs/tutorial.md). Convert a part of your C extension to Rubex and see the jump in cleanliness and productivity for yourself.
 
 # Syntax
 
-Read the full Rubex reference in [REFERENCE](REFERENCE.md).
+Read the full Rubex reference in [REFERENCE](docs/reference.md).
 
 # Roadmap
 
