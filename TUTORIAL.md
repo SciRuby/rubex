@@ -141,11 +141,11 @@ class Music attach mp3info
   end
 
   def id
-    return data$.id
+    return data$.mp3info.id
   end
 
   def title
-    return data$.title
+    return data$.mp3info.title
   end
 
   cfunc void deallocate

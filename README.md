@@ -92,17 +92,17 @@ However, if you decide to write a C extension using Rubex, the code will look li
 class Fibonnaci
   def compute(int n)
     int i = 1, prev = 1, current = 1, temp
-    arr = []
+    array = []
 
     while i < n do
       temp = current
       current = current + prev
       prev = temp
-      arr.push(prev)
+      array.push(prev)
       i += 1
     end
 
-    return arr
+    return array
   end
 end
 ```

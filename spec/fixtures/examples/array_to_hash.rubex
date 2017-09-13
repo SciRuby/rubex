@@ -1,16 +1,11 @@
-lib "<ruby.h>"
-  object rb_hash_aset(object, object, object)
-  object RARRAY_AREF(object, long int)
-end
-
 class Array2Hash
-  def self.convert(a)
+  def self.convert(arr a)
     long int i = a.size
     long int j = 0
-    result = {}
+    hsh result = {}
 
     while j < i do
-      rb_hash_aset(result, RARRAY_AREF(a, j), j)
+      result[a[j]] = j
       j += 1
     end
 

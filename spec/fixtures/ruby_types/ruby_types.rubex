@@ -3,8 +3,8 @@ class RubyTypes
     string.concat("a")
     array.push(44)
 
-    print string
-    print array
+    print string[0]
+    print array[0]
 
     print h["fff"]
     h["fff"] = 565
