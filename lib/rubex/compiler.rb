@@ -4,7 +4,7 @@ module Rubex
     CONFIG = Rubex::CompilerConfig.new
 
     class << self
-      def compile path, test: false, directory: nil, force: false
+      def compile path, test: false, directory: nil, force: false, make: false
         tree = ast path, test: test
         target_name = extract_target_name path
         code = generate_code tree, target_name
@@ -13,6 +13,9 @@ module Rubex
 
         return [tree, code, ext] if test
         write_files target_name, code, ext, directory: directory, force: force
+        full_path = build_path(directory, target_name)
+        load_extconf full_path
+        run_make full_path if make
       end
 
       def ast path, test: false
@@ -36,7 +39,7 @@ module Rubex
       end
 
       def extconf target_name, directory: nil
-        path = directory ? directory : "#{Dir.pwd}/#{target_name}"
+        path = build_path(directory, target_name)
         extconf = ""
         extconf << "require 'mkmf'\n"
         extconf << "$libs += \" #{CONFIG.link_flags}\"\n"
@@ -46,7 +49,7 @@ module Rubex
 
       def generate_code tree, target_name
         code = Rubex::CodeWriter.new target_name
-        raise "Must be a Rubex::AST::Node, not #{tree.class}" unless 
+        raise "Must be a Rubex::AST::Node, not #{tree.class}" unless
           tree.is_a? Rubex::AST::Node
         tree.process_statements target_name, code
         code
@@ -57,9 +60,9 @@ module Rubex
       end
 
       def write_files target_name, code, ext, directory: nil, force: false
-        path = directory ? directory : "#{Dir.pwd}/#{target_name}"
+        path = build_path(directory, target_name)
         FileUtils.rm_rf(path) if force && Dir.exist?(path)
-        Dir.mkdir(path) unless directory
+        Dir.mkdir(path) unless Dir.exist?(path)
 
         code_file = File.new "#{path}/#{target_name}.c", "w+"
         code_file.puts code.to_s
@@ -70,6 +73,21 @@ module Rubex
         extconf_file.close
       end
 
+      def load_extconf path
+        Dir.chdir(path) do
+          system("ruby #{path}/extconf.rb")
+        end
+      end
+
+      def run_make path
+        Dir.chdir(path) do
+          system("make -C #{path}")
+        end
+      end
+
+      def build_path directory, target_name
+        (directory ? directory.to_s : Dir.pwd) + "/#{target_name}"
+      end
     end
   end
 end
