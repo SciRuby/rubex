@@ -116,6 +116,7 @@ Notice the only difference between the above Rubex code and Ruby is the specific
 Rubex also takes care of the initial setup and compilation of the C files, so all you need to do is execute a bunch of commands and your extension is up and running!
 
 # Installation
+To build, requires Ruby version >= 2.3.0
 
 The gem as of now has not reached v0.1. However, you can try it out with:
 ```
