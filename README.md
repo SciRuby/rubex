@@ -6,6 +6,10 @@ Rubex is a language that makes writing CRuby C extensions as simple as writing R
 
 Rubex keeps you happy even when writing C extensions.
 
+# Status
+
+[![Gem Version](https://badge.fury.io/rb/rubex.svg)](https://badge.fury.io/rb/rubex)
+
 # Table of Contents
 
 <!-- MarkdownTOC autolink="true" bracket="round"-->

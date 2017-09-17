@@ -1,0 +1,9 @@
+class Fibonnaci
+  def compute(int n)
+    if n == 0 || n == 1
+      return n
+    end
+    
+    return compute(n - 1) + compute(n - 2)
+  end
+end

@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   spec.email         = ['sameer.deshmukh93@gmail.com']
   spec.summary       = Rubex::DESCRIPTION
   spec.description   = Rubex::DESCRIPTION
-  spec.homepage      = "http://github.com/v0dro/rubex"
+  spec.homepage      = "http://github.com/sciruby/rubex"
   spec.license       = 'BSD-2'
 
   spec.files         = `git ls-files -z`.split("\x0")
