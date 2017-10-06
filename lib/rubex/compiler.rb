@@ -86,7 +86,11 @@ module Rubex
       end
 
       def build_path directory, target_name
-        (directory ? directory.to_s : Dir.pwd) + "/#{target_name}"
+        directory = (directory ? directory.to_s : Dir.pwd)
+        unless directory.end_with?(target_name)
+          directory += "/#{target_name}"
+        end
+        directory
       end
     end
   end
