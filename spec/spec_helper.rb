@@ -38,9 +38,11 @@ def delete_generated_files test_case, example=nil
   Dir.chdir(dir) do
     [
       "#{test_case}.c", "#{test_case}.so", "Makefile",
-      "extconf.rb"    , "#{test_case}.o"
+      "extconf.rb"    , "#{test_case}.o", "#{test_case}.bundle",
+      "#{test_case}.dll"
+
     ].each do |f|
-      FileUtils.rm f
+      FileUtils.rm(f) if File.exist?(f)
     end
   end
 end
