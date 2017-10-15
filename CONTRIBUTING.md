@@ -46,7 +46,7 @@ When writing the `<=>` operator under Rubex::DataType classes, I have been force
 
 This consists of a hash that looks like this:
 ```
-{ 
+{
   dtype: ,
   variables: [{}]
 }
@@ -67,7 +67,7 @@ The `:variables` key maps to a value that is an Array of Hashes that contains a 
 
 If Hash, it will look like this:
 ```
-{    
+{
   name:,
   return_ptr_level:,
   arg_list:

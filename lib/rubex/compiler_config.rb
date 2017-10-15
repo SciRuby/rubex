@@ -1,7 +1,7 @@
 module Rubex
   class CompilerConfig
     def initialize
-      @links = []  
+      @links = []
     end
 
     def add_link link_str
