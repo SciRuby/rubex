@@ -34,7 +34,7 @@ module Rubex
     end
 
     def write_ruby_method_header type: , c_name:
-      args = [["int", "argc"], ["VALUE*", "argv"], 
+      args = [["int", "argc"], ["VALUE*", "argv"],
         ["VALUE", "#{Rubex::ARG_PREFIX + "self"}"]]
       write_func_prototype type, c_name, args
     end

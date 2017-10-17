@@ -8,16 +8,15 @@ module Rubex
           return rhs.from_ruby_object(lhs)
         else
           return rhs
-        end  
+        end
       end
 
       def result_type_for left, right
-        begin
-          return left.dup if left == right
-          return (left < right ? right.dup : left.dup)
-        rescue ArgumentError => e
-          raise Rubex::TypeError, e.to_s
-        end
+        return left.dup if left == right
+
+        (left < right ? right.dup : left.dup)
+      rescue ArgumentError => e
+        raise Rubex::TypeError, e.to_s
       end
 
       def determine_dtype data, ptr_level
@@ -30,9 +29,9 @@ module Rubex
             base_type = Rubex::DataType::CPtr.new base_type
           end
 
-          return base_type
+          base_type
         else
-          return simple_dtype(data)
+          simple_dtype(data)
         end
       end
 
@@ -41,10 +40,10 @@ module Rubex
           dtype
         else
           begin
-            Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new  
+            Rubex::CUSTOM_TYPES[dtype] || Rubex::TYPE_MAPPINGS[dtype].new
           rescue
             raise Rubex::TypeError, "Type #{dtype} not previously declared."
-          end          
+          end
         end
       end
 
@@ -62,7 +61,7 @@ module Rubex
       def declare_temps code, scope
         scope.temp_entries.each do |var|
           code.declare_variable type: var.type.to_s, c_name: var.c_name
-        end  
+        end
       end
 
       def declare_vars code, scope
@@ -76,9 +75,9 @@ module Rubex
       end
 
       def declare_carrays code, scope
-        scope.carray_entries.select { |s|
+        scope.carray_entries.select do |s|
           s.type.dimension.is_a? Rubex::AST::Expression::Literal::Base
-        }. each do |arr|
+        end.each do |arr|
           type = arr.type.type.to_s
           c_name = arr.c_name
           dimension = arr.type.dimension.c_code(@scope)
@@ -120,20 +119,16 @@ module Rubex
       def sue_header entry
         type = entry.type
         str = "#{type.kind} #{type.name}"
-        if !entry.extern
-          str.prepend "typedef "
-        end
-
+        str.prepend "typedef " unless entry.extern
         str
       end
 
       def sue_footer entry
-        str =
-        if entry.extern
-          ";"
-        else
-          " #{entry.type.c_name};"
-        end
+        str = if entry.extern
+                ";"
+              else
+                " #{entry.type.c_name};"
+              end
 
         str
       end
