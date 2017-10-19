@@ -62,7 +62,9 @@ module Rubex
           c_name = extern ? @name : Rubex::VAR_PREFIX + @name
           if @value
             @value.analyse_for_target_type(@type, local_scope)
+            @value.allocate_temp local_scope, @value.type
             @value = Helpers.to_lhs_type(self, @value)
+            @value.release_temp local_scope
           end
 
           local_scope.declare_var name: @name, c_name: c_name, type: @type,

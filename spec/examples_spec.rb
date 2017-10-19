@@ -37,10 +37,8 @@ describe Rubex do
           end
 
           def array_to_hash
-            a = (1..1000).to_a.map(&:to_s)
-            c = Array2Hash.convert a
-            d = a.each_with_index.to_h
-            expect(c == d).to eq(true)
+            a = ["a", "b", "c"]
+            expect(a.each_with_index.to_h).to eq(Array2Hash.convert(a))
           end
 
           setup_and_teardown_compiled_files(test_case, example) do |dir|

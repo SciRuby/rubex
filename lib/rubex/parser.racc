@@ -2,14 +2,14 @@ class Rubex::Parser
 token
   kDEF kEND kRETURN kPRINT  kIF    kELSIF  kELSE   kTHEN  kSTATIC_ARRAY kFOR 
   kDOT_EACH kDO     kTRUE   kFALSE kNIL    kSTRUCT kUNION kALIAS        kLIB 
-  kCFUNC    kSELF   kNULL   kFWD   kATTACH kRAISE kBREAK kBLOCK_GIVEN  kYIELD
+  kCFUNC    kSELF   kNULL   kFWD   kATTACH kRAISE  kBREAK kBLOCK_GIVEN  kYIELD
   kBEGIN    kRESCUE kENSURE kWHILE  kCLASS kDATA_VAR
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT  kDTYPE_CHAR   kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8    kDTYPE_UI16   kDTYPE_UI32 kDTYPE_UI64
   kDTYPE_INT    kDTYPE_F32  kDTYPE_F64    kDTYPE_LF64   kDTYPE_ROBJ kDTYPE_ULINT
   kDTYPE_ULLINT kDTYPE_VOID kDTYPE_SIZE_T kDTYPE_RB_STR kDTYPE_UCHAR kDTYPE_BOOL
-  tCUSTOM_DTYPE
+  tCUSTOM_DTYPE kDTYPE_RB_ARR kDTYPE_RB_HSH
 
   tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL     tCOMMA tSQUOTE tSCOLON
   EOF     tDOT    tQMARK   tSYMBOL  tLBRACE     tRBRACE tCOLON
@@ -679,7 +679,8 @@ rule
     kDTYPE_I16    | kDTYPE_I32    | kDTYPE_I64   | kDTYPE_UI8    | kDTYPE_UI16 |
     kDTYPE_UI32   | kDTYPE_UI64   | kDTYPE_INT   | kDTYPE_F32    | kDTYPE_F64  |
     kDTYPE_LF64   | kDTYPE_ROBJ   | kDTYPE_ULINT | kDTYPE_ULLINT | kDTYPE_VOID |
-    kDTYPE_SIZE_T | kDTYPE_RB_STR | kDTYPE_UCHAR | kDTYPE_BOOL   | tCUSTOM_DTYPE
+    kDTYPE_SIZE_T | kDTYPE_RB_STR | kDTYPE_UCHAR | kDTYPE_BOOL   | tCUSTOM_DTYPE |
+    kDTYPE_RB_ARR | kDTYPE_RB_HSH
       {
         result = val[0]
       }
@@ -853,6 +854,10 @@ def check_for_primitive_dtype token
     return [:kDTYPE_SIZE_T, match]
   elsif match == "str"
     return [:kDTYPE_RB_STR, match]
+  elsif match == "arr"
+    return [:kDTYPE_RB_ARR, match]
+  elsif match == "hsh"
+    return [:kDTYPE_RB_HSH, match]
   elsif match == "yield"
     return [:kYIELD, match]
   elsif match == "bool"

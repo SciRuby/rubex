@@ -36,14 +36,7 @@ def delete_generated_files test_case, example=nil
   dir = dir_str test_case
   test_case = example if example
   Dir.chdir(dir) do
-    [
-      "#{test_case}.c", "#{test_case}.so", "Makefile",
-      "extconf.rb"    , "#{test_case}.o", "#{test_case}.bundle",
-      "#{test_case}.dll"
-
-    ].each do |f|
-      FileUtils.rm(f) if File.exist?(f)
-    end
+    FileUtils.rm Dir.glob("#{test_case}.{c,so,o,bundle,dll}") + ["Makefile", "extconf.rb"]
   end
 end
 

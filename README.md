@@ -6,6 +6,10 @@ Rubex is a language that makes writing CRuby C extensions as simple as writing R
 
 Rubex keeps you happy even when writing C extensions.
 
+# Status
+
+[![Gem Version](https://badge.fury.io/rb/rubex.svg)](https://badge.fury.io/rb/rubex)
+
 # Table of Contents
 
 <!-- MarkdownTOC autolink="true" bracket="round"-->
@@ -92,17 +96,17 @@ However, if you decide to write a C extension using Rubex, the code will look li
 class Fibonnaci
   def compute(int n)
     int i = 1, prev = 1, current = 1, temp
-    arr = []
+    array = []
 
     while i < n do
       temp = current
       current = current + prev
       prev = temp
-      arr.push(prev)
+      array.push(prev)
       i += 1
     end
 
-    return arr
+    return array
   end
 end
 ```
@@ -112,6 +116,7 @@ Notice the only difference between the above Rubex code and Ruby is the specific
 Rubex also takes care of the initial setup and compilation of the C files, so all you need to do is execute a bunch of commands and your extension is up and running!
 
 # Installation
+To build, requires Ruby version >= 2.3.0
 
 The gem as of now has not reached v0.1. However, you can try it out with:
 ```

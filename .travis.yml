@@ -1,0 +1,14 @@
+language:
+  ruby
+
+rvm:
+  - '2.2'
+  - '2.3.0'
+  - '2.4.0'
+
+script:
+  - bundle exec rake spec
+
+install:
+  - gem install bundler
+  - bundle install

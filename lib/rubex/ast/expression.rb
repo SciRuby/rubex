@@ -367,7 +367,9 @@ module Rubex
           if @type.object? && !@object_ptr
             @has_temp = true
             @pos.analyse_statement local_scope
-            @pos = @pos.to_ruby_object
+            if !(@type.ruby_array?)
+              @pos = @pos.to_ruby_object
+            end
             @subexprs << @pos
           else
             @pos.analyse_statement local_scope
@@ -377,14 +379,24 @@ module Rubex
 
         # This method will be called when [] ruby method or C array element
         #   reference is called.
+        # TODO: refactor this by creating separate classes for ruby object, object
+        # ptr, c type.
         def generate_evaluation_code code, local_scope
-          @pos.generate_evaluation_code code, local_scope
           if @type.object? && !@object_ptr
-            code << "#{@c_code} = rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
-            code << "#{@pos.c_code(local_scope)});"
+            if @type.ruby_array?
+              code << "#{@c_code} = RARRAY_AREF(#{@entry.c_name}, #{@pos.c_code(local_scope)});"
+            elsif @type.ruby_hash?
+              @pos.generate_evaluation_code code, local_scope
+              code << "#{@c_code} = rb_hash_aref(#{@entry.c_name}, #{@pos.c_code(local_scope)});"
+            else
+              @pos.generate_evaluation_code code, local_scope
+              code << "#{@c_code} = rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
+              code << "#{@pos.c_code(local_scope)});"
+            end
             code.nl
             @pos.generate_disposal_code code
           else
+            @pos.generate_evaluation_code code, local_scope
             @c_code = "#{@entry.c_name}[#{@pos.c_code(local_scope)}]"
           end
         end
@@ -401,8 +413,12 @@ module Rubex
         def generate_assignment_code rhs, code, local_scope
           if @type.object? && !@object_ptr
             @pos.generate_evaluation_code code, local_scope
-            code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]=\"), 2, "
-            code << "#{@pos.c_code(local_scope)}, #{rhs.c_code(local_scope)});"
+            if @type.ruby_hash?
+              code << "rb_hash_aset(#{@entry.c_name}, #{@pos.c_code(local_scope)}, #{rhs.c_code(local_scope)});"
+            else
+              code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]=\"), 2, "
+              code << "#{@pos.c_code(local_scope)}, #{rhs.c_code(local_scope)});"
+            end
             @pos.generate_disposal_code code
           else
             code << "#{@entry.c_name}[#{@pos.c_code(local_scope)}] = "
@@ -1139,7 +1155,7 @@ module Rubex
           def c_code local_scope
             @c_code
           end
-        end
+        end # class StringLit
 
         class Char < Literal::Base
           def initialize name

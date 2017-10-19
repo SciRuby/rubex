@@ -58,15 +58,15 @@ end
 
 def access_struct_obj
   struct node
-    object arr
+    object array
   end
 
   node a
 
-  a.arr = []
-  a.arr.push(1)
+  a.array = []
+  a.array.push(1)
 
-  return a.arr[0]
+  return a.array[0]
 end
 
 def struct_ptr
