@@ -53,3 +53,32 @@ end
 def expect_compiled_code code, path
   expect(code.to_s).to eq(File.read(path))
 end
+
+
+def detect_os
+  @os ||= (
+    host_os = RbConfig::CONFIG['host_os']
+    case host_os
+    when /mswin|msys|mingw|cygwin|bccwin|wince|emc/
+      :windows
+    when /darwin|mac os/
+      :macosx
+    when /linux/
+      :linux
+    when /solaris|bsd/
+      :unix
+    else
+      raise StandardError, "unknown os: #{host_os.inspect}"
+    end
+  )
+end
+
+def os_extension
+  @extension_hash ||= {
+    windows: 'dll',
+    macosx: 'bundle',
+    linux: 'so',
+    unix: 'so'
+  }
+  @extension_hash[detect_os]
+end

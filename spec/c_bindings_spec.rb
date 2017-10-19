@@ -23,7 +23,7 @@ describe Rubex do
     context "Black Box testing" do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
-          require_relative "#{dir}/#{test_case}.so"
+          require_relative "#{dir}/#{test_case}.#{os_extension}"
 
           expect(maths(3,5,"hello")).to be_within(0.001).of(300.763)
           expect(stray_cos).to be_within(0.001).of(-0.210)
