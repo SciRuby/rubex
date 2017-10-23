@@ -25,8 +25,8 @@ describe Rubex do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do
           dir = dir_str test_case
-          require_relative "#{dir}/#{test_case}.so"
-          
+          require_relative "#{dir}/#{test_case}.#{os_extension}"
+
           t = TestTypeCasts.new
 
           expect(t.test_this).to eq(10)

@@ -23,7 +23,7 @@ describe Rubex do
     context "Black Box testing", focus: true do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
-          require_relative "#{dir}/#{test_case}.so"
+          require_relative "#{dir}/#{test_case}.#{os_extension}"
 
           expect(adder_if_else(2, 3, 4)).to eq(4)
           expect(multi_if_elsif).to eq(true)

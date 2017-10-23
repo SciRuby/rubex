@@ -24,7 +24,7 @@ describe Rubex do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           def foo; end
-          require_relative "#{dir}/#{test_case}.so"
+          require_relative "#{dir}/#{test_case}.#{os_extension}"
 
           expect(expr_stat).to eq("success.")
         end

@@ -42,7 +42,7 @@ describe Rubex do
           end
 
           setup_and_teardown_compiled_files(test_case, example) do |dir|
-            require_relative "#{dir}/#{example}.so"
+            require_relative "#{dir}/#{example}.#{os_extension}"
             self.send(example.to_sym)
           end
         end
