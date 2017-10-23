@@ -23,7 +23,7 @@ describe Rubex do
     context "Black Box testing", focus: true do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
-          require_relative "#{dir}/#{test_case}.so"
+          require_relative "#{dir}/#{test_case}.#{os_extension}"
 
           expect(have_ruby_h).to eq(1)
         end

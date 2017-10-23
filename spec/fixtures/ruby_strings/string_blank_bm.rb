@@ -1,24 +1,26 @@
+# coding: utf-8
+
 # This file contains a benchmark between Rubex's blank? and the String#blank?
 #   from the the fast_blank gem.
 
-require_relative 'ruby_strings.so'
+require_relative "ruby_strings.#{os_extension}"
 require 'fast_blank'
 require 'benchmark'
 require 'benchmark/ips'
 
-str= " "*2500 + "dff"
+str = ' ' * 2500 + 'dff'
 
 Benchmark.ips do |x|
-  x.config(:time => 5, :warmup => 2)
+  x.config(time: 5, warmup: 2)
 
   x.time = 5
   x.warmup = 2
 
-  x.report("fast_blank") do
+  x.report('fast_blank') do
     str.blank?
   end
 
-  x.report("blank?") do
+  x.report('blank?') do
     blank? str
   end
 
