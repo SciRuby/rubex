@@ -11,7 +11,7 @@ module Rubex
         directory = (options[:dir] ? options[:dir].to_s : Dir.pwd) + "/#{Rubex::Compiler.extract_target_name(file)}"
         STDOUT.puts "Warning! you are about to replace contents in the directory '#{directory}', Are you sure? [Yn] "
         confirmation = STDIN.gets.chomp
-        force = (confirmation == "Y")
+        force = (confirmation == 'Y')
       end
       Rubex::Compiler.compile file, directory: options[:dir], force: force, make: options[:install]
     end
