@@ -92,37 +92,20 @@ module Rubex
       class CPtrDecl < Base
         attr_reader :entry, :type
 
-        # type - Specifies the type of the pointer. Is a string in case of a
-        # normal pointer denoting the data type and pointer level (like `int`
-        # for a pointerto an integer). Can be a Hash in case of func pointer
-        # declaration.
-        # name [String] - name of the variable.
         def initialize type, name, value, ptr_level, location
           super(location)
           @name, @type, @value, @ptr_level  = name, type, value, ptr_level
         end
 
         def analyse_statement local_scope, extern: false
-          c_name = extern ? @name : Rubex::POINTER_PREFIX + @name
-          
-          if @type.is_a?(Hash) # function ptr
-            ident = @type[:ident]
-            ident[:arg_list].analyse_statement(local_scope, inside_func_ptr: true)
-            @type = DataType::CFunction.new(
-              @name,
-              c_name,
-              ident[:arg_list],
-              Helpers.determine_dtype(@type[:dtype], ident[:return_ptr_level]),
-              nil
-            )
-          end
+          cptr_cname extern
           @type = Helpers.determine_dtype @type, @ptr_level
           if @value
             @value.analyse_for_target_type(@type, local_scope)
             @value = Helpers.to_lhs_type(self, @value)
           end
 
-          @entry = local_scope.declare_var name: @name, c_name: c_name,
+          @entry = local_scope.declare_var name: @name, c_name: @c_name,
             type: @type, value: @value, extern: extern
         end
 
@@ -144,7 +127,29 @@ module Rubex
             @value.generate_disposal_code code
           end
         end
-      end
+
+        private
+
+        def cptr_cname extern
+           @c_name = extern ? @name : Rubex::POINTER_PREFIX + @name
+        end
+      end # class CPtrDecl
+
+      class CPtrFuncDecl < CPtrDecl
+        def analyse_statement local_scope, extern: false
+          cptr_cname extern
+          ident = @type[:ident]
+          ident[:arg_list].analyse_statement(local_scope, inside_func_ptr: true)
+          @type = DataType::CFunction.new(
+            @name,
+            @c_name,
+            ident[:arg_list],
+            Helpers.determine_dtype(@type[:dtype], ident[:return_ptr_level]),
+            nil
+          )
+          super
+        end
+      end # class CPtrFuncDecl
 
       class CArrayDecl < Base
         attr_reader :type, :array_list, :name, :dimension

@@ -891,7 +891,7 @@ def variable_decl_nodes val
     statement =
     if ident.is_a?(Hash) # only if function pointer
       dtype = { dtype: type, ident: ident }
-      Statement::CPtrDecl.new(dtype, ident[:name], var[:value], ptr_level,
+      Statement::CPtrFuncDecl.new(dtype, ident[:name], var[:value], ptr_level,
         location)
     else
       if ptr_level
