@@ -1,10 +1,9 @@
 #!/usr/bin/env ruby
 
 require 'rubex'
-
-file_name = ARGV[0]
-if File.exists? file_name
-  file_name = Dir.pwd + "/#{file_name}"
+if Rubex::Cli.all_tasks.keys.include?(ARGV[0]) || ARGV.empty?
+  Rubex::Cli.start
+else
+  Rubex::Cli.start(["generate"] + ARGV)
 end
 
-Rubex::Compiler.compile file_name

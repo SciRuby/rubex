@@ -15,7 +15,6 @@ end
 
 # -v -> verbose
 # -t -> with debugging output
-
+task :default => :spec
 RSpec::Core::RakeTask.new(:spec)
-
 task :spec => :parser
