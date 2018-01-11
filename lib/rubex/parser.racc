@@ -133,10 +133,10 @@ rule
 
   c_func_args:
     { result = [] }
-  | c_func_normal_arg { result = [Expression::ArgDeclaration.new(val[0])] }
+  | c_func_normal_arg { result = [construct_function_argument(val[0])] }
   | c_func_args tCOMMA c_func_normal_arg
       { 
-        result = [*val[0], Expression::ArgDeclaration.new(val[2])] 
+        result = [*val[0], construct_function_argument(val[2])] 
       }
 
   opt_c_func_arg_list:
@@ -144,7 +144,7 @@ rule
   | tLPAREN c_func_args tRPAREN
       { 
         # self is a compulsory implicit argument for C methods.
-        val[1] << Expression::ArgDeclaration.new(
+        val[1] << construct_function_argument(
             { dtype: 'object', variables: [ {ident: 'self' }] })
         result = Statement::ArgumentList.new(val[1])
       }
@@ -209,6 +209,8 @@ rule
       }
   | dtype opt_star tLPAREN opt_star opt_identifier tRPAREN opt_c_func_arg_list
       {
+        force_into_func_ptr_internal_args(val[6])
+        
         result = {
           dtype: val[0],
           variables: [
@@ -245,7 +247,7 @@ rule
         if val[4].empty? # since last arg of cfunc must be self.
           val[4] = Statement::ArgumentList.new(
             [
-              Expression::ArgDeclaration.new(
+              construct_function_argument(
                 { dtype: 'object', variables: [ { ident: 'self' }] }
               )
             ]
@@ -431,6 +433,7 @@ rule
         result = {}
 
         if val[5] # function (pointer) decl
+          force_into_func_ptr_internal_args(val[5])          
           result[:ptr_level] = val[2]
           result[:ident] = {
             :return_ptr_level => val[0],
@@ -446,7 +449,8 @@ rule
       {
         result = {}
 
-        if !val[2].empty?
+        if !val[2].empty? # function pointer
+          force_into_func_ptr_internal_args(val[5])
           result[:ptr_level] = val[0]
           result[:ident] = {
             :name => val[1],
@@ -535,11 +539,11 @@ rule
   f_args:
     f_normal_arg 
       { 
-        result = [Expression::ArgDeclaration.new(val[0])] 
+        result = [construct_function_argument(val[0])] 
       }
   | f_args tCOMMA f_normal_arg
       {
-        result = [*val[0], Expression::ArgDeclaration.new(val[2])]
+        result = [*val[0], construct_function_argument(val[2])]
       }
 
   f_normal_arg:
@@ -724,8 +728,10 @@ end
 ---- header
 require_relative 'lexer.rex.rb'
 require_relative 'ast.rb'
+require_relative 'helpers.rb'
 
 include Rubex::AST
+include Rubex::Helpers
 
 ---- inner
 
@@ -867,6 +873,10 @@ def check_for_primitive_dtype token
   token
 end
 
+def construct_function_argument data
+  Rubex::Helpers.construct_function_argument data
+end
+
 def binary_op val
   Expression::Binary.new val[0], val[1], val[2]
 end
@@ -912,4 +922,10 @@ end
 
 def add_dtype_to_lexer dtype
   @custom_dtypes[dtype] = true
+end
+
+def force_into_func_ptr_internal_args data
+  data.map! do |arg|
+    Expression::FuncPtrInternalArgDeclaration.new(arg.data_hash)
+  end 
 end

@@ -136,10 +136,14 @@ module Rubex
       end # class CPtrDecl
 
       class CPtrFuncDecl < CPtrDecl
+        def initialize type, name, value, ptr_level, location
+          super
+        end
+        
         def analyse_statement local_scope, extern: false
           cptr_cname extern
           ident = @type[:ident]
-          ident[:arg_list].analyse_statement(local_scope, inside_func_ptr: true)
+          ident[:arg_list].analyse_statement(local_scope)
           @type = DataType::CFunction.new(
             @name,
             @c_name,
@@ -651,13 +655,13 @@ module Rubex
           if ident.is_a?(Hash) # function pointer
             cfunc_return_type = Helpers.determine_dtype(original,
               ident[:return_ptr_level])
-            arg_list = ident[:arg_list].analyse_statement(local_scope,
-              inside_func_ptr: true)
+            arg_list = ident[:arg_list].analyse_statement(local_scope)
             ptr_level = "*" if ptr_level.empty?
 
             Helpers.determine_dtype(
               DataType::CFunction.new(nil, nil, arg_list, cfunc_return_type, nil),
-              ptr_level)
+              ptr_level
+            )
           else
             Helpers.determine_dtype(original, ptr_level)
           end
@@ -747,15 +751,9 @@ module Rubex
           @args = args
         end
 
-        # func_ptr - switch that determines if this ArgList is part of the
-        # argument list of an argument that is a function pointer.
-        # For eg - 
-        #   cfunc int foo(int (*bar)(int, float)).
-        #                            ^^^ This is an arg list inside a function.
-        def analyse_statement local_scope, inside_func_ptr: false, extern: false
+        def analyse_statement local_scope, extern: false
           @args.each do |arg|
-            arg.analyse_statement(local_scope, inside_func_ptr: inside_func_ptr,
-              extern: extern)
+            arg.analyse_statement(local_scope, extern: extern)
           end
         end
 
