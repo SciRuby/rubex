@@ -856,15 +856,17 @@ module Rubex
           name, c_name = ident, Rubex::ARG_PREFIX + ident 
           @type = Helpers.determine_dtype(dtype, ptr_level)
           value.analyse_statement(local_scope) if value
-
-          if !extern
-            @entry = local_scope.add_arg(name: name, c_name: c_name, type: @type,
-              value: value)
-          end
+          add_arg_to_symbol_table name, c_name, @type, value, extern, local_scope
         end # def analyse_statement
         
         private
 
+        def add_arg_to_symbol_table name, c_name, type, value, extern, local_scope
+          if !extern
+            @entry = local_scope.add_arg(name: name, c_name: c_name, type: @type, value: value)
+          end
+        end
+        
         def fetch_data
           var       = @data_hash[:variables][0]
           dtype     = @data_hash[:dtype]
@@ -888,16 +890,9 @@ module Rubex
           arg_list = ident[:arg_list].analyse_statement(local_scope)
           ptr_level = "*" if ptr_level.empty?
           name, c_name = ident[:name], Rubex::ARG_PREFIX + ident[:name]
-
-          @type   = Helpers.determine_dtype(
-            DataType::CFunction.new(name, c_name, arg_list, cfunc_return_type, nil),
-            ptr_level
-          )
-
-          if !extern
-            @entry = local_scope.add_arg(name: name, c_name: c_name, type: @type,
-              value: value)          
-          end
+          @type = Helpers.determine_dtype(
+            DataType::CFunction.new(name, c_name, arg_list, cfunc_return_type, nil), ptr_level)
+          add_arg_to_symbol_table name, c_name, @type, value, extern, local_scope
         end
       end
 
