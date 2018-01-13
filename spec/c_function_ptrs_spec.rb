@@ -4,7 +4,7 @@ include Rubex::AST
 describe Rubex do
   test_case = 'c_function_ptrs'
 
-  context "Case : #{test_case}", hell: true do
+  context "Case : #{test_case}" do
     before do
       @path = path_str test_case
     end

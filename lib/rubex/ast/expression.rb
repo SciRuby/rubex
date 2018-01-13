@@ -22,6 +22,10 @@ module Rubex
 
         def expression?; true; end
 
+        def has_temp
+          @has_temp
+        end
+
         def c_code local_scope
           @typecast ? @typecast.c_code(local_scope) : ""
         end
@@ -429,7 +433,8 @@ module Rubex
 
         # FIXME: This is jugaad. Change.
         def generate_element_ref_code expr, code, local_scope
-          if !@object_ptr
+          if @type.object? && !@object_ptr
+            puts "YASS"
             @pos.generate_evaluation_code code, local_scope
             str = "#{@c_code} = rb_funcall(#{expr.c_code(local_scope)}."
             str << "#{@entry.c_name}, rb_intern(\"[]\"), 1, "
@@ -591,7 +596,7 @@ module Rubex
       class MethodCall < Base
         attr_reader :method_name, :type
 
-        def initialize method_name, invoker, arg_list
+        def initialize invoker, method_name, arg_list
           @method_name, @invoker, @arg_list = method_name, invoker, arg_list
         end
 
@@ -733,21 +738,10 @@ module Rubex
           @subexprs = []
         end
 
-        # Analyse the command call. If the @command is found in the symbol table,
-        #   it is either a struct member or a method call. If not found, it is
-        #   assumed to be a Ruby method call and passed on the MethodCall node
-        #   where it is interpreted likewise. The upside is that Rubex can call
-        #   arbitrary Ruby methods that are defined in external Ruby scripts and
-        #   not visible to Rubex at compile time. The downside is that errors with
-        #   such methods will be visible to the programmer only during runtime.
         def analyse_statement local_scope
-          @arg_list.each do |arg|
-            arg.analyse_statement local_scope
-            @subexprs << arg
-          end
-          # Case for implicit 'self' when a method in the class itself is being called.
+          analyse_arg_list_and_add_to_subexprs local_scope
           @entry = local_scope.find(@command)
-          if @expr.nil?
+          if @expr.nil? # Case for implicit 'self' when a method in the class itself is being called.
             @expr = Expression::Self.new if @entry && !@entry.extern
           else
             @expr.analyse_statement(local_scope)
@@ -759,34 +753,18 @@ module Rubex
           super
         end
 
-        # FIXME: refactor this method (or class). Too many ifs. Too much jagaad.
         def generate_evaluation_code code, local_scope
           @c_code = ""
           @arg_list.each do |arg|
             arg.generate_evaluation_code code, local_scope
           end
           @expr.generate_evaluation_code(code, local_scope) if @expr
-
-          if @expr && @type.object? && @command.is_a?(Rubex::AST::Expression::ElementRef) && 
-            !@command.object_ptr
-            @command.generate_element_ref_code @expr, code, local_scope
-            @c_code << "#{@command.c_code(local_scope)}"
-          else
-            @command.generate_evaluation_code code, local_scope
-            # Interpreted as a method call
-            if @command.is_a? Rubex::AST::Expression::MethodCall
-              @c_code << @command.c_code(local_scope)
-            else # interpreted as referencing the contents of a struct
-              op = @expr.type.cptr? ? "->" : "."
-
-              @c_code << "#{@expr.c_code(local_scope)}#{op}#{@command.c_code(local_scope)}"
-            end
-          end
+          @command.generate_evaluation_code code, local_scope
+          @c_code << @command.c_code(local_scope)
         end
 
         def generate_disposal_code code
           @expr.generate_disposal_code(code) if @expr
-          # @command.generate_disposal_code code
           @arg_list.each do |arg|
             arg.generate_disposal_code code
           end
@@ -806,6 +784,13 @@ module Rubex
 
         private
 
+        def analyse_arg_list_and_add_to_subexprs local_scope
+          @arg_list.each do |arg|
+            arg.analyse_statement local_scope
+            @subexprs << arg
+          end
+        end
+
         def add_as_ruby_method_to_symtab local_scope
           @entry = local_scope.add_ruby_method(
             name: @command, 
@@ -820,28 +805,12 @@ module Rubex
                     (@expr.type.struct_or_union?))
         end
 
-        def analyse_as_struct_member local_scope
-          scope = @expr.type.base_type.scope
-          if @command.is_a? String
-            @command = Expression::Name.new @command
-            @command.analyse_statement scope
-          end
-
-          if !scope.has_entry?(@command.name)
-            raise "Entry #{@command.name} does not exist in #{@expr}."
-          end
-
-          if @command.is_a? Rubex::AST::Expression::ElementRef
-            @command.analyse_statement local_scope, scope
-          end
-        end
-
         def ruby_method_call?
           @entry.type.ruby_method?
         end
 
         def c_function_call?
-         @entry.type.base_type.c_function?
+          @entry.type.base_type.c_function?
         end
 
         def allocate_and_release_temps local_scope
@@ -853,23 +822,66 @@ module Rubex
 
         def analyse_command_type local_scope
           if struct_member_call?
-            analyse_as_struct_member local_scope
+            @command = Expression::StructOrUnionMemberCall.new @expr, @command, @arg_list
           elsif ruby_method_call?
-            @command = Expression::RubyMethodCall.new @command, @expr, @arg_list
-            @command.analyse_statement local_scope
+            @command = Expression::RubyMethodCall.new @expr, @command, @arg_list
           elsif c_function_call?
-            @command = Expression::CFunctionCall.new @command, @expr, @arg_list
-            @command.analyse_statement local_scope
+            @command = Expression::CFunctionCall.new @expr, @command,  @arg_list
           end
+          @command.analyse_statement local_scope
           @type = @command.type
           allocate_and_release_temps local_scope
         end
       end # class CommandCall
 
+      class StructOrUnionMemberCall < CommandCall
+        def analyse_statement local_scope
+          scope = @expr.type.base_type.scope
+
+          if @command.is_a? String
+            if !scope.has_entry?(@command)
+              raise "Entry #{@command.name} does not exist in #{@expr}."
+            end
+            @command = Expression::Name.new @command            
+            @command.analyse_statement scope
+          elsif @command.is_a? Rubex::AST::Expression::ElementRef
+            @command = Expression::ElementRefMemberCall.new @expr, @command, @arg_list
+            @command.analyse_statement local_scope, scope
+          end
+          @has_temp = @command.has_temp
+          @type = @command.type
+        end
+
+        def c_code local_scope
+           if @command.has_temp
+             @command.c_code(local_scope)
+           else
+            op = @expr.type.cptr? ? "->" : "."
+            "#{@expr.c_code(local_scope)}#{op}#{@command.c_code(local_scope)}"
+          end
+        end
+      end # StructOrUnionMemberCall
+
+      class ElementRefMemberCall < StructOrUnionMemberCall
+        def analyse_statement local_scope, struct_scope
+          @command.analyse_statement local_scope, struct_scope
+          @type = @command.type
+          @has_temp = @command.has_temp
+          allocate_and_release_temps local_scope
+        end
+
+        def generate_evaluation_code code, local_scope
+          @command.generate_element_ref_code @expr, code, local_scope          
+        end
+
+        def c_code local_scope
+          @command.c_code(local_scope)
+        end
+      end # class ElementRefMemberCall
+
       class ArgDeclaration < Base
         attr_reader :entry, :type, :data_hash
 
-        # data_hash - a Hash containing data about the variable.
         def initialize data_hash
           @data_hash = data_hash
         end
@@ -918,7 +930,7 @@ module Rubex
             DataType::CFunction.new(name, c_name, arg_list, cfunc_return_type, nil), ptr_level)
           add_arg_to_symbol_table name, c_name, @type, value, extern, local_scope
         end
-      end
+      end # class FuncPtrArgDeclaration
 
       # Function argument is the argument of a function pointer.
       class FuncPtrInternalArgDeclaration < ArgDeclaration
@@ -926,7 +938,7 @@ module Rubex
           var, dtype, ident, ptr_level, value = fetch_data
           @type = Helpers.determine_dtype(dtype, ptr_level)
         end
-      end
+      end # class FuncPtrInternalArgDeclaration
 
       class CoerceObject < Base
         attr_reader :expr
