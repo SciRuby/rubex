@@ -841,7 +841,6 @@ module Rubex
         end
       end # class CommandCall
 
-
       class ArgDeclaration < Base
         attr_reader :entry, :type, :data_hash
 
