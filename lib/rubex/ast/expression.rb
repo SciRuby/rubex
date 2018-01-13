@@ -595,50 +595,11 @@ module Rubex
           @method_name, @invoker, @arg_list = method_name, invoker, arg_list
         end
 
-        # Analyse a method call. If the method that is being called is defined
-        #   in a class in a Rubex file, it can easily be interpreted as a Ruby
-        #   method. However, in case it is not, a new symtab entry will be created
-        #   which will mark the method as 'extern' so that future calls to that
-        #   same method can be simply pulled from the symtab.
-        # local_scope is the local method scope.
+        # local_scope - is the local method scope.
         def analyse_statement local_scope
-          entry = local_scope.find(@method_name)
-          if !entry
-            entry = local_scope.add_ruby_method(
-              name: @method_name, 
-              c_name: @method_name, 
-              extern: true,
-              arg_list: @arg_list,
-              scope: nil)
-          end
-
+          @entry = local_scope.find(@method_name)
           if method_not_within_scope? local_scope
             raise Rubex::NoMethodError, "Cannot call #{@name} from this method."
-          end
-
-          # FIXME: Print a warning during compilation if a symbol is being
-          #   interpreted as a Ruby method call due it not being found in the
-          #   symbol table.
-
-          # A symtab entry for a predeclared extern C func.
-          if entry && entry.type.base_type.c_function?
-            @type = entry.type.base_type
-            # All C functions have compulsory last arg as self. This does not
-            #   apply to extern functions as they are usually not made for accepting
-            #   a VALUE last arg.
-            @arg_list << Expression::Self.new if !entry.extern?
-            type_check_arg_types entry
-          else
-            @type = Rubex::DataType::RubyObject.new
-          end
-
-          if entry.type.ruby_method? && !entry.extern? && @arg_list.size > 0 
-            @arg_list_var = entry.c_name + Rubex::ACTUAL_ARGS_SUFFIX
-
-            args_size = entry.type.arg_list&.size || 0
-            local_scope.add_carray(name: @arg_list_var, c_name: @arg_list_var,
-              dimension: Literal::Int.new("#{args_size}"), 
-              type: Rubex::DataType::RubyObject.new)
           end
           super
         end
@@ -647,18 +608,6 @@ module Rubex
         end
 
         def generate_disposal_code code
-        end
-
-        def c_code local_scope
-          code = super
-          entry = local_scope.find(@method_name)
-          if entry.type.ruby_method?
-            code << code_for_ruby_method_call(local_scope)
-          else
-            code << code_for_c_method_call(local_scope, entry)
-          end
-
-          code
         end
 
       private
@@ -679,28 +628,43 @@ module Rubex
         # that they belong to the correct scope and will compile a call to those
         # methods anyway. Error, if any, will be caught only at runtime.
         def method_not_within_scope? local_scope
-          entry = local_scope.find @method_name
           caller_entry = local_scope.find local_scope.name
-          if ( caller_entry.singleton? &&  entry.singleton?) || 
-             (!caller_entry.singleton? && !entry.singleton?) ||
-             entry.c_function?
+          if ( caller_entry.singleton? &&  @entry.singleton?) || 
+             (!caller_entry.singleton? && !@entry.singleton?) ||
+             @entry.c_function?
             false
           else
             true
           end
         end
+      end # class MethodCall
 
-        def code_for_c_method_call local_scope, entry
-          str = "#{entry.c_name}("
-          str << @arg_list.map { |a| a.c_code(local_scope) }.join(",")
-          str << ")"
-          str
+      class RubyMethodCall < MethodCall
+        def analyse_statement local_scope
+          super
+          @type = Rubex::DataType::RubyObject.new
+          prepare_arg_list(local_scope) if !@entry.extern? && @arg_list.size > 0
+        end
+
+        def c_code local_scope
+          code = super
+          code << code_for_ruby_method_call(local_scope)
+          code
+        end
+
+        private
+
+        def prepare_arg_list local_scope
+          @arg_list_var = @entry.c_name + Rubex::ACTUAL_ARGS_SUFFIX
+          args_size = @entry.type.arg_list&.size || 0
+          local_scope.add_carray(name: @arg_list_var, c_name: @arg_list_var,
+                                 dimension: Literal::Int.new("#{args_size}"), 
+                                 type: @type)
         end
 
         def code_for_ruby_method_call local_scope
-          entry = local_scope.find @method_name
           str = ""
-          if entry.extern?
+          if @entry.extern?
             str << "rb_funcall(#{@invoker.c_code(local_scope)}, "
             str << "rb_intern(\"#{@method_name}\"), "
             str << "#{@arg_list.size}"
@@ -711,13 +675,13 @@ module Rubex
             str << ")"
           else
             str << populate_method_args_into_value_array(local_scope)
-            str << actual_ruby_method_call(local_scope, entry)
+            str << actual_ruby_method_call(local_scope)
           end
           str
         end
 
-        def actual_ruby_method_call local_scope, entry
-          str = "#{entry.c_name}(#{@arg_list.size}, #{@arg_list_var || "NULL"},"
+        def actual_ruby_method_call local_scope
+          str = "#{@entry.c_name}(#{@arg_list.size}, #{@arg_list_var || "NULL"},"
           str << "#{local_scope.self_name})"
         end
 
@@ -731,10 +695,38 @@ module Rubex
 
           str
         end
-      end # class MethodCall
+      end # class RubyMethodCall
+
+      class CFunctionCall < MethodCall
+        def analyse_statement local_scope
+          super
+          @type = @entry.type.base_type
+          append_self_argument if !@entry.extern?
+          type_check_arg_types @entry          
+        end
+
+        def c_code local_scope
+          code = super
+          code << code_for_c_method_call(local_scope)
+          code
+        end
+
+        private
+
+        def append_self_argument
+          @arg_list << Expression::Self.new
+        end
+
+        def code_for_c_method_call local_scope
+          str = "#{@entry.c_name}("
+          str << @arg_list.map { |a| a.c_code(local_scope) }.join(",")
+          str << ")"
+          str
+        end
+      end # class CFunctionCall
 
       class CommandCall < Base
-        attr_reader :expr, :command, :arg_list, :type
+        attr_reader :expr, :command, :arg_list, :type, :entry
 
         def initialize expr, command, arg_list
           @expr, @command, @arg_list = expr, command, arg_list
@@ -754,14 +746,15 @@ module Rubex
             @subexprs << arg
           end
           # Case for implicit 'self' when a method in the class itself is being called.
+          @entry = local_scope.find(@command)
           if @expr.nil?
-            entry = local_scope.find(@command)
-            @expr = Expression::Self.new if entry && !entry.extern?
+            @expr = Expression::Self.new if @entry && !@entry.extern
           else
             @expr.analyse_statement(local_scope)
             @expr.allocate_temps local_scope
             @expr.allocate_temp local_scope, @expr.type
           end
+          add_as_ruby_method_to_symtab(local_scope) if !@entry          
           analyse_command_type local_scope
           super
         end
@@ -811,33 +804,65 @@ module Rubex
           code
         end
 
-      private
+        private
 
-        def analyse_command_type local_scope
-          if @expr && ((@expr.type.cptr? && @expr.type.type.struct_or_union?) || 
-              (@expr.type.struct_or_union?))
-            scope = @expr.type.base_type.scope
-            if @command.is_a? String
-              @command = Expression::Name.new @command
-              @command.analyse_statement scope
-            end
+        def add_as_ruby_method_to_symtab local_scope
+          @entry = local_scope.add_ruby_method(
+            name: @command, 
+            c_name: @command, 
+            extern: true,
+            arg_list: @arg_list,
+            scope: nil)
+        end
 
-            if !scope.has_entry?(@command.name)
-              raise "Entry #{@command.name} does not exist in #{@expr}."
-            end
+        def struct_member_call?
+          @expr && ((@expr.type.cptr? && @expr.type.type.struct_or_union?) || 
+                    (@expr.type.struct_or_union?))
+        end
 
-            if @command.is_a? Rubex::AST::Expression::ElementRef
-              @command.analyse_statement local_scope, scope
-            end
-          else
-            @command = Expression::MethodCall.new @command, @expr, @arg_list
-            @command.analyse_statement local_scope
+        def analyse_as_struct_member local_scope
+          scope = @expr.type.base_type.scope
+          if @command.is_a? String
+            @command = Expression::Name.new @command
+            @command.analyse_statement scope
           end
-          @type = @command.type
+
+          if !scope.has_entry?(@command.name)
+            raise "Entry #{@command.name} does not exist in #{@expr}."
+          end
+
+          if @command.is_a? Rubex::AST::Expression::ElementRef
+            @command.analyse_statement local_scope, scope
+          end
+        end
+
+        def ruby_method_call?
+          @entry.type.ruby_method?
+        end
+
+        def c_function_call?
+         @entry.type.base_type.c_function?
+        end
+
+        def allocate_and_release_temps local_scope
           @command.allocate_temps local_scope
           @command.allocate_temp local_scope, @type
           @command.release_temps local_scope
           @command.release_temp local_scope
+        end
+
+        def analyse_command_type local_scope
+          if struct_member_call?
+            analyse_as_struct_member local_scope
+          elsif ruby_method_call?
+            @command = Expression::RubyMethodCall.new @command, @expr, @arg_list
+            @command.analyse_statement local_scope
+          elsif c_function_call?
+            @command = Expression::CFunctionCall.new @command, @expr, @arg_list
+            @command.analyse_statement local_scope
+          end
+          @type = @command.type
+          allocate_and_release_temps local_scope
         end
       end # class CommandCall
 
