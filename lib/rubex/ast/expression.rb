@@ -434,7 +434,6 @@ module Rubex
         # FIXME: This is jugaad. Change.
         def generate_element_ref_code expr, code, local_scope
           if @type.object? && !@object_ptr
-            puts "YASS"
             @pos.generate_evaluation_code code, local_scope
             str = "#{@c_code} = rb_funcall(#{expr.c_code(local_scope)}."
             str << "#{@entry.c_name}, rb_intern(\"[]\"), 1, "
@@ -516,50 +515,29 @@ module Rubex
           end
         end
 
+        
         # Analyse a Name node. This can either be a variable name or a method call
-        #   without parenthesis. Code in this method that creates a CommandCall
+        #   without parenthesis. Code in this method that creates a RubyMethodCall
         #   node primarily exists because in Ruby methods without arguments can 
         #   be called without parentheses. These names can potentially be Ruby
         #   methods that are not visible to Rubex, but are present in the Ruby
-        #   run time.
+        #   run time. For example, a program like this:
+        #
+        #     def foo
+        #       bar
+        #      #^^^ this is a name node
+        #     end
         def analyse_statement local_scope
           @entry = local_scope.find @name
-          # FIXME: Figure out a way to perform compile time checking of expressions
-          #   to see if the said Ruby methods are actually present in the Ruby
-          #   runtime. Maybe read symbols in the Ruby interpreter and load them
-          #   as a pre-compilation step?
-
-          # If entry is not present, assume its a Ruby method call to some method
-          #   outside of the current Rubex scope or a Ruby constant.
           if !@entry
-            # Check if first letter is a capital to check for Ruby constant.
-            if @name[0].match /[A-Z]/
-              @name = Expression::RubyConstant.new @name
-              @name.analyse_statement local_scope
-              @entry = @name.entry
-            else # extern Ruby method
-              @entry = local_scope.add_ruby_method(
-                name: @name,
-                c_name: @name,
-                extern: true,
-                scope: nil,
-                arg_list: [])
+            if ruby_constant?
+              analyse_as_ruby_constant local_scope
+            else
+              add_as_ruby_method_to_scope local_scope
             end
           end
-          # If the entry is a RubyMethod, it should be interpreted as a command
-          # call. So, make the @name a CommandCall Node.
-          if @entry.type.ruby_method? #|| @entry.type.c_function?
-            @name = Rubex::AST::Expression::CommandCall.new(
-              Expression::Self.new, @name, [])
-            @name.analyse_statement local_scope
-          end
-
-          if @entry.type.alias_type? || @entry.type.ruby_method? || 
-              @entry.type.c_function?
-            @type = @entry.type.type
-          else
-            @type = @entry.type
-          end
+          analyse_as_ruby_method(local_scope) if @entry.type.ruby_method?
+          assign_type_based_on_whether_wrapped_type
           super
         end
 
@@ -590,6 +568,41 @@ module Rubex
           end
 
           code
+        end
+        
+        private
+
+        def ruby_constant?
+          @name[0].match /[A-Z]/
+        end
+
+        def analyse_as_ruby_constant local_scope
+          @name = Expression::RubyConstant.new @name
+          @name.analyse_statement local_scope
+          @entry = @name.entry          
+        end
+
+        def add_as_ruby_method_to_scope local_scope
+          @entry = local_scope.add_ruby_method(
+            name: @name,
+            c_name: @name,
+            extern: true,
+            scope: nil,
+            arg_list: [])
+        end
+
+        def analyse_as_ruby_method local_scope
+          @name = Rubex::AST::Expression::RubyMethodCall.new(
+            Expression::Self.new, @name, [])
+          @name.analyse_statement local_scope
+        end
+
+        def assign_type_based_on_whether_wrapped_type
+          if @entry.type.alias_type? || @entry.type.ruby_method? || @entry.type.c_function?
+            @type = @entry.type.type
+          else
+            @type = @entry.type
+          end
         end
       end # class Name
 
