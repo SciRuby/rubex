@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Rubex do
+describe Rubex  do
   test_case = "var_declarations"
 
   context "Case: #{test_case}" do

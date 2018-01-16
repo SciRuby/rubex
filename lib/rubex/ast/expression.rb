@@ -344,106 +344,78 @@ module Rubex
       end # class Unary
 
       class ElementRef < Base
-        attr_reader :entry, :pos, :type, :name, :object_ptr
+        # FIXME: get rid of this object_ptr for good.
+        attr_reader :entry, :pos, :type, :name, :object_ptr, :subexprs
+        extend Forwardable
+        def_delegators :@element_ref, :generate_disposal_code, :generate_evaluation_code,
+                       :analyse_statement, :generate_element_ref_code,
+                       :generate_assignment_code, :has_temp, :c_code, :allocate_temp,
+                       :allocate_temps, :release_temp, :release_temps, :to_ruby_object,
+                       :from_ruby_object
 
         def initialize name, pos
           @name, @pos = name, pos
           @subexprs = []
         end
 
-        # FIXME: This method needs to be implemented for all exprs that are
-        #   possible LHS candidates.
-        # def analyse_declaration rhs, local_scope
-        #   analyse_statement local_scope
-        #   @has_temp = false
-        # end
-
         def analyse_statement local_scope, struct_scope=nil
-          if struct_scope.nil?
-            @entry = local_scope.find @name
-          else
-            @entry = struct_scope[@name]
-          end
-          
-          @object_ptr = true if @entry.type.cptr? && @entry.type.type.object?
+          @entry = struct_scope.nil? ? local_scope.find(@name) : struct_scope[@name]
           @type = @entry.type.object? ? @entry.type : @entry.type.type
-
-          if @type.object? && !@object_ptr
-            @has_temp = true
-            @pos.analyse_statement local_scope
-            if !(@type.ruby_array?)
-              @pos = @pos.to_ruby_object
-            end
-            @subexprs << @pos
-          else
-            @pos.analyse_statement local_scope
-          end
+          @element_ref = proper_analysed_type
+          @element_ref.analyse_statement local_scope
           super(local_scope)
         end
 
-        # This method will be called when [] ruby method or C array element
-        #   reference is called.
-        # TODO: refactor this by creating separate classes for ruby object, object
-        # ptr, c type.
-        def generate_evaluation_code code, local_scope
-          if @type.object? && !@object_ptr
-            if @type.ruby_array?
-              code << "#{@c_code} = RARRAY_AREF(#{@entry.c_name}, #{@pos.c_code(local_scope)});"
-            elsif @type.ruby_hash?
-              @pos.generate_evaluation_code code, local_scope
-              code << "#{@c_code} = rb_hash_aref(#{@entry.c_name}, #{@pos.c_code(local_scope)});"
+        private
+
+        def proper_analysed_type
+          if ruby_object_c_array?
+            @object_ptr = true
+            CVarElementRef.new(self)
+          else
+            if ruby_array?
+              RubyArrayElementRef.new(self)
+            elsif ruby_hash?
+              RubyHashElementRef.new(self)
+            elsif generic_ruby_object?
+              RubyObjectElementRef.new(self)
             else
-              @pos.generate_evaluation_code code, local_scope
-              code << "#{@c_code} = rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
-              code << "#{@pos.c_code(local_scope)});"
+              CVarElementRef.new(self)
             end
-            code.nl
-            @pos.generate_disposal_code code
-          else
-            @pos.generate_evaluation_code code, local_scope
-            @c_code = "#{@entry.c_name}[#{@pos.c_code(local_scope)}]"
-          end
+          end          
         end
 
-        def generate_disposal_code code
-          if @type.object? && !@object_ptr
-            code << "#{@c_code} = 0;"
-            code.nl
-          end
+        def ruby_array?
+          @type.ruby_array?
         end
 
-        # This method will be called when []= ruby method or C array assignment
-        #   takes place.
-        def generate_assignment_code rhs, code, local_scope
-          if @type.object? && !@object_ptr
-            @pos.generate_evaluation_code code, local_scope
-            if @type.ruby_hash?
-              code << "rb_hash_aset(#{@entry.c_name}, #{@pos.c_code(local_scope)}, #{rhs.c_code(local_scope)});"
-            else
-              code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]=\"), 2, "
-              code << "#{@pos.c_code(local_scope)}, #{rhs.c_code(local_scope)});"
-            end
-            @pos.generate_disposal_code code
-          else
-            code << "#{@entry.c_name}[#{@pos.c_code(local_scope)}] = "
-            code << "#{rhs.c_code(local_scope)};"
-          end
-          code.nl
+        def ruby_hash?
+          @type.ruby_hash?
         end
 
-        # FIXME: This is jugaad. Change.
-        def generate_element_ref_code expr, code, local_scope
-          if @type.object? && !@object_ptr
-            @pos.generate_evaluation_code code, local_scope
-            str = "#{@c_code} = rb_funcall(#{expr.c_code(local_scope)}."
-            str << "#{@entry.c_name}, rb_intern(\"[]\"), 1, "
-            str << "#{@pos.c_code(local_scope)});"
-            code << str
-            code.nl
-            @pos.generate_disposal_code code
-          else
-            generate_evaluation_code code, local_scope
-          end
+        def generic_ruby_object?
+          @type.object?
+        end
+
+        def ruby_object_c_array?
+          @entry.type.cptr? && @entry.type.type.object?
+        end        
+      end # class ElementRef
+
+      class AnalysedElementRef < Base
+        attr_reader :entry, :pos, :type, :name, :object_ptr, :subexprs
+        def initialize element_ref
+          @element_ref = element_ref
+          @pos = @element_ref.pos
+          @entry = @element_ref.entry
+          @name = @element_ref.name
+          @subexprs = @element_ref.subexprs
+          @object_ptr = @element_ref.object_ptr
+          @type = @element_ref.type
+        end
+
+        def analyse_statement local_scope
+          @pos.analyse_statement local_scope
         end
 
         def c_code local_scope
@@ -451,7 +423,93 @@ module Rubex
           code << @c_code
           code
         end
-      end # class ElementRef
+      end
+
+      class RubyObjectElementRef < AnalysedElementRef
+        def analyse_statement local_scope
+          super
+          @has_temp = true
+          @pos = @pos.to_ruby_object
+          @subexprs << @pos
+        end
+
+        def generate_evaluation_code code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          code << "#{@c_code} = rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
+          code << "#{@pos.c_code(local_scope)});"
+          code.nl
+          @pos.generate_disposal_code code
+        end
+
+        def generate_disposal_code code
+          code << "#{@c_code} = 0;"
+          code.nl  
+        end
+
+        def generate_element_ref_code expr, code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          str = "#{@c_code} = rb_funcall(#{expr.c_code(local_scope)}."
+          str << "#{@entry.c_name}, rb_intern(\"[]\"), 1, "
+          str << "#{@pos.c_code(local_scope)});"
+          code << str
+          code.nl
+          @pos.generate_disposal_code code
+        end
+
+        def generate_assignment_code rhs, code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]=\"), 2,"
+          code << "#{@pos.c_code(local_scope)}, #{rhs.c_code(local_scope)});"
+          code.nl
+          @pos.generate_disposal_code code
+        end
+      end
+
+      class RubyArrayElementRef < RubyObjectElementRef
+        def generate_evaluation_code code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          code << "#{@c_code} = RARRAY_AREF(#{@entry.c_name}, #{@pos.c_code(local_scope)});"
+          code.nl
+          @pos.generate_disposal_code code
+        end
+      end # class RubyArrayElementRef
+
+      class RubyHashElementRef < RubyObjectElementRef
+        def generate_evaluation_code code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          code << "#{@c_code} = rb_hash_aref(#{@entry.c_name}, #{@pos.c_code(local_scope)});"
+          @pos.generate_disposal_code code
+        end
+
+        def generate_assignment_code rhs, code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          code << "rb_hash_aset(#{@entry.c_name}, #{@pos.c_code(local_scope)},"
+          code << "#{rhs.c_code(local_scope)});"
+          @pos.generate_disposal_code code
+        end
+      end # class RubyHashElementRef
+
+      class CVarElementRef < AnalysedElementRef
+        def analyse_statement local_scope
+          @pos.analyse_statement local_scope
+        end
+
+        def generate_evaluation_code code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          @c_code = "#{@entry.c_name}[#{@pos.c_code(local_scope)}]"
+        end
+
+        def generate_element_ref_code expr, code, local_scope
+          generate_evaluation_code code, local_scope
+        end
+
+        def generate_assignment_code rhs, code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          code << "#{@entry.c_name}[#{@pos.c_code(local_scope)}] = "
+          code << "#{rhs.c_code(local_scope)};"
+          @pos.generate_disposal_code code
+        end
+      end # class CVarElementRef
 
       class Self < Base
         def c_code local_scope
