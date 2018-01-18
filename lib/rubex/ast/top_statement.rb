@@ -113,9 +113,10 @@ module Rubex
 
         def xmalloc
           args = Statement::ArgumentList.new([
-            Expression::ArgDeclaration.new({ 
-              dtype: 'size_t', variables: [{ident: 'dummy'}] })
-          ])
+                   Expression::ArgDeclaration.new({
+                     dtype: 'size_t', variables: [{ident: 'dummy'}]
+                   })
+                 ])
           Statement::CFunctionDecl.new('void', '*', 'xmalloc', args)  
         end
 
@@ -366,7 +367,7 @@ module Rubex
         def add_c_function_to_scope f_name, f_scope, arg_list, return_type
           c_name = c_func_c_name(f_name)
           arg_list.each do |arg|
-            if arg.entry.value
+            if arg.entry && arg.entry.value
               e = arg.entry
               e.value = Rubex::Helpers.to_lhs_type(e, e.value)
             end

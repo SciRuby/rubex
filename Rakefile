@@ -1,5 +1,6 @@
 require 'rspec/core/rake_task'
 require 'bundler/gem_tasks'
+require 'oedipus_lex'
 
 $:.unshift File.expand_path("../lib", __FILE__)
 

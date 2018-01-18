@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Rubex do
+describe Rubex  do
   test_case = "struct"
 
   context "Case: #{test_case}" do
@@ -20,7 +20,7 @@ describe Rubex do
       end
     end
 
-    context "Black Box testing",  this: true do
+    context "Black Box testing" do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.#{os_extension}"

@@ -22,6 +22,10 @@ module Rubex
 
         def expression?; true; end
 
+        def has_temp
+          @has_temp
+        end
+
         def c_code local_scope
           @typecast ? @typecast.c_code(local_scope) : ""
         end
@@ -340,106 +344,78 @@ module Rubex
       end # class Unary
 
       class ElementRef < Base
-        attr_reader :entry, :pos, :type, :name, :object_ptr
+        # FIXME: get rid of this object_ptr for good.
+        attr_reader :entry, :pos, :type, :name, :object_ptr, :subexprs
+        extend Forwardable
+        def_delegators :@element_ref, :generate_disposal_code, :generate_evaluation_code,
+                       :analyse_statement, :generate_element_ref_code,
+                       :generate_assignment_code, :has_temp, :c_code, :allocate_temp,
+                       :allocate_temps, :release_temp, :release_temps, :to_ruby_object,
+                       :from_ruby_object
 
         def initialize name, pos
           @name, @pos = name, pos
           @subexprs = []
         end
 
-        # FIXME: This method needs to be implemented for all exprs that are
-        #   possible LHS candidates.
-        # def analyse_declaration rhs, local_scope
-        #   analyse_statement local_scope
-        #   @has_temp = false
-        # end
-
         def analyse_statement local_scope, struct_scope=nil
-          if struct_scope.nil?
-            @entry = local_scope.find @name
-          else
-            @entry = struct_scope[@name]
-          end
-          
-          @object_ptr = true if @entry.type.cptr? && @entry.type.type.object?
+          @entry = struct_scope.nil? ? local_scope.find(@name) : struct_scope[@name]
           @type = @entry.type.object? ? @entry.type : @entry.type.type
-
-          if @type.object? && !@object_ptr
-            @has_temp = true
-            @pos.analyse_statement local_scope
-            if !(@type.ruby_array?)
-              @pos = @pos.to_ruby_object
-            end
-            @subexprs << @pos
-          else
-            @pos.analyse_statement local_scope
-          end
+          @element_ref = proper_analysed_type
+          @element_ref.analyse_statement local_scope
           super(local_scope)
         end
 
-        # This method will be called when [] ruby method or C array element
-        #   reference is called.
-        # TODO: refactor this by creating separate classes for ruby object, object
-        # ptr, c type.
-        def generate_evaluation_code code, local_scope
-          if @type.object? && !@object_ptr
-            if @type.ruby_array?
-              code << "#{@c_code} = RARRAY_AREF(#{@entry.c_name}, #{@pos.c_code(local_scope)});"
-            elsif @type.ruby_hash?
-              @pos.generate_evaluation_code code, local_scope
-              code << "#{@c_code} = rb_hash_aref(#{@entry.c_name}, #{@pos.c_code(local_scope)});"
+        private
+
+        def proper_analysed_type
+          if ruby_object_c_array?
+            @object_ptr = true
+            CVarElementRef.new(self)
+          else
+            if ruby_array?
+              RubyArrayElementRef.new(self)
+            elsif ruby_hash?
+              RubyHashElementRef.new(self)
+            elsif generic_ruby_object?
+              RubyObjectElementRef.new(self)
             else
-              @pos.generate_evaluation_code code, local_scope
-              code << "#{@c_code} = rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
-              code << "#{@pos.c_code(local_scope)});"
+              CVarElementRef.new(self)
             end
-            code.nl
-            @pos.generate_disposal_code code
-          else
-            @pos.generate_evaluation_code code, local_scope
-            @c_code = "#{@entry.c_name}[#{@pos.c_code(local_scope)}]"
-          end
+          end          
         end
 
-        def generate_disposal_code code
-          if @type.object? && !@object_ptr
-            code << "#{@c_code} = 0;"
-            code.nl
-          end
+        def ruby_array?
+          @type.ruby_array?
         end
 
-        # This method will be called when []= ruby method or C array assignment
-        #   takes place.
-        def generate_assignment_code rhs, code, local_scope
-          if @type.object? && !@object_ptr
-            @pos.generate_evaluation_code code, local_scope
-            if @type.ruby_hash?
-              code << "rb_hash_aset(#{@entry.c_name}, #{@pos.c_code(local_scope)}, #{rhs.c_code(local_scope)});"
-            else
-              code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]=\"), 2, "
-              code << "#{@pos.c_code(local_scope)}, #{rhs.c_code(local_scope)});"
-            end
-            @pos.generate_disposal_code code
-          else
-            code << "#{@entry.c_name}[#{@pos.c_code(local_scope)}] = "
-            code << "#{rhs.c_code(local_scope)};"
-          end
-          code.nl
+        def ruby_hash?
+          @type.ruby_hash?
         end
 
-        # FIXME: This is jugaad. Change.
-        def generate_element_ref_code expr, code, local_scope
-          if !@object_ptr
-            @pos.generate_evaluation_code code, local_scope
-            str = "#{@c_code} = rb_funcall(#{expr.c_code(local_scope)}."
-            str << "#{@entry.c_name}, rb_intern(\"[]\"), 1, "
-            str << "#{@pos.c_code(local_scope)});"
-            code << str
-            code.nl
-            @pos.generate_disposal_code code
-          else
-            generate_evaluation_code code, local_scope
-          end
+        def generic_ruby_object?
+          @type.object?
+        end
+
+        def ruby_object_c_array?
+          @entry.type.cptr? && @entry.type.type.object?
+        end        
+      end # class ElementRef
+
+      class AnalysedElementRef < Base
+        attr_reader :entry, :pos, :type, :name, :object_ptr, :subexprs
+        def initialize element_ref
+          @element_ref = element_ref
+          @pos = @element_ref.pos
+          @entry = @element_ref.entry
+          @name = @element_ref.name
+          @subexprs = @element_ref.subexprs
+          @object_ptr = @element_ref.object_ptr
+          @type = @element_ref.type
+        end
+
+        def analyse_statement local_scope
+          @pos.analyse_statement local_scope
         end
 
         def c_code local_scope
@@ -447,7 +423,93 @@ module Rubex
           code << @c_code
           code
         end
-      end # class ElementRef
+      end
+
+      class RubyObjectElementRef < AnalysedElementRef
+        def analyse_statement local_scope
+          super
+          @has_temp = true
+          @pos = @pos.to_ruby_object
+          @subexprs << @pos
+        end
+
+        def generate_evaluation_code code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          code << "#{@c_code} = rb_funcall(#{@entry.c_name}, rb_intern(\"[]\"), 1, "
+          code << "#{@pos.c_code(local_scope)});"
+          code.nl
+          @pos.generate_disposal_code code
+        end
+
+        def generate_disposal_code code
+          code << "#{@c_code} = 0;"
+          code.nl  
+        end
+
+        def generate_element_ref_code expr, code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          str = "#{@c_code} = rb_funcall(#{expr.c_code(local_scope)}."
+          str << "#{@entry.c_name}, rb_intern(\"[]\"), 1, "
+          str << "#{@pos.c_code(local_scope)});"
+          code << str
+          code.nl
+          @pos.generate_disposal_code code
+        end
+
+        def generate_assignment_code rhs, code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          code << "rb_funcall(#{@entry.c_name}, rb_intern(\"[]=\"), 2,"
+          code << "#{@pos.c_code(local_scope)}, #{rhs.c_code(local_scope)});"
+          code.nl
+          @pos.generate_disposal_code code
+        end
+      end
+
+      class RubyArrayElementRef < RubyObjectElementRef
+        def generate_evaluation_code code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          code << "#{@c_code} = RARRAY_AREF(#{@entry.c_name}, #{@pos.c_code(local_scope)});"
+          code.nl
+          @pos.generate_disposal_code code
+        end
+      end # class RubyArrayElementRef
+
+      class RubyHashElementRef < RubyObjectElementRef
+        def generate_evaluation_code code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          code << "#{@c_code} = rb_hash_aref(#{@entry.c_name}, #{@pos.c_code(local_scope)});"
+          @pos.generate_disposal_code code
+        end
+
+        def generate_assignment_code rhs, code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          code << "rb_hash_aset(#{@entry.c_name}, #{@pos.c_code(local_scope)},"
+          code << "#{rhs.c_code(local_scope)});"
+          @pos.generate_disposal_code code
+        end
+      end # class RubyHashElementRef
+
+      class CVarElementRef < AnalysedElementRef
+        def analyse_statement local_scope
+          @pos.analyse_statement local_scope
+        end
+
+        def generate_evaluation_code code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          @c_code = "#{@entry.c_name}[#{@pos.c_code(local_scope)}]"
+        end
+
+        def generate_element_ref_code expr, code, local_scope
+          generate_evaluation_code code, local_scope
+        end
+
+        def generate_assignment_code rhs, code, local_scope
+          @pos.generate_evaluation_code code, local_scope
+          code << "#{@entry.c_name}[#{@pos.c_code(local_scope)}] = "
+          code << "#{rhs.c_code(local_scope)};"
+          @pos.generate_disposal_code code
+        end
+      end # class CVarElementRef
 
       class Self < Base
         def c_code local_scope
@@ -511,50 +573,29 @@ module Rubex
           end
         end
 
+        
         # Analyse a Name node. This can either be a variable name or a method call
-        #   without parenthesis. Code in this method that creates a CommandCall
+        #   without parenthesis. Code in this method that creates a RubyMethodCall
         #   node primarily exists because in Ruby methods without arguments can 
         #   be called without parentheses. These names can potentially be Ruby
         #   methods that are not visible to Rubex, but are present in the Ruby
-        #   run time.
+        #   run time. For example, a program like this:
+        #
+        #     def foo
+        #       bar
+        #      #^^^ this is a name node
+        #     end
         def analyse_statement local_scope
           @entry = local_scope.find @name
-          # FIXME: Figure out a way to perform compile time checking of expressions
-          #   to see if the said Ruby methods are actually present in the Ruby
-          #   runtime. Maybe read symbols in the Ruby interpreter and load them
-          #   as a pre-compilation step?
-
-          # If entry is not present, assume its a Ruby method call to some method
-          #   outside of the current Rubex scope or a Ruby constant.
           if !@entry
-            # Check if first letter is a capital to check for Ruby constant.
-            if @name[0].match /[A-Z]/
-              @name = Expression::RubyConstant.new @name
-              @name.analyse_statement local_scope
-              @entry = @name.entry
-            else # extern Ruby method
-              @entry = local_scope.add_ruby_method(
-                name: @name,
-                c_name: @name,
-                extern: true,
-                scope: nil,
-                arg_list: [])
+            if ruby_constant?
+              analyse_as_ruby_constant local_scope
+            else
+              add_as_ruby_method_to_scope local_scope
             end
           end
-          # If the entry is a RubyMethod, it should be interpreted as a command
-          # call. So, make the @name a CommandCall Node.
-          if @entry.type.ruby_method? #|| @entry.type.c_function?
-            @name = Rubex::AST::Expression::CommandCall.new(
-              Expression::Self.new, @name, [])
-            @name.analyse_statement local_scope
-          end
-
-          if @entry.type.alias_type? || @entry.type.ruby_method? || 
-              @entry.type.c_function?
-            @type = @entry.type.type
-          else
-            @type = @entry.type
-          end
+          analyse_as_ruby_method(local_scope) if @entry.type.ruby_method?
+          assign_type_based_on_whether_wrapped_type
           super
         end
 
@@ -586,59 +627,55 @@ module Rubex
 
           code
         end
+        
+        private
+
+        def ruby_constant?
+          @name[0].match /[A-Z]/
+        end
+
+        def analyse_as_ruby_constant local_scope
+          @name = Expression::RubyConstant.new @name
+          @name.analyse_statement local_scope
+          @entry = @name.entry          
+        end
+
+        def add_as_ruby_method_to_scope local_scope
+          @entry = local_scope.add_ruby_method(
+            name: @name,
+            c_name: @name,
+            extern: true,
+            scope: nil,
+            arg_list: [])
+        end
+
+        def analyse_as_ruby_method local_scope
+          @name = Rubex::AST::Expression::RubyMethodCall.new(
+            Expression::Self.new, @name, [])
+          @name.analyse_statement local_scope
+        end
+
+        def assign_type_based_on_whether_wrapped_type
+          if @entry.type.alias_type? || @entry.type.ruby_method? || @entry.type.c_function?
+            @type = @entry.type.type
+          else
+            @type = @entry.type
+          end
+        end
       end # class Name
 
       class MethodCall < Base
         attr_reader :method_name, :type
 
-        def initialize method_name, invoker, arg_list
+        def initialize invoker, method_name, arg_list
           @method_name, @invoker, @arg_list = method_name, invoker, arg_list
         end
 
-        # Analyse a method call. If the method that is being called is defined
-        #   in a class in a Rubex file, it can easily be interpreted as a Ruby
-        #   method. However, in case it is not, a new symtab entry will be created
-        #   which will mark the method as 'extern' so that future calls to that
-        #   same method can be simply pulled from the symtab.
-        # local_scope is the local method scope.
+        # local_scope - is the local method scope.
         def analyse_statement local_scope
-          entry = local_scope.find(@method_name)
-          if !entry
-            entry = local_scope.add_ruby_method(
-              name: @method_name, 
-              c_name: @method_name, 
-              extern: true,
-              arg_list: @arg_list,
-              scope: nil)
-          end
-
+          @entry = local_scope.find(@method_name)
           if method_not_within_scope? local_scope
             raise Rubex::NoMethodError, "Cannot call #{@name} from this method."
-          end
-
-          # FIXME: Print a warning during compilation if a symbol is being
-          #   interpreted as a Ruby method call due it not being found in the
-          #   symbol table.
-
-          # A symtab entry for a predeclared extern C func.
-          if entry && entry.type.base_type.c_function?
-            @type = entry.type.base_type
-            # All C functions have compulsory last arg as self. This does not
-            #   apply to extern functions as they are usually not made for accepting
-            #   a VALUE last arg.
-            @arg_list << Expression::Self.new if !entry.extern?
-            type_check_arg_types entry
-          else
-            @type = Rubex::DataType::RubyObject.new
-          end
-
-          if entry.type.ruby_method? && !entry.extern? && @arg_list.size > 0 
-            @arg_list_var = entry.c_name + Rubex::ACTUAL_ARGS_SUFFIX
-
-            args_size = entry.type.arg_list&.size || 0
-            local_scope.add_carray(name: @arg_list_var, c_name: @arg_list_var,
-              dimension: Literal::Int.new("#{args_size}"), 
-              type: Rubex::DataType::RubyObject.new)
           end
           super
         end
@@ -647,18 +684,6 @@ module Rubex
         end
 
         def generate_disposal_code code
-        end
-
-        def c_code local_scope
-          code = super
-          entry = local_scope.find(@method_name)
-          if entry.type.ruby_method?
-            code << code_for_ruby_method_call(local_scope)
-          else
-            code << code_for_c_method_call(local_scope, entry)
-          end
-
-          code
         end
 
       private
@@ -679,28 +704,43 @@ module Rubex
         # that they belong to the correct scope and will compile a call to those
         # methods anyway. Error, if any, will be caught only at runtime.
         def method_not_within_scope? local_scope
-          entry = local_scope.find @method_name
           caller_entry = local_scope.find local_scope.name
-          if ( caller_entry.singleton? &&  entry.singleton?) || 
-             (!caller_entry.singleton? && !entry.singleton?) ||
-             entry.c_function?
+          if ( caller_entry.singleton? &&  @entry.singleton?) || 
+             (!caller_entry.singleton? && !@entry.singleton?) ||
+             @entry.c_function?
             false
           else
             true
           end
         end
+      end # class MethodCall
 
-        def code_for_c_method_call local_scope, entry
-          str = "#{entry.c_name}("
-          str << @arg_list.map { |a| a.c_code(local_scope) }.join(",")
-          str << ")"
-          str
+      class RubyMethodCall < MethodCall
+        def analyse_statement local_scope
+          super
+          @type = Rubex::DataType::RubyObject.new
+          prepare_arg_list(local_scope) if !@entry.extern? && @arg_list.size > 0
+        end
+
+        def c_code local_scope
+          code = super
+          code << code_for_ruby_method_call(local_scope)
+          code
+        end
+
+        private
+
+        def prepare_arg_list local_scope
+          @arg_list_var = @entry.c_name + Rubex::ACTUAL_ARGS_SUFFIX
+          args_size = @entry.type.arg_list&.size || 0
+          local_scope.add_carray(name: @arg_list_var, c_name: @arg_list_var,
+                                 dimension: Literal::Int.new("#{args_size}"), 
+                                 type: @type)
         end
 
         def code_for_ruby_method_call local_scope
-          entry = local_scope.find @method_name
           str = ""
-          if entry.extern?
+          if @entry.extern?
             str << "rb_funcall(#{@invoker.c_code(local_scope)}, "
             str << "rb_intern(\"#{@method_name}\"), "
             str << "#{@arg_list.size}"
@@ -711,13 +751,13 @@ module Rubex
             str << ")"
           else
             str << populate_method_args_into_value_array(local_scope)
-            str << actual_ruby_method_call(local_scope, entry)
+            str << actual_ruby_method_call(local_scope)
           end
           str
         end
 
-        def actual_ruby_method_call local_scope, entry
-          str = "#{entry.c_name}(#{@arg_list.size}, #{@arg_list_var || "NULL"},"
+        def actual_ruby_method_call local_scope
+          str = "#{@entry.c_name}(#{@arg_list.size}, #{@arg_list_var || "NULL"},"
           str << "#{local_scope.self_name})"
         end
 
@@ -731,69 +771,71 @@ module Rubex
 
           str
         end
-      end # class MethodCall
+      end # class RubyMethodCall
+
+      class CFunctionCall < MethodCall
+        def analyse_statement local_scope
+          super
+          @type = @entry.type.base_type
+          append_self_argument if !@entry.extern?
+          type_check_arg_types @entry          
+        end
+
+        def c_code local_scope
+          code = super
+          code << code_for_c_method_call(local_scope)
+          code
+        end
+
+        private
+
+        def append_self_argument
+          @arg_list << Expression::Self.new
+        end
+
+        def code_for_c_method_call local_scope
+          str = "#{@entry.c_name}("
+          str << @arg_list.map { |a| a.c_code(local_scope) }.join(",")
+          str << ")"
+          str
+        end
+      end # class CFunctionCall
 
       class CommandCall < Base
-        attr_reader :expr, :command, :arg_list, :type
+        attr_reader :expr, :command, :arg_list, :type, :entry
 
         def initialize expr, command, arg_list
           @expr, @command, @arg_list = expr, command, arg_list
           @subexprs = []
         end
 
-        # Analyse the command call. If the @command is found in the symbol table,
-        #   it is either a struct member or a method call. If not found, it is
-        #   assumed to be a Ruby method call and passed on the MethodCall node
-        #   where it is interpreted likewise. The upside is that Rubex can call
-        #   arbitrary Ruby methods that are defined in external Ruby scripts and
-        #   not visible to Rubex at compile time. The downside is that errors with
-        #   such methods will be visible to the programmer only during runtime.
         def analyse_statement local_scope
-          @arg_list.each do |arg|
-            arg.analyse_statement local_scope
-            @subexprs << arg
-          end
-          # Case for implicit 'self' when a method in the class itself is being called.
-          if @expr.nil?
-            entry = local_scope.find(@command)
-            @expr = Expression::Self.new if entry && !entry.extern?
+          analyse_arg_list_and_add_to_subexprs local_scope
+          @entry = local_scope.find(@command)
+          if @expr.nil? # Case for implicit 'self' when a method in the class itself is being called.
+            @expr = Expression::Self.new if @entry && !@entry.extern
           else
             @expr.analyse_statement(local_scope)
             @expr.allocate_temps local_scope
             @expr.allocate_temp local_scope, @expr.type
           end
+          add_as_ruby_method_to_symtab(local_scope) if !@entry          
           analyse_command_type local_scope
           super
         end
 
-        # FIXME: refactor this method (or class). Too many ifs. Too much jagaad.
         def generate_evaluation_code code, local_scope
           @c_code = ""
           @arg_list.each do |arg|
             arg.generate_evaluation_code code, local_scope
           end
           @expr.generate_evaluation_code(code, local_scope) if @expr
-
-          if @expr && @type.object? && @command.is_a?(Rubex::AST::Expression::ElementRef) && 
-            !@command.object_ptr
-            @command.generate_element_ref_code @expr, code, local_scope
-            @c_code << "#{@command.c_code(local_scope)}"
-          else
-            @command.generate_evaluation_code code, local_scope
-            # Interpreted as a method call
-            if @command.is_a? Rubex::AST::Expression::MethodCall
-              @c_code << @command.c_code(local_scope)
-            else # interpreted as referencing the contents of a struct
-              op = @expr.type.cptr? ? "->" : "."
-
-              @c_code << "#{@expr.c_code(local_scope)}#{op}#{@command.c_code(local_scope)}"
-            end
-          end
+          @command.generate_evaluation_code code, local_scope
+          @c_code << @command.c_code(local_scope)
         end
 
         def generate_disposal_code code
           @expr.generate_disposal_code(code) if @expr
-          # @command.generate_disposal_code code
           @arg_list.each do |arg|
             arg.generate_disposal_code code
           end
@@ -811,85 +853,163 @@ module Rubex
           code
         end
 
-      private
+        private
 
-        def analyse_command_type local_scope
-          if @expr && ((@expr.type.cptr? && @expr.type.type.struct_or_union?) || 
-              (@expr.type.struct_or_union?))
-            scope = @expr.type.base_type.scope
-            if @command.is_a? String
-              @command = Expression::Name.new @command
-              @command.analyse_statement scope
-            end
-
-            if !scope.has_entry?(@command.name)
-              raise "Entry #{@command.name} does not exist in #{@expr}."
-            end
-
-            if @command.is_a? Rubex::AST::Expression::ElementRef
-              @command.analyse_statement local_scope, scope
-            end
-          else
-            @command = Expression::MethodCall.new @command, @expr, @arg_list
-            @command.analyse_statement local_scope
+        def analyse_arg_list_and_add_to_subexprs local_scope
+          @arg_list.each do |arg|
+            arg.analyse_statement local_scope
+            @subexprs << arg
           end
-          @type = @command.type
+        end
+
+        def add_as_ruby_method_to_symtab local_scope
+          @entry = local_scope.add_ruby_method(
+            name: @command, 
+            c_name: @command, 
+            extern: true,
+            arg_list: @arg_list,
+            scope: nil)
+        end
+
+        def struct_member_call?
+          @expr && ((@expr.type.cptr? && @expr.type.type.struct_or_union?) || 
+                    (@expr.type.struct_or_union?))
+        end
+
+        def ruby_method_call?
+          @entry.type.ruby_method?
+        end
+
+        def c_function_call?
+          @entry.type.base_type.c_function?
+        end
+
+        def allocate_and_release_temps local_scope
           @command.allocate_temps local_scope
           @command.allocate_temp local_scope, @type
           @command.release_temps local_scope
           @command.release_temp local_scope
         end
+
+        def analyse_command_type local_scope
+          if struct_member_call?
+            @command = Expression::StructOrUnionMemberCall.new @expr, @command, @arg_list
+          elsif ruby_method_call?
+            @command = Expression::RubyMethodCall.new @expr, @command, @arg_list
+          elsif c_function_call?
+            @command = Expression::CFunctionCall.new @expr, @command,  @arg_list
+          end
+          @command.analyse_statement local_scope
+          @type = @command.type
+          allocate_and_release_temps local_scope
+        end
       end # class CommandCall
 
+      class StructOrUnionMemberCall < CommandCall
+        def analyse_statement local_scope
+          scope = @expr.type.base_type.scope
+
+          if @command.is_a? String
+            if !scope.has_entry?(@command)
+              raise "Entry #{@command.name} does not exist in #{@expr}."
+            end
+            @command = Expression::Name.new @command            
+            @command.analyse_statement scope
+          elsif @command.is_a? Rubex::AST::Expression::ElementRef
+            @command = Expression::ElementRefMemberCall.new @expr, @command, @arg_list
+            @command.analyse_statement local_scope, scope
+          end
+          @has_temp = @command.has_temp
+          @type = @command.type
+        end
+
+        def c_code local_scope
+           if @command.has_temp
+             @command.c_code(local_scope)
+           else
+            op = @expr.type.cptr? ? "->" : "."
+            "#{@expr.c_code(local_scope)}#{op}#{@command.c_code(local_scope)}"
+          end
+        end
+      end # StructOrUnionMemberCall
+
+      class ElementRefMemberCall < StructOrUnionMemberCall
+        def analyse_statement local_scope, struct_scope
+          @command.analyse_statement local_scope, struct_scope
+          @type = @command.type
+          @has_temp = @command.has_temp
+          allocate_and_release_temps local_scope
+        end
+
+        def generate_evaluation_code code, local_scope
+          @command.generate_element_ref_code @expr, code, local_scope          
+        end
+
+        def c_code local_scope
+          @command.c_code(local_scope)
+        end
+      end # class ElementRefMemberCall
 
       class ArgDeclaration < Base
-        attr_reader :entry, :type
+        attr_reader :entry, :type, :data_hash
 
-        # data_hash - a Hash containing data about the variable.
         def initialize data_hash
           @data_hash = data_hash
         end
 
-        def analyse_statement local_scope, inside_func_ptr: false, extern: false
-          # FIXME: Support array of function pointers and array in arguments.
+        # FIXME: Support array of function pointers and array in arguments.
+        def analyse_statement local_scope, extern: false
+          var, dtype, ident, ptr_level, value = fetch_data
+          name, c_name = ident, Rubex::ARG_PREFIX + ident 
+          @type = Helpers.determine_dtype(dtype, ptr_level)
+          value.analyse_statement(local_scope) if value
+          add_arg_to_symbol_table name, c_name, @type, value, extern, local_scope
+        end # def analyse_statement
+        
+        private
+
+        def add_arg_to_symbol_table name, c_name, type, value, extern, local_scope
+          if !extern
+            @entry = local_scope.add_arg(name: name, c_name: c_name, type: @type, value: value)
+          end
+        end
+        
+        def fetch_data
           var       = @data_hash[:variables][0]
           dtype     = @data_hash[:dtype]
           ident     = var[:ident]
           ptr_level = var[:ptr_level]
           value     = var[:value]
 
-          if ident.is_a?(Hash) # function pointer
-            cfunc_return_type = Helpers.determine_dtype(dtype,
-              ident[:return_ptr_level])
-            arg_list = ident[:arg_list].analyse_statement(local_scope,
-              inside_func_ptr: true)
-            ptr_level = "*" if ptr_level.empty?
-
-            if inside_func_ptr
-              name, c_name = nil, nil
-            else
-              name   = ident[:name]
-              c_name = Rubex::ARG_PREFIX + name
-            end
-
-            @type   = Helpers.determine_dtype(
-              DataType::CFunction.new(name, c_name, arg_list, cfunc_return_type, nil),
-              ptr_level)
-          else
-            if !inside_func_ptr
-              name, c_name = ident, Rubex::ARG_PREFIX + ident 
-            end
-            @type = Helpers.determine_dtype(dtype, ptr_level)
-          end
-
-          value.analyse_statement(local_scope) if value
-
-          if !extern && !inside_func_ptr
-            @entry = local_scope.add_arg(name: name, c_name: c_name, type: @type,
-              value: value)
-          end
-        end # def analyse_statement
+          [var, dtype, ident, ptr_level, value]
+        end
       end # class ArgDeclaration
+
+      # Function argument is a function pointer.
+      class FuncPtrArgDeclaration < ArgDeclaration
+        def initialize data_hash
+          super
+        end
+        
+        def analyse_statement local_scope, extern: false
+          var, dtype, ident, ptr_level, value = fetch_data
+          cfunc_return_type = Helpers.determine_dtype(dtype, ident[:return_ptr_level])
+          arg_list = ident[:arg_list].analyse_statement(local_scope)
+          ptr_level = "*" if ptr_level.empty?
+          name, c_name = ident[:name], Rubex::ARG_PREFIX + ident[:name]
+          @type = Helpers.determine_dtype(
+            DataType::CFunction.new(name, c_name, arg_list, cfunc_return_type, nil), ptr_level)
+          add_arg_to_symbol_table name, c_name, @type, value, extern, local_scope
+        end
+      end # class FuncPtrArgDeclaration
+
+      # Function argument is the argument of a function pointer.
+      class FuncPtrInternalArgDeclaration < ArgDeclaration
+        def analyse_statement local_scope, extern: false
+          var, dtype, ident, ptr_level, value = fetch_data
+          @type = Helpers.determine_dtype(dtype, ptr_level)
+        end
+      end # class FuncPtrInternalArgDeclaration
 
       class CoerceObject < Base
         attr_reader :expr
