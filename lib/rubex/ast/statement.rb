@@ -1149,7 +1149,7 @@ module Rubex
 
           def analyse_statement local_scope
             @error_klass.analyse_statement local_scope
-            if !@error_klass.name.type.ruby_constant?
+            if !@error_klass.type.ruby_constant?
               raise "Must pass an error class to raise. Location #{@location}."
             end
 

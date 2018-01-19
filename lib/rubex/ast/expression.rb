@@ -3,6 +3,13 @@ module Rubex
     module Expression
       class Base
         attr_accessor :typecast
+        attr_reader :entry, :type, :has_temp, :result_code, :subexprs
+
+        class << self
+          def self.has_subexprs subexprs
+            @subexprs = subexprs
+          end
+        end
 
         # In case an expr has to be of a certain type, like a string literal
         #   assigned to a char*, this method will analyse the literal in context
@@ -546,8 +553,6 @@ module Rubex
 
       # Singular name node with no sub expressions.
       class Name < Base
-        attr_reader :name, :entry, :type
-
         def initialize name
           @name = name
         end
