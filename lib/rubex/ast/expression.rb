@@ -55,7 +55,7 @@ module Rubex
 
         def allocate_temp local_scope, type
           if @has_temp
-            @c_code = local_scope.allocate_temp(type)
+            @result_code = local_scope.allocate_temp(type)
           end
         end
 
@@ -72,15 +72,15 @@ module Rubex
         end
 
         def generate_evaluation_code code, local_scope
-          
+        end
+
+        def generate_result_code local_scope
         end
 
         def generate_disposal_code code
-
         end
 
         def generate_assignment_code rhs, code, local_scope
-          
         end
       end
 
@@ -120,20 +120,48 @@ module Rubex
       class Binary < Base
         include Rubex::Helpers::NodeTypeMethods
 
-        attr_reader :operator
-        attr_accessor :left, :right
+        has_subexprs :left, :right
+        
         # Final return type of expression
         attr_accessor :type, :subexprs
+        OPCLASS_OPERATOR = {
+          BinaryAdd => '+',
+          BinarySubtract => '-',
+          BinaryMultiply => '*',
+          BinaryDivide => '/',
+          BinaryExponential => '**',
+          BinaryModulus => '%',
+          BinaryAnd => '&',
+          BinaryOr => '|',
+          BinaryXor => '^',
+          BinaryLShift => '<<',
+          BinaryRShift => '>>',
+          BinaryBoolAnd => '&&',
+          BinaryBoolOr => '||',
+          BinaryBoolEq => '==',
+          BinaryBoolNEq => '!=',
+          BinaryBoolLt => '<',
+          BinaryBoolLtEq => '<=',
+          BinaryBoolGt => '>',
+          BinaryBoolGtEq => '>='
+        }
 
-        def initialize left, operator, right
-          @left, @operator, @right = left, operator, right
+        def initialize left, right
+          @left,  @right = left, right
           @@analyse_visited = []
           @subexprs = []
         end
 
-        def analyse_statement local_scope
-          analyse_left_and_right_nodes local_scope, self
-          analyse_return_type local_scope, self
+        def analyse_types local_scope
+          @left.analyse_types local_scope
+          @right.analyse_types local_scope
+          if @left.type.object? || @right.type.object?
+            @left = @left.to_ruby_object
+            @right = @right.to_ruby_object
+            @has_temp = true
+          end
+          @type = Rubex::Helpers.result_type_for(
+            type_of(@left), type_of(@right))
           super
         end
 
@@ -150,6 +178,20 @@ module Rubex
         def generate_evaluation_code code, local_scope
           @left.generate_evaluation_code code, local_scope
           @right.generate_evaluation_code code, local_scope
+          if @has_temp
+            code << "#{@result_code} = rb_funcall(#{@left.result_code}," +
+              "rb_intern(\#{OPCLASS_OPERATOR[self.class]}\)," +
+              "1, #{@right.result_code});"
+            code.nl
+          end
+        end
+
+        def generate_result_code local_scope
+          @left.generate_result_code local_scoep
+          @right.generate_result_code local_scope
+          if !@has_temp
+            @result_code = "( #{@left.result_code} #{OPCLASS_OPERATOR[self.class]} #{@right.result_code} )"
+          end
         end
 
         def generate_disposal_code code
@@ -247,13 +289,95 @@ module Rubex
         end
       end # class Binary
 
+      class BinaryAdd < Binary
+      end
+
+      class BinarySubtract < Binary
+      end
+
+      class BinaryMultiply < Binary
+      end
+
+      class BinaryDivide < Binary
+      end
+
+      class BinaryExponential < Binary
+      end
+
+      class BinaryModulus < Binary
+      end
+
+      class BinaryAnd < Binary
+      end
+
+      class BinaryOr < Binary
+      end
+
+      class BinaryXor < Binary
+      end
+
+      class BinaryLShift < Binary
+      end
+
+      class BinaryRShift < Binary
+      end
+
+      class BinaryBoolean < Binary
+        def analyse_types local_scope
+          @left.generate_result_code local_scope
+          @right.generate_result_code local_scope
+          if type_of(@left).object? || type_of(@right).object?
+            @type = Rubex::DataType::Boolean.new
+          else
+            @type = Rubex::DataType::CBoolean.new
+          end
+        end
+      end
+
+      class BinaryBinOp < BinaryBoolean
+        def generate_evaluation_code code, local_scope
+          @left.generate_evaluation_code code, local_scope
+          @right.generate_evaluation_code code, local_scope
+          if @has_temp
+            code << "#{@result_code} = " + Rubex::C_MACRO_INT2BOOL +
+              "(RTEST(#{@left.result_code}) #{OPCLASS_OPERATOR[self.class]}" +
+              "RTEST(#{@right.result_code}));"
+            code.nl
+          end
+        end  
+      end
+
+      class BinaryBoolAnd < BinaryBinOp
+      end
+
+      class BinaryBoolOr < BinaryBinOp
+      end
+
+      class BinaryBoolEq < BinaryBoolean
+      end
+
+      class BinaryBoolNEq < BinaryBoolean
+      end
+
+      class BinaryBoolLt < BinaryBoolean
+      end
+
+      class BinaryBoolLtEq < BinaryBoolean
+      end
+
+      class BinaryBoolGt < BinaryBoolean
+      end
+
+      class BinaryBoolGtEq < BinaryBoolean
+      end
+
       class UnaryBase < Base
         def initialize expr
           @expr = expr
         end
 
-        def analyse_statement local_scope
-          @expr.analyse_statement local_scope
+        def analyse_types local_scope
+          @expr.analyse_types local_scope
           @type = @expr.type
           @expr.allocate_temps local_scope
           @expr.allocate_temp local_scope, @type
@@ -296,7 +420,7 @@ module Rubex
       class Ampersand < UnaryBase
         attr_reader :type
 
-        def analyse_statement local_scope
+        def analyse_types local_scope
           @expr.analyse_statement local_scope
           @type = DataType::CPtr.new @expr.type
         end
@@ -333,9 +457,9 @@ module Rubex
           @operator, @expr = operator, expr
         end
 
-        def analyse_statement local_scope
+        def analyse_types local_scope
           @expr = OP_CLASS_MAP[@operator].new(@expr)
-          @expr.analyse_statement local_scope
+          @expr.analyse_types local_scope
           @type = @expr.type
           super
         end
@@ -369,7 +493,7 @@ module Rubex
           @entry = struct_scope.nil? ? local_scope.find(@name) : struct_scope[@name]
           @type = @entry.type.object? ? @entry.type : @entry.type.type
           @element_ref = proper_analysed_type
-          @element_ref.analyse_statement local_scope
+          @element_ref.analyse_types local_scope
           super(local_scope)
         end
 
@@ -421,8 +545,8 @@ module Rubex
           @type = @element_ref.type
         end
 
-        def analyse_statement local_scope
-          @pos.analyse_statement local_scope
+        def analyse_types local_scope
+          @pos.analyse_types local_scope
         end
 
         def c_code local_scope
@@ -433,7 +557,7 @@ module Rubex
       end
 
       class RubyObjectElementRef < AnalysedElementRef
-        def analyse_statement local_scope
+        def analyse_types local_scope
           super
           @has_temp = true
           @pos = @pos.to_ruby_object
@@ -497,8 +621,8 @@ module Rubex
       end # class RubyHashElementRef
 
       class CVarElementRef < AnalysedElementRef
-        def analyse_statement local_scope
-          @pos.analyse_statement local_scope
+        def analyse_types local_scope
+          @pos.analyse_types local_scope
         end
 
         def generate_evaluation_code code, local_scope
@@ -536,7 +660,7 @@ module Rubex
           @name = name
         end
 
-        def analyse_statement local_scope
+        def analyse_types local_scope
           @type = Rubex::DataType::RubyConstant.new @name
           c_name = Rubex::DEFAULT_CLASS_MAPPINGS[@name]
           @entry = Rubex::SymbolTable::Entry.new name, c_name, @type, nil
@@ -590,7 +714,7 @@ module Rubex
         #       bar
         #      #^^^ this is a name node
         #     end
-        def analyse_statement local_scope
+        def analyse_types local_scope
           @entry = local_scope.find @name
           if !@entry
             if ruby_constant?
@@ -641,7 +765,7 @@ module Rubex
 
         def analyse_as_ruby_constant local_scope
           @name = Expression::RubyConstant.new @name
-          @name.analyse_statement local_scope
+          @name.analyse_types local_scope
           @entry = @name.entry          
         end
 
@@ -677,7 +801,7 @@ module Rubex
         end
 
         # local_scope - is the local method scope.
-        def analyse_statement local_scope
+        def analyse_types local_scope
           @entry = local_scope.find(@method_name)
           if method_not_within_scope? local_scope
             raise Rubex::NoMethodError, "Cannot call #{@name} from this method."
@@ -721,7 +845,7 @@ module Rubex
       end # class MethodCall
 
       class RubyMethodCall < MethodCall
-        def analyse_statement local_scope
+        def analyse_types local_scope
           super
           @type = Rubex::DataType::RubyObject.new
           prepare_arg_list(local_scope) if !@entry.extern? && @arg_list.size > 0
@@ -779,7 +903,7 @@ module Rubex
       end # class RubyMethodCall
 
       class CFunctionCall < MethodCall
-        def analyse_statement local_scope
+        def analyse_types local_scope
           super
           @type = @entry.type.base_type
           append_self_argument if !@entry.extern?
@@ -814,13 +938,13 @@ module Rubex
           @subexprs = []
         end
 
-        def analyse_statement local_scope
+        def analyse_types local_scope
           analyse_arg_list_and_add_to_subexprs local_scope
           @entry = local_scope.find(@command)
           if @expr.nil? # Case for implicit 'self' when a method in the class itself is being called.
             @expr = Expression::Self.new if @entry && !@entry.extern
           else
-            @expr.analyse_statement(local_scope)
+            @expr.analyse_types(local_scope)
             @expr.allocate_temps local_scope
             @expr.allocate_temp local_scope, @expr.type
           end
@@ -862,7 +986,7 @@ module Rubex
 
         def analyse_arg_list_and_add_to_subexprs local_scope
           @arg_list.each do |arg|
-            arg.analyse_statement local_scope
+            arg.analyse_types local_scope
             @subexprs << arg
           end
         end
@@ -904,14 +1028,14 @@ module Rubex
           elsif c_function_call?
             @command = Expression::CFunctionCall.new @expr, @command,  @arg_list
           end
-          @command.analyse_statement local_scope
+          @command.analyse_types local_scope
           @type = @command.type
           allocate_and_release_temps local_scope
         end
       end # class CommandCall
 
       class StructOrUnionMemberCall < CommandCall
-        def analyse_statement local_scope
+        def analyse_types local_scope
           scope = @expr.type.base_type.scope
 
           if @command.is_a? String
@@ -919,10 +1043,10 @@ module Rubex
               raise "Entry #{@command.name} does not exist in #{@expr}."
             end
             @command = Expression::Name.new @command            
-            @command.analyse_statement scope
+            @command.analyse_types scope
           elsif @command.is_a? Rubex::AST::Expression::ElementRef
             @command = Expression::ElementRefMemberCall.new @expr, @command, @arg_list
-            @command.analyse_statement local_scope, scope
+            @command.analyse_types local_scope, scope
           end
           @has_temp = @command.has_temp
           @type = @command.type
@@ -939,7 +1063,7 @@ module Rubex
       end # StructOrUnionMemberCall
 
       class ElementRefMemberCall < StructOrUnionMemberCall
-        def analyse_statement local_scope, struct_scope
+        def analyse_types local_scope, struct_scope
           @command.analyse_statement local_scope, struct_scope
           @type = @command.type
           @has_temp = @command.has_temp
@@ -963,11 +1087,11 @@ module Rubex
         end
 
         # FIXME: Support array of function pointers and array in arguments.
-        def analyse_statement local_scope, extern: false
+        def analyse_types local_scope, extern: false
           var, dtype, ident, ptr_level, value = fetch_data
           name, c_name = ident, Rubex::ARG_PREFIX + ident 
           @type = Helpers.determine_dtype(dtype, ptr_level)
-          value.analyse_statement(local_scope) if value
+          value.analyse_types(local_scope) if value
           add_arg_to_symbol_table name, c_name, @type, value, extern, local_scope
         end # def analyse_statement
         
@@ -996,7 +1120,7 @@ module Rubex
           super
         end
         
-        def analyse_statement local_scope, extern: false
+        def analyse_types local_scope, extern: false
           var, dtype, ident, ptr_level, value = fetch_data
           cfunc_return_type = Helpers.determine_dtype(dtype, ident[:return_ptr_level])
           arg_list = ident[:arg_list].analyse_statement(local_scope)
@@ -1010,7 +1134,7 @@ module Rubex
 
       # Function argument is the argument of a function pointer.
       class FuncPtrInternalArgDeclaration < ArgDeclaration
-        def analyse_statement local_scope, extern: false
+        def analyse_types local_scope, extern: false
           var, dtype, ident, ptr_level, value = fetch_data
           @type = Helpers.determine_dtype(dtype, ptr_level)
         end
@@ -1068,7 +1192,7 @@ module Rubex
       class BlockGiven < Base
         attr_reader :type
 
-        def analyse_statement local_scope
+        def analyse_types local_scope
           @type = DataType::CBoolean.new
         end
 
@@ -1082,7 +1206,7 @@ module Rubex
       class Empty < Base
         attr_reader :type
 
-        def analyse_statement local_scope
+        def analyse_types local_scope
           @type = DataType::Void.new
         end
       end
@@ -1125,11 +1249,11 @@ module Rubex
             @subexprs = []
           end
 
-          def analyse_statement local_scope
+          def analyse_types local_scope
             @has_temp = true
             @type = DataType::RubyObject.new
             @array_list.map! do |e|    
-              e.analyse_statement local_scope
+              e.analyse_types local_scope
               e = e.to_ruby_object
               @subexprs << e
               e
@@ -1160,7 +1284,7 @@ module Rubex
             @key_val_pairs = key_val_pairs
           end
 
-          def analyse_statement local_scope
+          def analyse_types local_scope
             @has_temp = true
             @type = Rubex::DataType::RubyObject.new
             @key_val_pairs.map! do |k, v|
@@ -1250,13 +1374,13 @@ module Rubex
               @type = Rubex::DataType::CStr.new
             elsif target_type.object?
               @type = Rubex::DataType::RubyString.new
-              analyse_statement local_scope
+              analyse_types local_scope
             else
               raise Rubex::TypeError, "Cannot assign #{target_type} to string."
             end
           end
 
-          def analyse_statement local_scope
+          def analyse_types local_scope
             @type = Rubex::DataType::RubyString.new unless @type
             @has_temp = 1
           end
@@ -1292,13 +1416,13 @@ module Rubex
               @type = Rubex::DataType::Char.new
             elsif target_type.object?
               @type = Rubex::DataType::RubyString.new
-              analyse_statement local_scope
+              analyse_types local_scope
             else
               raise Rubex::TypeError, "Cannot assign #{target_type} to string."
             end
           end
 
-          def analyse_statement local_scope
+          def analyse_types local_scope
             @type = Rubex::DataType::RubyString.new unless @type
           end
 
@@ -1354,7 +1478,7 @@ module Rubex
             end
           end
 
-          def analyse_statement local_scope
+          def analyse_types local_scope
             @type = Rubex::DataType::FalseType.new
           end
 

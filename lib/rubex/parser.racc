@@ -596,17 +596,17 @@ rule
   | tLPAREN expr      tRPAREN    { result = val[1] }
 
   expr_value:
-    expr_value tPLUS       expr_value { result = binary_op val }
-  | expr_value tMINUS      expr_value { result = binary_op val }
-  | expr_value tSTAR       expr_value { result = binary_op val }
-  | expr_value tDIVIDE     expr_value { result = binary_op val }
-  | expr_value tEXPO       expr_value { result = binary_op val }
-  | expr_value tMODULUS    expr_value { result = binary_op val }
-  | expr_value tBIT_AND    expr_value { result = binary_op val }
-  | expr_value tBIT_OR     expr_value { result = binary_op val }
-  | expr_value tBIT_XOR    expr_value { result = binary_op val }
-  | expr_value tBIT_LSHIFT expr_value { result = binary_op val }
-  | expr_value tBIT_RSHIFT expr_value { result = binary_op val }
+    expr_value tPLUS       expr_value { result = Expression::BinaryAdd.new(val[0], val[2]) }
+  | expr_value tMINUS      expr_value { result = Expresssion::BinarySubtract.new(val[0], val[2]) }
+  | expr_value tSTAR       expr_value { result = Expression::BinaryMultiply.new(val[0], val[2]) }
+  | expr_value tDIVIDE     expr_value { result = Expression::BinaryDivide.new(val[0], val[2]) }
+  | expr_value tEXPO       expr_value { result = Expression::BinaryExponential.new(val[0], val[2]) }
+  | expr_value tMODULUS    expr_value { result = Expression::BinaryModulus.new(val[0], val[2]) }
+  | expr_value tBIT_AND    expr_value { result = Expression::BinaryAnd.new(val[0], val[2]) }
+  | expr_value tBIT_OR     expr_value { result = Expression::BinaryOr.new(val[0], val[2]) }
+  | expr_value tBIT_XOR    expr_value { result = Expression::BinaryXor.new(val[0], val[2]) }
+  | expr_value tBIT_LSHIFT expr_value { result = Expression::BinaryLShift.new(val[0], val[2]) }
+  | expr_value tBIT_RSHIFT expr_value { result = Expression::BinaryRShift.new(val[0], val[2]) }
   | tMINUS     expr_value  =UMINUS    { result = unary_op val  }
   | tBIT_AND   expr_value  =ADDRESS_OF{ result = unary_op val  }
   | tBIT_NOT   expr_value             { result = unary_op val  } 
@@ -614,12 +614,12 @@ rule
   | atomic_value {}
 
   expr_cmp:
-    expr_value tEQ       expr_value { result = binary_op val }
-  | expr_value tNEQ      expr_value { result = binary_op val }
-  | expr_value tLT       expr_value { result = binary_op val }
-  | expr_value tLTEQ     expr_value { result = binary_op val }
-  | expr_value tGT       expr_value { result = binary_op val }
-  | expr_value tGTEQ     expr_value { result = binary_op val }
+    expr_value tEQ       expr_value { result = Expression::BinaryBoolEq.new(val[0], val[2]) }
+  | expr_value tNEQ      expr_value { result = Expression::BinaryBoolNEq.new(val[0], val[2]) }
+  | expr_value tLT       expr_value { result = Expression::BinaryBoolLt.new(val[0], val[2]) }
+  | expr_value tLTEQ     expr_value { result = Expression::BinaryBoolLtEq.new(val[0], val[2]) }
+  | expr_value tGT       expr_value { result = Expression::BinaryBoolGt.new(val[0], val[2]) }
+  | expr_value tGTEQ     expr_value { result = Expression::BinaryBoolGtEq.new(val[0], val[2]) }
   | tLPAREN    expr_cmp  tRPAREN    { result = val[1] }
 
   atomic_value:
