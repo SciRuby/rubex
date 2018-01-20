@@ -12,3 +12,7 @@ script:
 install:
   - gem install bundler
   - bundle install
+  
+os:
+  - linux
+  - osx
