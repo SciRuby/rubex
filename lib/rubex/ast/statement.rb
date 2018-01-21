@@ -166,7 +166,7 @@ module Rubex
         end
 
         def analyse_statement local_scope, extern: false
-          @dimension.analyse_statement local_scope
+          @dimension.analyse_types local_scope
           create_symbol_table_entry local_scope
           return if @array_list.nil?
           analyse_array_list local_scope
@@ -185,7 +185,7 @@ module Rubex
 
         def analyse_array_list local_scope
           @array_list.each do |expr|
-            expr.analyse_statement(local_scope)
+            expr.analyse_types(local_scope)
           end
         end
 
@@ -245,7 +245,7 @@ module Rubex
             decl.rescan_declarations(@scope)
           end
         end
-      end
+      end # class CStructOrUnion
 
       class ForwardDecl < Base
         attr_reader :kind, :name, :type, :c_name
@@ -294,7 +294,7 @@ module Rubex
 
         def analyse_statement local_scope
           @expressions.each do |expr|
-            expr.analyse_statement local_scope
+            expr.analyse_types local_scope
             expr.allocate_temps local_scope
             expr.allocate_temp local_scope, expr.type
             expr.release_temps local_scope
@@ -349,7 +349,7 @@ module Rubex
             end # FIXME: print a warning for type mismatch if none of above 
           end
 
-          @expression.analyse_statement local_scope
+          @expression.analyse_types local_scope
           @expression.allocate_temps local_scope
           @expression.allocate_temp local_scope, @expression.type
           @expression.release_temps local_scope
@@ -388,7 +388,7 @@ module Rubex
           if @lhs.is_a?(Rubex::AST::Expression::Name)
             @lhs.analyse_declaration @rhs, local_scope
           else
-            @lhs.analyse_statement(local_scope)
+            @lhs.analyse_types(local_scope)
           end
           @lhs.allocate_temps local_scope
           @lhs.allocate_temp local_scope, @lhs.type
@@ -456,7 +456,7 @@ module Rubex
         def analyse_statement local_scope
           @tail_exprs = if_tail_exprs
           @tail_exprs.each do |tail|
-            tail.analyse_statement local_scope
+            tail.analyse_types local_scope
             tail.allocate_temps local_scope
             tail.allocate_temp local_scope, tail.type
           end
@@ -548,8 +548,8 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          @left_expr.analyse_statement local_scope
-          @right_expr.analyse_statement local_scope
+          @left_expr.analyse_types local_scope
+          @right_expr.analyse_types local_scope
 
           [ @left_expr, @right_expr ].each do |e|
             e.allocate_temps local_scope
@@ -615,7 +615,7 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          @expr.analyse_statement local_scope
+          @expr.analyse_types local_scope
           @expr.allocate_temp local_scope, @expr.type
           @expr.release_temp local_scope
           @statements.each do |stat|
@@ -686,7 +686,7 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          @expr.analyse_statement local_scope
+          @expr.analyse_types local_scope
           @expr.allocate_temps local_scope
           @expr.allocate_temp local_scope, @expr.type
         end
@@ -753,7 +753,7 @@ module Rubex
 
         def analyse_statement local_scope, extern: false
           @args.each do |arg|
-            arg.analyse_statement(local_scope, extern: extern)
+            arg.analyse_types(local_scope, extern: extern)
           end
         end
 
@@ -782,10 +782,12 @@ module Rubex
         end
       end # class ArgumentList
 
+      
+      # FIXME: this probably is an expression?
       class ActualArgList < ArgumentList
         def analyse_statement local_scope
           @args.each do |arg|
-            arg.analyse_statement local_scope
+            arg.analyse_types local_scope
           end
         end
 
@@ -891,7 +893,7 @@ module Rubex
 
         def analyse_statement local_scope
           @args = @args.map do |arg|
-            arg.analyse_statement local_scope
+            arg.analyse_types local_scope
             arg.allocate_temps local_scope
             arg.allocate_temp local_scope, arg.type
             arg.to_ruby_object
@@ -1148,8 +1150,8 @@ module Rubex
           end
 
           def analyse_statement local_scope
-            @error_klass.analyse_statement local_scope
-            if !@error_klass.name.type.ruby_constant?
+            @error_klass.analyse_types local_scope
+            if !@error_klass.type.ruby_constant?
               raise "Must pass an error class to raise. Location #{@location}."
             end
 
