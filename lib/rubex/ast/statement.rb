@@ -454,7 +454,7 @@ module Rubex
         end
 
         def analyse_statement local_scope
-          @tail_exprs = if_tail_exprs
+          @tail_exprs = if_tail_exprs # FIME: gets current expr too. make descriptive.
           @tail_exprs.each do |tail|
             tail.analyse_types local_scope
             tail.allocate_temps local_scope
@@ -464,6 +464,8 @@ module Rubex
             tail.release_temps local_scope
             tail.release_temp local_scope
           end
+          @expr.release_temps local_scope
+          @expr.release_temp local_scope
           super
         end
 

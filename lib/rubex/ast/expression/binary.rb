@@ -17,24 +17,36 @@ module Rubex
         end
 
         def analyse_types local_scope
-          analyse_left_and_right_nodes local_scope, self
-          analyse_return_type local_scope, self
-          super
+          @left.analyse_types local_scope
+          @right.analyse_types local_scope
+          if type_of(@left).object? || type_of(@right).object?
+            @left = @left.to_ruby_object
+            @right = @right.to_ruby_object
+            @has_temp = true
+          end
+          @type = Rubex::Helpers.result_type_for(type_of(@left), type_of(@right))
+          @subexprs << @left
+          @subexprs << @right
         end
 
         def allocate_temps local_scope
           @subexprs.each do |expr|
-            if expr.is_a?(Binary)
-              expr.allocate_temps local_scope
-            else
-              expr.allocate_temp local_scope, expr.type
-            end
+            expr.allocate_temps local_scope
+            expr.allocate_temp local_scope, expr.type
           end
         end
 
         def generate_evaluation_code code, local_scope
           @left.generate_evaluation_code code, local_scope
           @right.generate_evaluation_code code, local_scope
+          if @has_temp
+            code << "#{@c_code} = rb_funcall(#{@left.c_code(local_scope)}," +
+            "rb_intern(\"#{@operator}\")," +
+            "1, #{@right.c_code(local_scope)});"
+            code.nl
+          else
+            @c_code = "( #{@left.c_code(local_scope)} #{@operator} #{@right.c_code(local_scope)} )"
+          end
         end
 
         def generate_disposal_code code
@@ -43,27 +55,7 @@ module Rubex
         end
 
         def c_code local_scope
-          code = super
-          code << "( "
-          left_code = @left.c_code(local_scope)
-          right_code = @right.c_code(local_scope)
-          if type_of(@left).object? || type_of(@right).object?
-            left_ruby_code = @left.type.to_ruby_object(left_code)
-            right_ruby_code = @right.type.to_ruby_object(right_code)
-
-            if ["&&", "||"].include?(@operator)
-              code << Rubex::C_MACRO_INT2BOOL +
-              "(RTEST(#{left_ruby_code}) #{@operator} RTEST(#{right_ruby_code}))"
-            else
-              code << "rb_funcall(#{left_ruby_code}, rb_intern(\"#{@operator}\") "
-              code << ", 1, #{right_ruby_code})"
-            end
-          else
-            code << "#{left_code} #{@operator} #{right_code}"
-          end
-          code << " )"
-
-          code
+          super + @c_code
         end
 
         def == other
@@ -131,6 +123,7 @@ module Rubex
             end
           end
         end
+
       end
     end
   end
