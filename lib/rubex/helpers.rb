@@ -1,14 +1,15 @@
+require 'rubex/ast'
 module Rubex
   module Helpers
     class << self
       def construct_function_argument data
         if data[:variables][0][:ident].is_a?(Hash)
-          Expression::FuncPtrArgDeclaration.new(data)
+          Rubex::AST::Expression::FuncPtrArgDeclaration.new(data)
         else
-          Expression::ArgDeclaration.new(data)
+          Rubex::AST::Expression::ArgDeclaration.new(data)
         end
       end
-      
+
       def to_lhs_type lhs, rhs
         if lhs.type.object?
           return rhs.to_ruby_object

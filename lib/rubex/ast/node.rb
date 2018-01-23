@@ -1,3 +1,4 @@
+require 'rubex/helpers'
 module Rubex
   module AST
     class Node
@@ -116,7 +117,7 @@ module Rubex
           code << "s[0] = ch;\n"
           code << "s[1] = '\\0';\n"
           code << "return rb_str_new2(s);\n"
-        end        
+        end
       end
 
       def write_function_declarations code
@@ -131,8 +132,8 @@ module Rubex
             stmt.scope.c_method_entries.each do |entry|
               if !entry.extern?
                 code.write_c_method_header(
-                  type: entry.type.type.to_s, 
-                  c_name: entry.c_name, 
+                  type: entry.type.type.to_s,
+                  c_name: entry.c_name,
                   args: Helpers.create_arg_arrays(entry.type.arg_list))
                 code.colon
               end
@@ -182,7 +183,7 @@ module Rubex
       end
 
       def object_or_stdlib_klass_scope name
-        name != 'Object' ? Rubex::SymbolTable::Scope::Klass.new(name, nil) : 
+        name != 'Object' ? Rubex::SymbolTable::Scope::Klass.new(name, nil) :
           @scope
       end
 
@@ -256,7 +257,7 @@ module Rubex
                   code.write_singleton_method klass: entry.c_name,
                     method_name: meth.name, method_c_name: meth.c_name
                 else
-                  code.write_instance_method klass: entry.c_name, 
+                  code.write_instance_method klass: entry.c_name,
                     method_name: meth.name, method_c_name: meth.c_name
                 end
               end
