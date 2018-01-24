@@ -7,7 +7,7 @@ module Rubex
           var, dtype, ident, ptr_level, value = fetch_data
           @type = Helpers.determine_dtype(dtype, ptr_level)
         end
-      end # class FuncPtrInternalArgDeclaration
+      end
     end
   end
 end

@@ -19,7 +19,7 @@ module Rubex
             "rb_const_get(CLASS_OF(#{local_scope.self_name}), rb_intern(\"#{@entry.name}\"))"
           end
         end
-      end # class RubyConstant
+      end
     end
   end
 end

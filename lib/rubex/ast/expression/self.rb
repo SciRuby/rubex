@@ -9,7 +9,7 @@ module Rubex
         def type
           Rubex::DataType::RubyObject.new
         end
-      end # class Self
+      end
     end
   end
 end

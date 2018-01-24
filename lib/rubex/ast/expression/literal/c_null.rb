@@ -8,7 +8,7 @@ module Rubex
             super
             @type = Rubex::DataType::CPtr.new(Rubex::DataType::Void.new)
           end
-        end # class CNull
+        end
       end
     end
   end

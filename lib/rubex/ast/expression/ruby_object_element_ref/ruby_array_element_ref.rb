@@ -8,7 +8,7 @@ module Rubex
           code.nl
           @pos.generate_disposal_code code
         end
-      end # class RubyArrayElementRef
+      end
     end
   end
 end

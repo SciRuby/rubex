@@ -27,7 +27,7 @@ module Rubex
           str << ')'
           str
         end
-      end # class CFunctionCall
+      end
     end
   end
 end

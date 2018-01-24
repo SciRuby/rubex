@@ -110,15 +110,15 @@ module Rubex
             else
               if tree.left.type.bool? || tree.right.type.bool?
                 raise Rubex::TypeMismatchError, "Operation #{tree.operator} cannot"\
-                "be performed between #{tree.left} and #{tree.right}"
+                                                "be performed between #{tree.left} and #{tree.right}"
               end
               tree.type = Rubex::Helpers.result_type_for(
                 type_of(tree.left), type_of(tree.right)
               )
-              end
             end
           end
         end
       end
     end
   end
+end

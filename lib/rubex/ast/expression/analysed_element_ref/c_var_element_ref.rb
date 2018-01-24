@@ -21,7 +21,7 @@ module Rubex
           code << "#{rhs.c_code(local_scope)};"
           @pos.generate_disposal_code code
         end
-      end # class CVarElementRef
+      end
     end
   end
 end

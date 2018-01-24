@@ -15,7 +15,7 @@ module Rubex
         def c_code(_local_scope)
           "sizeof(#{@size_of_type})"
         end
-      end # class SizeOf
+      end
     end
   end
 end

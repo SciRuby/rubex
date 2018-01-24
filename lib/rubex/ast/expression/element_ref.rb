@@ -6,10 +6,10 @@ module Rubex
         attr_reader :entry, :pos, :name, :subexprs
         extend Forwardable
         def_delegators :@element_ref, :generate_disposal_code, :generate_evaluation_code,
-                       :analyse_statement, :generate_element_ref_code,
-                       :generate_assignment_code, :has_temp, :c_code, :allocate_temp,
-                       :allocate_temps, :release_temp, :release_temps, :to_ruby_object,
-                       :from_ruby_object
+        :analyse_statement, :generate_element_ref_code,
+        :generate_assignment_code, :has_temp, :c_code, :allocate_temp,
+        :allocate_temps, :release_temp, :release_temps, :to_ruby_object,
+        :from_ruby_object
 
         def initialize(name, pos)
           @name = name
@@ -58,7 +58,7 @@ module Rubex
         def ruby_object_c_array?
           @entry.type.cptr? && @entry.type.type.object?
         end
-      end # class ElementRef
+      end
     end
   end
 end

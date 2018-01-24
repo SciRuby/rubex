@@ -25,7 +25,7 @@ module Rubex
             "#{@expr.c_code(local_scope)}#{op}#{@command.c_code(local_scope)}"
           end
         end
-      end # StructOrUnionMemberCall
+      end
     end
   end
 end

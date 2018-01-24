@@ -31,7 +31,7 @@ module Rubex
           code = super
           code << @expr.c_code(local_scope)
         end
-      end # class Unary
+      end
     end
   end
 end

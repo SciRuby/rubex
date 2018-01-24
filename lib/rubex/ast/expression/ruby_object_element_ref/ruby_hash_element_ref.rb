@@ -14,7 +14,7 @@ module Rubex
           code << "#{rhs.c_code(local_scope)});"
           @pos.generate_disposal_code code
         end
-      end # class RubyHashElementRef
+      end
     end
   end
 end

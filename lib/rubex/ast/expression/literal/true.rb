@@ -22,7 +22,7 @@ module Rubex
               '1'
             end
           end
-        end # class True
+        end
       end
     end
   end

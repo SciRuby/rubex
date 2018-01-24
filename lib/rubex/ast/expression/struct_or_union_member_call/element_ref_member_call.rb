@@ -16,7 +16,7 @@ module Rubex
         def c_code(local_scope)
           @command.c_code(local_scope)
         end
-      end # class ElementRefMemberCall
+      end
     end
   end
 end

@@ -73,19 +73,19 @@ module Rubex
 
         def c_code(local_scope)
           code = super
-          code << if @name.is_a?(Rubex::AST::Expression::Base)
-                    @name.c_code(local_scope)
-                  else
-                    @entry.c_name
-          end
-
+          code <<
+            if @name.is_a?(Rubex::AST::Expression::Base)
+              @name.c_code(local_scope)
+            else
+              @entry.c_name
+            end
           code
         end
 
         private
 
         def ruby_constant?
-          @name[0].match /[A-Z]/
+          @name[0].match(/[A-Z]/)
         end
 
         def analyse_as_ruby_constant(local_scope)
@@ -118,7 +118,7 @@ module Rubex
             @type = @entry.type
           end
         end
-      end # class Name
+      end
     end
   end
 end

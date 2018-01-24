@@ -36,7 +36,7 @@ module Rubex
 
           [var, dtype, ident, ptr_level, value]
         end
-      end # class ArgDeclaration
+      end
     end
   end
 end

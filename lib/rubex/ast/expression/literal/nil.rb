@@ -7,7 +7,7 @@ module Rubex
             super
             @type = Rubex::DataType::NilType.new
           end
-        end # class Nil
+        end
       end
     end
   end

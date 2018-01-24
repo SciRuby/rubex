@@ -23,7 +23,7 @@ module Rubex
           def ==(other)
             self.class == other.class && @name == other.name
           end
-        end # class Base
+        end
       end
     end
   end

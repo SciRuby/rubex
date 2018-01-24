@@ -26,7 +26,7 @@ module Rubex
               '0'
             end
           end
-        end # class False
+        end
       end
     end
   end

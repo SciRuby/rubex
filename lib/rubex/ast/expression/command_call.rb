@@ -74,7 +74,7 @@ module Rubex
 
         def struct_member_call?
           @expr && ((@expr.type.cptr? && @expr.type.type.struct_or_union?) ||
-          @expr.type.struct_or_union?)
+                    @expr.type.struct_or_union?)
         end
 
         def ruby_method_call?

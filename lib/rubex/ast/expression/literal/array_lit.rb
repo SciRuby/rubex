@@ -44,7 +44,7 @@ module Rubex
           def c_code(_local_scope)
             @c_code
           end
-        end # class ArrayLit
+        end
       end
     end
   end

@@ -22,7 +22,7 @@ module Rubex
           local_scope.add_carray(name: @arg_list_var, c_name: @arg_list_var,
                                  dimension: Literal::Int.new(args_size.to_s),
                                  type: @type)
-          end
+        end
 
         def code_for_ruby_method_call(local_scope)
           str = ''
@@ -57,7 +57,7 @@ module Rubex
 
           str
         end
-        end # class RubyMethodCall
       end
     end
   end
+end

@@ -6,7 +6,7 @@ module Rubex
           @method_name = method_name
           @invoker = invoker
           @arg_list = arg_list
-         end
+        end
 
         def analyse_types(local_scope)
           @entry = local_scope.find(@method_name)
@@ -47,7 +47,7 @@ module Rubex
             true
           end
         end
-      end # class MethodCall
+      end
     end
   end
 end
