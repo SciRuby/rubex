@@ -44,15 +44,11 @@ module Rubex
       end # class CBaseType
 
       class VarDecl < Base
-        # The name with which this particular variable can be identified with
-        #   in the symbol table.
-        attr_reader :name
         attr_reader :type, :value
 
         def initialize type, name, value, location
           super(location)
-          @name, @value = name, value
-          @type = type
+          @name, @value, @type = name, value, type
         end
 
         def analyse_statement local_scope, extern: false
@@ -109,8 +105,6 @@ module Rubex
             type: @type, value: @value, extern: extern
         end
 
-        # FIXME: This feels jugaadu. Try to scan all declarations before you
-        # scan individual statements.
         def rescan_declarations local_scope
           base_type = @entry.type.base_type
           if base_type.is_a? String
@@ -173,13 +167,9 @@ module Rubex
           verify_array_list_types local_scope
         end
 
-        def generate_code code, local_scope
+        def generate_code code, local_scope; end
 
-        end
-
-        def rescan_declarations local_scope
-
-        end
+        def rescan_declarations local_scope;  end
 
       private
 
@@ -235,9 +225,7 @@ module Rubex
             type: @type, extern: extern)
         end
 
-        def generate_code code, local_scope=nil
-
-        end
+        def generate_code code, local_scope=nil; end
 
         def rescan_declarations local_scope
           @declarations.each do |decl|
@@ -248,8 +236,6 @@ module Rubex
       end # class CStructOrUnion
 
       class ForwardDecl < Base
-        attr_reader :kind, :name, :type, :c_name
-
         def initialize kind, name, location
           super(location)
           @name = name
@@ -263,7 +249,7 @@ module Rubex
 
         def analyse_statement local_scope, extern: false
           @c_name = Rubex::TYPE_PREFIX + local_scope.klass_name + "_" + @name
-          @type = Rubex::DataType::TypeDef.new("#{@kind} #{@name}", @c_name, type)
+          @type = Rubex::DataType::TypeDef.new("#{@kind} #{@name}", @c_name, @type)
           local_scope.declare_type type: @type, extern: extern
         end
 
@@ -272,21 +258,10 @@ module Rubex
             Rubex::CUSTOM_TYPES[@name])
         end
 
-        def generate_code code, local_scope
-
-        end
+        def generate_code code, local_scope; end
       end # class ForwardDecl
 
       class Print < Base
-        # An Array containing expressions that are passed to the print statement.
-        #   Can either contain a single string containing interpolated exprs or
-        #   a set of comma separated exprs. For example, the print statement can
-        #   either be of like:
-        #     print "Hello #{a} world!"
-        #   OR
-        #     print "Hello", a, " world!"
-        attr_reader :expressions
-
         def initialize expressions, location
           super(location)
           @expressions = expressions
@@ -333,8 +308,6 @@ module Rubex
       end # class Print
 
       class Return < Base
-        attr_reader :expression, :type
-
         def initialize expression, location
           super(location)
           @expression = expression
@@ -377,8 +350,6 @@ module Rubex
       end # class Return
 
       class Assign < Base
-        attr_reader :lhs, :rhs
-
         def initialize lhs, rhs, location
           super(location)
           @lhs, @rhs = lhs, rhs
@@ -538,15 +509,11 @@ module Rubex
       end # class IfBlock
 
       class For < Base
-        attr_reader :left_expr, :left_op, :middle, :right_op, :right_expr,
-                    :statements, :order
-
         def initialize left_expr, left_op, middle, right_op, right_expr,
           statements, location
           super(location)
-          @left_expr, @left_op, @middle, @right_op, @right_expr =
-            left_expr, left_op, middle, right_op, right_expr
-          @statements, @order = statements, order
+          @left_expr, @left_op, @middle, @right_op, @right_expr, @statements =
+            left_expr, left_op, middle, right_op, right_expr, statements
         end
 
         def analyse_statement local_scope
@@ -609,8 +576,6 @@ module Rubex
       end # class For
 
       class While < Base
-        attr_reader :expr, :statements
-
         def initialize expr, statements, location
           super(location)
           @expr, @statements = expr, statements
@@ -639,8 +604,6 @@ module Rubex
       end # class While
 
       class Alias < Base
-        attr_reader :new_name, :type, :old_name
-
         def initialize new_name, old_name, location
           super(location)
           @new_name, @old_name = new_name, old_name
@@ -679,9 +642,6 @@ module Rubex
       end # class Alias
 
       class Expression < Base
-        attr_reader :expr
-        attr_accessor :typecast
-
         def initialize expr, location
           super(location)
           @expr = expr
@@ -703,8 +663,6 @@ module Rubex
       end # class Expression
 
       class CFunctionDecl < Base
-        attr_reader :entry
-
         def initialize type, return_ptr_level, name, arg_list
           @type, @return_ptr_level, @name, @arg_list = type, return_ptr_level, 
             name, arg_list
@@ -713,8 +671,6 @@ module Rubex
         def analyse_statement local_scope, extern: false
           @arg_list.analyse_statement(local_scope, extern: extern) if @arg_list
           c_name = extern ? @name : (Rubex::C_FUNC_PREFIX + @name)
-          # type   = Rubex::DataType::CFunction.new(@name, c_name, @arg_list, 
-          #   Helpers.determine_dtype(@type, @return_ptr_level), nil)
           @entry = local_scope.add_c_method(
             name: @name,
             c_name: c_name,
@@ -929,8 +885,6 @@ module Rubex
 
       module BeginBlock
         class Base < Statement::Base
-          attr_reader :statements
-
           def initialize statements, location
             @statements = statements
             super(location)
