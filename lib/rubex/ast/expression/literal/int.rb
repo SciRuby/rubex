@@ -3,7 +3,7 @@ module Rubex
     module Expression
       module Literal
         class Int < Base
-          def initialize name
+          def initialize(name)
             super
             @type = Rubex::DataType::Int.new
           end

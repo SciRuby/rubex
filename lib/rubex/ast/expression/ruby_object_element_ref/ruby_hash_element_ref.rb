@@ -1,7 +1,6 @@
 module Rubex
   module AST
     module Expression
-
       class RubyHashElementRef < RubyObjectElementRef
         def generate_evaluation_code(code, local_scope)
           @pos.generate_evaluation_code code, local_scope

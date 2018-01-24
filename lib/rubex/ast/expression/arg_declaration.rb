@@ -5,23 +5,24 @@ module Rubex
         # Keep data_hash attr_reader because this node is coerced into
         # specialized ArgDecl nodes in the parser.
         attr_reader :data_hash
-        def initialize data_hash
+        def initialize(data_hash)
           @data_hash = data_hash
         end
 
         # TODO: Support array of function pointers and array in arguments.
-        def analyse_types local_scope, extern: false
+        def analyse_types(local_scope, extern: false)
           var, dtype, ident, ptr_level, value = fetch_data
-          name, c_name = ident, Rubex::ARG_PREFIX + ident
+          name = ident
+          c_name = Rubex::ARG_PREFIX + ident
           @type = Helpers.determine_dtype(dtype, ptr_level)
-          value.analyse_types(local_scope) if value
+          value&.analyse_types(local_scope)
           add_arg_to_symbol_table name, c_name, @type, value, extern, local_scope
         end
 
         private
 
-        def add_arg_to_symbol_table name, c_name, type, value, extern, local_scope
-          if !extern
+        def add_arg_to_symbol_table(name, c_name, _type, value, extern, local_scope)
+          unless extern
             @entry = local_scope.add_arg(name: name, c_name: c_name, type: @type, value: value)
           end
         end

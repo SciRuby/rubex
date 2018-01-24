@@ -3,7 +3,7 @@ module Rubex
     module Expression
       module Literal
         class Char < Base
-          def analyse_for_target_type target_type, local_scope
+          def analyse_for_target_type(target_type, local_scope)
             if target_type.char?
               @type = Rubex::DataType::Char.new
             elsif target_type.object?
@@ -14,19 +14,19 @@ module Rubex
             end
           end
 
-          def analyse_types local_scope
-            @type = Rubex::DataType::RubyString.new unless @type
+          def analyse_types(_local_scope)
+            @type ||= Rubex::DataType::RubyString.new
           end
 
-          def generate_evaluation_code code, local_scope
-            if @type.char?
-              @c_code = @name
-            else
-              @c_code = "rb_str_new2(\"#{@name[1]}\")"
-            end
+          def generate_evaluation_code(_code, _local_scope)
+            @c_code = if @type.char?
+                        @name
+                      else
+                        "rb_str_new2(\"#{@name[1]}\")"
+                      end
           end
 
-          def c_code local_scope
+          def c_code(_local_scope)
             @c_code
           end
         end # class Char

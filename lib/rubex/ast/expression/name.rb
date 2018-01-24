@@ -8,7 +8,7 @@ module Rubex
         end
 
         # Used when the node is a LHS of an assign statement.
-        def analyse_declaration rhs, local_scope
+        def analyse_declaration(_rhs, local_scope)
           @entry = local_scope.find @name
           unless @entry
             local_scope.add_ruby_obj(name: @name, c_name: Rubex::VAR_PREFIX + @name, value: @rhs)
@@ -20,7 +20,7 @@ module Rubex
         def analyse_for_target_type(target_type, local_scope)
           @entry = local_scope.find @name
 
-          if @entry && @entry.type.c_function? && target_type.c_function_ptr?
+          if @entry&.type&.c_function? && target_type.c_function_ptr?
             @type = @entry.type
           else
             analyse_types local_scope
@@ -74,9 +74,9 @@ module Rubex
         def c_code(local_scope)
           code = super
           code << if @name.is_a?(Rubex::AST::Expression::Base)
-            @name.c_code(local_scope)
-          else
-            @entry.c_name
+                    @name.c_code(local_scope)
+                  else
+                    @entry.c_name
           end
 
           code

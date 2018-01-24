@@ -1,7 +1,6 @@
 module Rubex
   module AST
     module Expression
-
       class RubyObjectElementRef < AnalysedElementRef
         def analyse_types(local_scope)
           super
