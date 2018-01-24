@@ -1,10 +1,7 @@
 module Rubex
   module AST
     module Expression
-
       class Typecast < Base
-        attr_reader :type
-
         def initialize dtype, ptr_level
           @dtype, @ptr_level = dtype, ptr_level
         end

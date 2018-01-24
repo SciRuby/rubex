@@ -3,9 +3,6 @@ module Rubex
     module Expression
 
       class RubyConstant < Base
-        include Rubex::AST::Expression
-        attr_reader :name, :entry, :type
-
         def initialize name
           @name = name
         end
@@ -13,7 +10,7 @@ module Rubex
         def analyse_types local_scope
           @type = Rubex::DataType::RubyConstant.new @name
           c_name = Rubex::DEFAULT_CLASS_MAPPINGS[@name]
-          @entry = Rubex::SymbolTable::Entry.new name, c_name, @type, nil
+          @entry = Rubex::SymbolTable::Entry.new @name, c_name, @type, nil
         end
 
         def c_code local_scope

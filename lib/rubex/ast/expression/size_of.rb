@@ -2,9 +2,8 @@ module Rubex
   module AST
     module Expression
 
+      # C sizeof operator.
       class SizeOf < Base
-        attr_reader :type
-
         def initialize type, ptr_level
           @size_of_type = Helpers.determine_dtype type, ptr_level
         end

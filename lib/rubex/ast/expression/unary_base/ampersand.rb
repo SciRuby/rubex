@@ -2,10 +2,8 @@ module Rubex
   module AST
     module Expression
       class Ampersand < UnaryBase
-        attr_reader :type
-
-        def analyse_statement local_scope
-          @expr.analyse_statement local_scope
+        def analyse_types local_scope
+          @expr.analyse_types local_scope
           @type = DataType::CPtr.new @expr.type
         end
 

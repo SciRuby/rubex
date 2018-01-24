@@ -5,8 +5,6 @@ module Rubex
     module Expression
 
       class Unary < Base
-        attr_reader :operator, :expr, :type
-
         OP_CLASS_MAP = {
           '&' => Rubex::AST::Expression::Ampersand,
           '-' => Rubex::AST::Expression::UnarySub,

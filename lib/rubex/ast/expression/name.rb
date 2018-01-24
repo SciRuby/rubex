@@ -1,11 +1,8 @@
 module Rubex
   module AST
     module Expression
-
       # Singular name node with no sub expressions.
       class Name < Base
-        attr_reader :name, :entry, :type
-
         def initialize(name)
           @name = name
         end

@@ -1,10 +1,7 @@
 module Rubex
   module AST
     module Expression
-
       class CommandCall < Base
-        attr_reader :expr, :command, :arg_list, :type, :entry
-
         def initialize expr, command, arg_list
           @expr = expr
           @command = command

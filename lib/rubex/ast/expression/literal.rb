@@ -4,8 +4,6 @@ module Rubex
 
       module Literal
         class Base < Rubex::AST::Expression::Base
-          attr_reader :name, :type
-
           def initialize name
             @name = name
           end

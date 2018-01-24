@@ -3,14 +3,12 @@ module Rubex
     module Expression
 
       class AnalysedElementRef < Base
-        attr_reader :entry, :pos, :type, :name, :object_ptr, :subexprs
         def initialize(element_ref)
           @element_ref = element_ref
           @pos = @element_ref.pos
           @entry = @element_ref.entry
           @name = @element_ref.name
           @subexprs = @element_ref.subexprs
-          @object_ptr = @element_ref.object_ptr
           @type = @element_ref.type
         end
 

@@ -1,15 +1,15 @@
 module Rubex
   module AST
     module Expression
-
       class ArgDeclaration < Base
-        attr_reader :entry, :type, :data_hash
-
+        # Keep data_hash attr_reader because this node is coerced into
+        # specialized ArgDecl nodes in the parser.
+        attr_reader :data_hash
         def initialize data_hash
           @data_hash = data_hash
         end
 
-        # FIXME: Support array of function pointers and array in arguments.
+        # TODO: Support array of function pointers and array in arguments.
         def analyse_types local_scope, extern: false
           var, dtype, ident, ptr_level, value = fetch_data
           name, c_name = ident, Rubex::ARG_PREFIX + ident

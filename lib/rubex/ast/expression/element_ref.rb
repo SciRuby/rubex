@@ -3,8 +3,8 @@ module Rubex
     module Expression
 
       class ElementRef < Base
-        # FIXME: get rid of this object_ptr for good.
-        attr_reader :entry, :pos, :type, :name, :object_ptr, :subexprs
+        # Readers needed for accessing elements due to delegator classes.
+        attr_reader :entry, :pos, :name,  :subexprs
         extend Forwardable
         def_delegators :@element_ref, :generate_disposal_code, :generate_evaluation_code,
         :analyse_statement, :generate_element_ref_code,
@@ -30,7 +30,6 @@ module Rubex
 
         def proper_analysed_type
           if ruby_object_c_array?
-            @object_ptr = true
             CVarElementRef.new(self)
           else
             if ruby_array?

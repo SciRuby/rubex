@@ -1,17 +1,13 @@
 module Rubex
   module AST
     module Expression
-
       class MethodCall < Base
-        attr_reader :method_name, :type
-
-        def initialize(invoker, method_name, arg_list)
+       def initialize(invoker, method_name, arg_list)
           @method_name = method_name
           @invoker = invoker
           @arg_list = arg_list
         end
 
-        # local_scope - is the local method scope.
         def analyse_types(local_scope)
           @entry = local_scope.find(@method_name)
           if method_not_within_scope? local_scope

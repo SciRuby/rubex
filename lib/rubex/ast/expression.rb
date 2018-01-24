@@ -2,6 +2,7 @@ module Rubex
   module AST
     module Expression
       class Base
+        attr_reader :type, :entry
         attr_accessor :typecast
 
         # In case an expr has to be of a certain type, like a string literal

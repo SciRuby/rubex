@@ -1,18 +1,11 @@
 module Rubex
   module AST
     module Expression
-
+      # Binary expression Base class.
       class Binary < Base
         include Rubex::Helpers::NodeTypeMethods
-
-        attr_reader :operator
-        attr_accessor :left, :right
-        # Final return type of expression
-        attr_accessor :type, :subexprs
-
         def initialize left, operator, right
           @left, @operator, @right = left, operator, right
-          @@analyse_visited = []
           @subexprs = []
         end
 

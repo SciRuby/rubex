@@ -1,7 +1,6 @@
 module Rubex
   module AST
     module Expression
-
       class CVarElementRef < AnalysedElementRef
         def analyse_types(local_scope)
           @pos.analyse_types local_scope

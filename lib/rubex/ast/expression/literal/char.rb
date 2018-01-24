@@ -3,7 +3,6 @@ module Rubex
     module Expression
       module Literal
         class Char < Base
-
           def analyse_for_target_type target_type, local_scope
             if target_type.char?
               @type = Rubex::DataType::Char.new

@@ -1,10 +1,7 @@
 module Rubex
   module AST
     module Expression
-
       class BlockGiven < Base
-        attr_reader :type
-
         def analyse_types local_scope
           @type = DataType::CBoolean.new
         end

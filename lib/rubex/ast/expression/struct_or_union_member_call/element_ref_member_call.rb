@@ -1,7 +1,6 @@
 module Rubex
   module AST
     module Expression
-
       class ElementRefMemberCall < StructOrUnionMemberCall
         def analyse_types local_scope, struct_scope
           @command.analyse_types local_scope, struct_scope
