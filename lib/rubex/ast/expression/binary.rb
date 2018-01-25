@@ -65,59 +65,6 @@ module Rubex
           t = expr.type
           (t.c_function? ? t.type : t)
         end
-
-        def analyse_left_and_right_nodes(local_scope, tree)
-          if tree.respond_to?(:left)
-            analyse_left_and_right_nodes local_scope, tree.left
-
-            unless @@analyse_visited.include?(tree.left.object_id)
-              if tree.right.type
-                tree.left.analyse_for_target_type(tree.right.type, local_scope)
-              else
-                tree.left.analyse_types(local_scope)
-              end
-              @subexprs << tree.left
-              @@analyse_visited << tree.left.object_id
-            end
-
-            unless @@analyse_visited.include?(tree.right.object_id)
-              if tree.left.type
-                tree.right.analyse_for_target_type(tree.left.type, local_scope)
-              else
-                tree.right.analyse_types(local_scope)
-              end
-              @subexprs << tree.right
-              @@analyse_visited << tree.right.object_id
-            end
-
-            @@analyse_visited << tree.object_id
-
-            analyse_left_and_right_nodes local_scope, tree.right
-          end
-        end
-
-        def analyse_return_type(local_scope, tree)
-          if tree.respond_to? :left
-            analyse_return_type local_scope, tree.left
-            analyse_return_type local_scope, tree.right
-
-            if ['==', '<', '>', '<=', '>=', '||', '&&', '!='].include? tree.operator
-              tree.type = if type_of(tree.left).object? || type_of(tree.right).object?
-                            Rubex::DataType::Boolean.new
-                          else
-                            Rubex::DataType::CBoolean.new
-                          end
-            else
-              if tree.left.type.bool? || tree.right.type.bool?
-                raise Rubex::TypeMismatchError, "Operation #{tree.operator} cannot"\
-                                                "be performed between #{tree.left} and #{tree.right}"
-              end
-              tree.type = Rubex::Helpers.result_type_for(
-                type_of(tree.left), type_of(tree.right)
-              )
-            end
-          end
-        end
       end
     end
   end
