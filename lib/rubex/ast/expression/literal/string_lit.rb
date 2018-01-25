@@ -3,8 +3,7 @@ module Rubex
     module Expression
       module Literal
         class StringLit < Base
-
-          def analyse_for_target_type target_type, local_scope
+          def analyse_for_target_type(target_type, local_scope)
             if target_type.char_ptr?
               @type = Rubex::DataType::CStr.new
             elsif target_type.object?
@@ -15,12 +14,12 @@ module Rubex
             end
           end
 
-          def analyse_types local_scope
-            @type = Rubex::DataType::RubyString.new unless @type
+          def analyse_types(_local_scope)
+            @type ||= Rubex::DataType::RubyString.new
             @has_temp = 1
           end
 
-          def generate_evaluation_code code, local_scope
+          def generate_evaluation_code(code, _local_scope)
             if @type.cstr?
               @c_code = "\"#{@name}\""
             else
@@ -29,17 +28,17 @@ module Rubex
             end
           end
 
-          def generate_disposal_code code
+          def generate_disposal_code(code)
             if @type.object?
               code << "#{@c_code} = 0;"
               code.nl
             end
           end
 
-          def c_code local_scope
+          def c_code(_local_scope)
             @c_code
           end
-        end # class StringLit
+        end
       end
     end
   end

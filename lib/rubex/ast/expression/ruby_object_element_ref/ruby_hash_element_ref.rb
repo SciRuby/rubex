@@ -1,7 +1,6 @@
 module Rubex
   module AST
     module Expression
-
       class RubyHashElementRef < RubyObjectElementRef
         def generate_evaluation_code(code, local_scope)
           @pos.generate_evaluation_code code, local_scope
@@ -15,7 +14,7 @@ module Rubex
           code << "#{rhs.c_code(local_scope)});"
           @pos.generate_disposal_code code
         end
-      end # class RubyHashElementRef
+      end
     end
   end
 end

@@ -1,7 +1,6 @@
 module Rubex
   module AST
     module Expression
-
       class AnalysedElementRef < Base
         def initialize(element_ref)
           @element_ref = element_ref

@@ -3,11 +3,11 @@ module Rubex
     module Expression
       module Literal
         class HashLit < Base
-          def initialize key_val_pairs
+          def initialize(key_val_pairs)
             @key_val_pairs = key_val_pairs
           end
 
-          def analyse_types local_scope
+          def analyse_types(local_scope)
             @has_temp = true
             @type = Rubex::DataType::RubyObject.new
             @key_val_pairs.map! do |k, v|
@@ -17,7 +17,7 @@ module Rubex
             end
           end
 
-          def generate_evaluation_code code, local_scope
+          def generate_evaluation_code(code, local_scope)
             code << "#{@c_code} = rb_hash_new();"
             code.nl
             @key_val_pairs.each do |k, v|
@@ -34,26 +34,26 @@ module Rubex
             end
           end
 
-          def allocate_temps local_scope
-            @key_val_pairs.each do |k,v|
+          def allocate_temps(local_scope)
+            @key_val_pairs.each do |k, v|
               k.allocate_temp local_scope, k.type
               v.allocate_temp local_scope, v.type
             end
           end
 
-          def release_temps local_scope
-            @key_val_pairs.each do |k,v|
+          def release_temps(local_scope)
+            @key_val_pairs.each do |k, v|
               k.release_temp local_scope
               v.release_temp local_scope
             end
           end
 
-          def generate_disposal_code code
+          def generate_disposal_code(code)
             code << "#{@c_code} = 0;"
             code.nl
           end
 
-          def c_code local_scope
+          def c_code(_local_scope)
             @c_code
           end
         end

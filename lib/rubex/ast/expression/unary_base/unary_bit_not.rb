@@ -1,11 +1,10 @@
 module Rubex
   module AST
     module Expression
-
       class UnaryBitNot < UnaryBase
         attr_reader :type
 
-        def c_code local_scope
+        def c_code(local_scope)
           code = @expr.c_code(local_scope)
           if @type.object?
             "rb_funcall(#{code}, rb_intern(\"~\"), 0)"
@@ -14,7 +13,6 @@ module Rubex
           end
         end
       end
-
     end
   end
 end

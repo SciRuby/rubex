@@ -1,7 +1,7 @@
 module Rubex
   RUBEX_PREFIX = "__rubex_"
   GLOBAL_PREFIX = "global_"
-  
+
   TEMP_PREFIX = RUBEX_PREFIX + "temp_"
   RUBY_FUNC_PREFIX = RUBEX_PREFIX + "rb_f_"
   C_FUNC_PREFIX = RUBEX_PREFIX + "c_f_"
@@ -138,7 +138,7 @@ module Rubex
 
   C_MACRO_INT2BOOL = Rubex::RUBEX_PREFIX + "INT2BOOL"
   C_FUNC_CHAR2RUBYSTR = Rubex::RUBEX_PREFIX + "char2rubystr"
-  
+
   ALLOC_FUNC_NAME      = 'allocate'
   DEALLOC_FUNC_NAME    = 'deallocate'
   MEMCOUNT_FUNC_NAME   = 'memcount'

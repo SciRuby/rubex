@@ -2,7 +2,7 @@ module Rubex
   module AST
     module Expression
       class MethodCall < Base
-       def initialize(invoker, method_name, arg_list)
+        def initialize(invoker, method_name, arg_list)
           @method_name = method_name
           @invoker = invoker
           @arg_list = arg_list
@@ -40,14 +40,14 @@ module Rubex
         def method_not_within_scope?(local_scope)
           caller_entry = local_scope.find local_scope.name
           if (caller_entry.singleton? &&  @entry.singleton?) ||
-            (!caller_entry.singleton? && !@entry.singleton?) ||
-            @entry.c_function?
+             (!caller_entry.singleton? && !@entry.singleton?) ||
+             @entry.c_function?
             false
           else
             true
           end
         end
-      end # class MethodCall
+      end
     end
   end
 end

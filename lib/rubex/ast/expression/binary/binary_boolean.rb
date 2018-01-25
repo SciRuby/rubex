@@ -2,7 +2,7 @@ module Rubex
   module AST
     module Expression
       class BinaryBoolean < Binary
-        def analyse_types local_scope
+        def analyse_types(local_scope)
           @left.analyse_types local_scope
           @right.analyse_types local_scope
           if type_of(@left).object? || type_of(@right).object?

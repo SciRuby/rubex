@@ -1,14 +1,13 @@
 module Rubex
   module AST
     module Expression
-
       module Literal
         class Base < Rubex::AST::Expression::Base
-          def initialize name
+          def initialize(name)
             @name = name
           end
 
-          def c_code local_scope
+          def c_code(local_scope)
             code = super
             code << @name
           end
@@ -17,12 +16,14 @@ module Rubex
             @name
           end
 
-          def literal?; true; end
+          def literal?
+            true
+          end
 
-          def == other
+          def ==(other)
             self.class == other.class && @name == other.name
           end
-        end # class Base
+        end
       end
     end
   end

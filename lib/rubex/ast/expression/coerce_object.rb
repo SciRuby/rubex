@@ -1,7 +1,6 @@
 module Rubex
   module AST
     module Expression
-
       class CoerceObject < Base
         attr_reader :expr
 

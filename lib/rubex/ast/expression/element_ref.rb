@@ -1,10 +1,9 @@
 module Rubex
   module AST
     module Expression
-
       class ElementRef < Base
         # Readers needed for accessing elements due to delegator classes.
-        attr_reader :entry, :pos, :name,  :subexprs
+        attr_reader :entry, :pos, :name, :subexprs
         extend Forwardable
         def_delegators :@element_ref, :generate_disposal_code, :generate_evaluation_code,
         :analyse_statement, :generate_element_ref_code,
@@ -59,8 +58,7 @@ module Rubex
         def ruby_object_c_array?
           @entry.type.cptr? && @entry.type.type.object?
         end
-      end # class ElementRef
-
+      end
     end
   end
 end
