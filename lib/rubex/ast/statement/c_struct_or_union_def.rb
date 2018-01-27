@@ -7,9 +7,9 @@ module Rubex
         def initialize(kind, name, declarations, location)
           super(location)
           @declarations = declarations
-          if /struct/.match? kind
+          if /struct/.match kind
             @kind = :struct
-          elsif /union/.match? kind
+          elsif /union/.match kind
             @kind = :union
           end
           @name = name

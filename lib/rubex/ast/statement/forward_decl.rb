@@ -5,9 +5,9 @@ module Rubex
         def initialize(kind, name, location)
           super(location)
           @name = name
-          if /struct/.match? kind
+          if /struct/.match kind
             @kind = :struct
-          elsif /union/.match? kind
+          elsif /union/.match kind
             @kind = :union
           end
           Rubex::CUSTOM_TYPES[@name] = @name
