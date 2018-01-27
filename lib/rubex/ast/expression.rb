@@ -55,14 +55,16 @@ module Rubex
 
         def allocate_temps local_scope
           if @subexprs
-            @subexprs.each { |expr| expr.allocate_temp(local_scope, expr.type) }
+            @subexprs.each { |expr| expr.allocate_temps(local_scope) }
           end
+          allocate_temp local_scope, @type
         end
 
         def release_temps local_scope
           if @subexprs
-            @subexprs.each { |expr| expr.release_temp(local_scope) }
+            @subexprs.each { |expr| expr.release_temps(local_scope) }
           end
+          release_temp local_scope
         end
 
         def generate_evaluation_code(code, local_scope); end

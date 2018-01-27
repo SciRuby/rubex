@@ -18,9 +18,7 @@ module Rubex
 
           @expression.analyse_types local_scope
           @expression.allocate_temps local_scope
-          @expression.allocate_temp local_scope, @expression.type
           @expression.release_temps local_scope
-          @expression.release_temp local_scope
           t = @expression.type
 
           @type =

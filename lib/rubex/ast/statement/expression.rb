@@ -10,7 +10,7 @@ module Rubex
         def analyse_statement(local_scope)
           @expr.analyse_types local_scope
           @expr.allocate_temps local_scope
-          @expr.allocate_temp local_scope, @expr.type
+          @expr.release_temps local_scope
         end
 
         def generate_code(code, local_scope)

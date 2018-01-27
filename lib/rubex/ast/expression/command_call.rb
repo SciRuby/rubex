@@ -17,7 +17,6 @@ module Rubex
           else
             @expr.analyse_types(local_scope)
             @expr.allocate_temps local_scope
-            @expr.allocate_temp local_scope, @expr.type
           end
           add_as_ruby_method_to_symtab(local_scope) unless @entry
           analyse_command_type local_scope
@@ -73,8 +72,9 @@ module Rubex
         end
 
         def struct_member_call?
-          @expr && ((@expr.type.cptr? && @expr.type.type.struct_or_union?) ||
-                    @expr.type.struct_or_union?)
+          expr = @expr
+          expr && ((expr.type.cptr? && expr.type.type.struct_or_union?) ||
+                    expr.type.struct_or_union?) 
         end
 
         def ruby_method_call?
@@ -87,9 +87,7 @@ module Rubex
 
         def allocate_and_release_temps(local_scope)
           @command.allocate_temps local_scope
-          @command.allocate_temp local_scope, @type
           @command.release_temps local_scope
-          @command.release_temp local_scope
         end
 
         def analyse_command_type(local_scope)

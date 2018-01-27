@@ -15,18 +15,12 @@ module Rubex
             @lhs.analyse_types(local_scope)
           end
           @lhs.allocate_temps local_scope
-          @lhs.allocate_temp local_scope, @lhs.type
-
           @rhs.analyse_for_target_type(@lhs.type, local_scope)
           @rhs = Helpers.to_lhs_type(@lhs, @rhs)
-
           @rhs.allocate_temps local_scope
-          @rhs.allocate_temp local_scope, @rhs.type
 
           @lhs.release_temps local_scope
-          @lhs.release_temp local_scope
           @rhs.release_temps local_scope
-          @rhs.release_temp local_scope
         end
 
         def generate_code(code, local_scope)

@@ -10,11 +10,11 @@ module Rubex
         end
 
         def allocate_temps(local_scope)
-          @args.each { |a| a.allocate_temp(local_scope, a.type) }
+          @args.each { |a| a.allocate_temps(local_scope) }
         end
 
         def release_temps(local_scope)
-          @args.each { |a| a.release_temp(local_scope) }
+          @args.each { |a| a.release_temps(local_scope) }
         end
 
         def generate_evaluation_code(code, local_scope)

@@ -10,13 +10,10 @@ module Rubex
           @args = @args.map do |arg|
             arg.analyse_types local_scope
             arg.allocate_temps local_scope
-            arg.allocate_temp local_scope, arg.type
             arg.to_ruby_object
           end
-
           @args.each do |arg|
             arg.release_temps local_scope
-            arg.release_temp local_scope
           end
         end
 

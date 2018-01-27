@@ -18,11 +18,9 @@ module Rubex
 
           [@left_expr, @right_expr].each do |e|
             e.allocate_temps local_scope
-            e.allocate_temp local_scope, e.type
           end
           [@left_expr, @right_expr].each do |e|
             e.release_temps local_scope
-            e.release_temp local_scope
           end
 
           @middle = local_scope[@middle] # middle will not be an expr.
