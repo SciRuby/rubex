@@ -320,12 +320,12 @@ rule
   | expr { result = Statement::Expression.new(val[0], location) }
   | kRAISE opt_lparen command_arg_list opt_rparen
       { 
-        result = Statement::Raise.new(Statement::ActualArgList.new(val[2]))
+        result = Statement::Raise.new(Expression::ActualArgList.new(val[2]))
       }
   | kBREAK { result = Statement::Break.new(location) }
   | kYIELD opt_lparen command_arg_list opt_rparen
       {
-        result = Statement::Yield.new(Statement::ActualArgList.new(val[2]))
+        result = Statement::Yield.new(Expression::ActualArgList.new(val[2]))
       }
   | begin_block
 

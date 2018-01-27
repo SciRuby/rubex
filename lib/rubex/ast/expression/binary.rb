@@ -23,21 +23,16 @@ module Rubex
         end
 
         def generate_evaluation_code code, local_scope
-          @left.generate_evaluation_code code, local_scope
-          @right.generate_evaluation_code code, local_scope
-          if @has_temp
-            code << "#{@c_code} = rb_funcall(#{@left.c_code(local_scope)}," +
-            "rb_intern(\"#{@operator}\")," +
-            "1, #{@right.c_code(local_scope)});"
-            code.nl
-          else
-            @c_code = "( #{@left.c_code(local_scope)} #{@operator} #{@right.c_code(local_scope)} )"
+          generate_and_dispose_subexprs(code, local_scope) do
+            if @has_temp
+              code << "#{@c_code} = rb_funcall(#{@left.c_code(local_scope)}," +
+                "rb_intern(\"#{@operator}\")," +
+                "1, #{@right.c_code(local_scope)});"
+              code.nl
+            else
+              @c_code = "( #{@left.c_code(local_scope)} #{@operator} #{@right.c_code(local_scope)} )"
+            end
           end
-        end
-
-        def generate_disposal_code code
-          @left.generate_disposal_code code
-          @right.generate_disposal_code code
         end
 
         def c_code local_scope

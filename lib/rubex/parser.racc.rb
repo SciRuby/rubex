@@ -1967,7 +1967,7 @@ module_eval(<<'.,.,', 'parser.racc', 319)
 
 module_eval(<<'.,.,', 'parser.racc', 322)
   def _reduce_75(val, _values, result)
-            result = Statement::Raise.new(Statement::ActualArgList.new(val[2]))
+            result = Statement::Raise.new(Expression::ActualArgList.new(val[2]))
       
     result
   end
@@ -1982,7 +1982,7 @@ module_eval(<<'.,.,', 'parser.racc', 324)
 
 module_eval(<<'.,.,', 'parser.racc', 327)
   def _reduce_77(val, _values, result)
-            result = Statement::Yield.new(Statement::ActualArgList.new(val[2]))
+            result = Statement::Yield.new(Expression::ActualArgList.new(val[2]))
       
     result
   end

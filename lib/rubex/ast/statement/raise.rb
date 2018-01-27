@@ -7,7 +7,7 @@ module Rubex
         end
 
         def analyse_statement(local_scope)
-          @args.analyse_statement local_scope
+          @args.analyse_types local_scope
           @args.allocate_temps local_scope
           @args.release_temps local_scope
           unless @args.empty? || @args[0].is_a?(AST::Expression::Name) ||

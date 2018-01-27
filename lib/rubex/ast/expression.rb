@@ -69,10 +69,24 @@ module Rubex
 
         def generate_evaluation_code(code, local_scope); end
 
-        def generate_disposal_code(code); end
+        def generate_disposal_code(code)
+          if @has_temp
+            code << "#{@c_code} = 0;"
+            code.nl
+          end
+        end
 
         def generate_assignment_code(rhs, code, local_scope); end
 
+        def generate_and_dispose_subexprs(code, local_scope, &block)
+          @subexprs.each do |s|
+            s.generate_evaluation_code code, local_scope
+          end
+          block.call if block_given?
+          @subexprs.each do |s|
+            s.generate_disposal_code code
+          end
+        end
       end
     end # module Expression
   end # module AST
