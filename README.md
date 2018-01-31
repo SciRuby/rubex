@@ -8,7 +8,7 @@ Rubex keeps you happy even when writing C extensions.
 
 # Status
 
-[![Gem Version](https://badge.fury.io/rb/rubex.svg)](https://badge.fury.io/rb/rubex)
+[![Gem Version](https://badge.fury.io/rb/rubex.svg)](https://badge.fury.io/rb/rubex) [![Maintainability](https://api.codeclimate.com/v1/badges/24fdd1a5e48755bb03c1/maintainability)](https://codeclimate.com/github/rohitner/rubex/maintainability)
 
 # Table of Contents
 
