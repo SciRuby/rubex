@@ -38,7 +38,6 @@ module Rubex
         #       bar
         #      #^^^ this is a name node
         #     end
-
         def analyse_types(local_scope)
           @entry = local_scope.find @name
           unless @entry
@@ -75,7 +74,7 @@ module Rubex
           rhs.generate_disposal_code code
         end
 
-        def c_code(local_scope)
+        def c_code(local_scope)          
           code = super
           code <<
             if @name.is_a?(Rubex::AST::Expression::Base)
