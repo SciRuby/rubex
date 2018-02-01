@@ -16,12 +16,13 @@ module Rubex
           c_name = Rubex::ARG_PREFIX + ident
           @type = Helpers.determine_dtype(dtype, ptr_level)
           value&.analyse_types(local_scope)
-          add_arg_to_symbol_table name, c_name, @type, value, extern, local_scope
+          add_arg_to_symbol_table name, c_name, value, extern, local_scope
+          @has_temp = true if @type.object?
         end
 
         private
 
-        def add_arg_to_symbol_table(name, c_name, _type, value, extern, local_scope)
+        def add_arg_to_symbol_table(name, c_name, value, extern, local_scope)
           unless extern
             @entry = local_scope.add_arg(name: name, c_name: c_name, type: @type, value: value)
           end

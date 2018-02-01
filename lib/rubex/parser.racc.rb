@@ -2304,7 +2304,7 @@ module_eval(<<'.,.,', 'parser.racc', 493)
 module_eval(<<'.,.,', 'parser.racc', 496)
   def _reduce_122(val, _values, result)
           result = {
-        name: Expression::CommandCall.new(val[0][0], val[0][1], []),
+        name: Expression::CommandCall.new(val[0][0], val[0][1], Expression::ActualArgList.new([])),
         value: val[2]
       }
     
@@ -2829,14 +2829,14 @@ module_eval(<<'.,.,', 'parser.racc', 662)
 
 module_eval(<<'.,.,', 'parser.racc', 666)
   def _reduce_193(val, _values, result)
-     result = [] 
+     result = Expression::ActualArgList.new([]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 667)
   def _reduce_194(val, _values, result)
-     result = val[1] 
+     result = Expression::ActualArgList.new(val[1]) 
     result
   end
 .,.,

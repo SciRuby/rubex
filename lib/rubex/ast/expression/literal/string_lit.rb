@@ -16,7 +16,7 @@ module Rubex
 
           def analyse_types(_local_scope)
             @type ||= Rubex::DataType::RubyString.new
-            @has_temp = 1
+            @has_temp = true
           end
 
           def generate_evaluation_code(code, _local_scope)

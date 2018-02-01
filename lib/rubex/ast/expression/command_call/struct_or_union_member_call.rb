@@ -19,16 +19,17 @@ module Rubex
         def generate_evaluation_code code, local_scope
           @expr.generate_evaluation_code code, local_scope
           @command.generate_evaluation_code code, local_scope
-          @c_code = @command.c_code(local_scope)
+          @c_code =
+            if @command.has_temp
+              @command.c_code(local_scope)
+            else
+              op = @expr.type.cptr? ? '->' : '.'
+              "#{@expr.c_code(local_scope)}#{op}#{@command.c_code(local_scope)}"
+            end
         end
 
-        def c_code(local_scope)
-          if @command.has_temp
-            @command.c_code(local_scope)
-          else
-            op = @expr.type.cptr? ? '->' : '.'
-            "#{@expr.c_code(local_scope)}#{op}#{@command.c_code(local_scope)}"
-          end
+        def c_code(_local_scope)
+          @c_code
         end
       end
     end

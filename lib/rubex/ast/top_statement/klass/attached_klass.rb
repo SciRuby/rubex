@@ -244,7 +244,7 @@ module Rubex
 
         def get_struct_func_call(_stmt)
           Expression::CommandCall.new(nil, @get_struct_c_func.name,
-                                      Statement::ArgumentList.new([]))
+                                      Expression::ActualArgList.new([]))
         end
 
         # Create an alloc function if it is not supplied by user.
@@ -389,7 +389,8 @@ module Rubex
           data_var = Statement::CPtrDecl.new(@data_struct.name, 'data', value,
                                              '*', @location)
           xfree = Expression::CommandCall.new(nil, 'xfree',
-                                              [Expression::Name.new('data')])
+                                              Expression::ActualArgList.new(
+                                                [Expression::Name.new('data')]))
           data_xfree = Statement::Expression.new xfree, @location
           func.statements.unshift data_var
           func.statements.push data_xfree

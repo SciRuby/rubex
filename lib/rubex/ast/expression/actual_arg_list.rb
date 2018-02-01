@@ -5,10 +5,14 @@ module Rubex
         include Enumerable
         extend Forwardable
 
-        def_delegators :@args, :empty?, :[]
+        def_delegators :@args, :empty?, :[], :size, :<<
         
         def each(&block)
           @args.each(&block)
+        end
+
+        def map!(&block)
+          @args.map!(&block)
         end
 
         def initialize args
@@ -24,7 +28,11 @@ module Rubex
         end
 
         def generate_evaluation_code(code, local_scope)
-          generate_and_dispose_subexprs(code, local_scope)
+          @args.each { |a| a.generate_evaluation_code(code, local_scope) }
+        end
+
+        def generate_disposal_code(code)
+          @args.each { |a| a.generate_disposal_code(code) }
         end
       end
     end

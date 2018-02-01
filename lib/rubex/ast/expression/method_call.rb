@@ -9,16 +9,15 @@ module Rubex
         end
 
         def analyse_types(local_scope)
-          @entry = local_scope.find(@method_name)
           if method_not_within_scope? local_scope
-            raise Rubex::NoMethodError, "Cannot call #{@name} from this method."
+            raise Rubex::NoMethodError, "Cannot call #{@method_name} from this method."
           end
           super
         end
 
-        def generate_evaluation_code(code, local_scope); end
-
-        def generate_disposal_code(code); end
+        def generate_evaluation_code code, local_scope
+          @arg_list.each { |a| a.generate_evaluation_code(code, local_scope) }
+        end
 
         private
 

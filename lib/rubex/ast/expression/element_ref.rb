@@ -7,8 +7,8 @@ module Rubex
         extend Forwardable
         def_delegators :@element_ref, :generate_disposal_code, :generate_evaluation_code,
         :analyse_statement, :generate_element_ref_code,
-        :generate_assignment_code, :has_temp, :c_code, :allocate_temp,
-        :allocate_temps, :release_temp, :release_temps, :to_ruby_object,
+        :generate_assignment_code, :has_temp, :c_code,
+        :allocate_temps, :release_temps, :to_ruby_object,
         :from_ruby_object
 
         def initialize(name, pos)

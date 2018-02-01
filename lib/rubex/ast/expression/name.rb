@@ -50,6 +50,10 @@ module Rubex
           end
           analyse_as_ruby_method(local_scope) if @entry.type.ruby_method?
           assign_type_based_on_whether_wrapped_type
+          if @name.is_a?(Expression::Base)
+            @name.allocate_temps local_scope
+            @name.release_temps local_scope
+          end
           super
         end
 
@@ -100,13 +104,13 @@ module Rubex
             c_name: @name,
             extern: true,
             scope: nil,
-            arg_list: []
+            arg_list: Expression::ActualArgList.new([])
           )
         end
 
         def analyse_as_ruby_method(local_scope)
           @name = Rubex::AST::Expression::RubyMethodCall.new(
-            Expression::Self.new, @name, []
+            Expression::Self.new, @name, Expression::ActualArgList.new([])
           )
           @name.analyse_types local_scope
         end

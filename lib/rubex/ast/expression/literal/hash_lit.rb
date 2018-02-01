@@ -35,11 +35,6 @@ module Rubex
             end
           end
 
-          def generate_disposal_code(code)
-            code << "#{@c_code} = 0;"
-            code.nl
-          end
-
           def c_code(_local_scope)
             @c_code
           end

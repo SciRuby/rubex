@@ -495,7 +495,7 @@ rule
   | method_or_attr tASSIGN expr
     {
       result = {
-        name: Expression::CommandCall.new(val[0][0], val[0][1], []),
+        name: Expression::CommandCall.new(val[0][0], val[0][1], Expression::ActualArgList.new([])),
         value: val[2]
       }
     }
@@ -664,8 +664,8 @@ rule
     }
 
   command_opt_args:
-    { result = [] }
-  | tLPAREN command_arg_list tRPAREN { result = val[1] }
+    { result = Expression::ActualArgList.new([]) }
+  | tLPAREN command_arg_list tRPAREN { result = Expression::ActualArgList.new(val[1]) }
 
   command_arg_list:
     { result = [] }

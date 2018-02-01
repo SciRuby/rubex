@@ -3,16 +3,23 @@ module Rubex
     module Expression
       class CFunctionCall < MethodCall
         def analyse_types(local_scope)
+          @entry = local_scope.find(@method_name)
           super
-          @type = @entry.type.base_type
           append_self_argument unless @entry.extern?
+          @arg_list.analyse_types local_scope
+          @arg_list.allocate_temps local_scope
+          @arg_list.release_temps local_scope
+          @type = @entry.type.base_type
           type_check_arg_types @entry
         end
 
+        def generate_evaluation_code code, local_scope
+          super
+          @c_code = code_for_c_method_call local_scope
+        end
+
         def c_code(local_scope)
-          code = super
-          code << code_for_c_method_call(local_scope)
-          code
+          @c_code
         end
 
         private
