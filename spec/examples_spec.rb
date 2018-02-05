@@ -15,13 +15,14 @@ describe Rubex do
         end
       end
 
-      context ".compile" do
+      context ".compile", hell: true do
         it "compiles to valid C file" do
+          puts @path
           t,c,e = Rubex::Compiler.compile(@path + '.rubex', test: true)
         end
       end
 
-      context "Black Box testing" do
+      context "Black Box testing", hell: true do
         it "compiles and checks for valid output" do
           def rcsv
             result = [

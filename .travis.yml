@@ -15,4 +15,3 @@ install:
 
 os:
   - linux
-  - osx

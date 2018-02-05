@@ -16,8 +16,12 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'rubex'
 
-def dir_str test_case
-  "#{Dir.pwd}/spec/fixtures/#{test_case}"
+def dir_str test_case, example=nil
+  if example
+    "#{Dir.pwd}/spec/fixtures/#{test_case}/#{example}"
+  else
+    "#{Dir.pwd}/spec/fixtures/#{test_case}"
+  end
 end
 
 def path_str test_case, example=nil
@@ -27,9 +31,10 @@ end
 
 def generate_shared_object test_case, example=nil
   path = path_str test_case, example
-  dir = dir_str test_case
+  dir = dir_str test_case, example
 
   Rubex::Compiler.compile(path + '.rubex', directory: dir)
+  puts "dir: #{dir}"
   Dir.chdir(dir) do
     `ruby extconf.rb`
     `make`
