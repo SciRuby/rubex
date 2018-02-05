@@ -91,8 +91,10 @@ module Rubex
       def write_user_klasses(code)
         code.nl
         @scope.ruby_class_entries.each do |klass|
-          code << "VALUE #{klass.c_name};"
-          code.nl
+          unless Rubex::DEFAULT_CLASS_MAPPINGS.has_key?(klass.name)
+            code << "VALUE #{klass.c_name};" 
+            code.nl
+          end
         end
       end
 
