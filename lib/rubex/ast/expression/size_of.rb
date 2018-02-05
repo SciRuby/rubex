@@ -4,10 +4,11 @@ module Rubex
       # C sizeof operator.
       class SizeOf < Base
         def initialize(type, ptr_level)
-          @size_of_type = Helpers.determine_dtype type, ptr_level
+          @type, @ptr_level = type, ptr_level
         end
 
         def analyse_types(local_scope)
+          @size_of_type = Helpers.determine_dtype @type, @ptr_level
           @type = DataType::ULInt.new
           super
         end
