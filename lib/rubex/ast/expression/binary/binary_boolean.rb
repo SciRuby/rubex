@@ -6,6 +6,7 @@ module Rubex
           @left.analyse_types local_scope
           @right.analyse_types local_scope
           if type_of(@left).object? || type_of(@right).object?
+            
             @left = @left.to_ruby_object
             @right = @right.to_ruby_object
             @type = Rubex::DataType::Boolean.new

@@ -14,6 +14,7 @@ module Rubex
           end
           @has_temp = @command.has_temp
           @type = @command.type
+          @subexprs = [@expr, @command]
         end
 
         def generate_evaluation_code code, local_scope

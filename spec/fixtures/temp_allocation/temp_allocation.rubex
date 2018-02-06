@@ -1,0 +1,8 @@
+def test_temp(s)
+  if s.nil?
+    return "nil"
+  elsif !s.nil?
+    return "small" if s.size == 0
+  end
+  return "large"
+end

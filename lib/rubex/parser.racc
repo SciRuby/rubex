@@ -887,7 +887,36 @@ end
 
 # expr, op_assign, expr => expr = expr op expr
 def op_assign val
-  Statement::Assign.new(val[0], binary_op([val[0], val[1][0], val[2]]), location)
+  left = val[0]
+  right = val[2]
+  operator = val[1][0]
+  expression =
+    case operator
+    when '+'
+      Expression::BinaryAdd.new(left, operator, right)
+    when '-'
+      Expression::BinaryMinus.new(left, operator, right)
+    when '*'
+      Expression::BinaryMultiply.new(left, operator, right)
+    when '/'
+      Expression::BinaryDivide.new(left, operator, right)
+    when '**'
+      Expression::BinaryExpo.new(left, operator, right)
+    when '%'
+      Expression::BinaryMod.new(left, operator, right)
+    when '&'
+      Expression::BinaryAnd.new(left, operator, right)
+    when '|'
+      Expression::BinaryOr.new(left, operator, right)
+    when '<<'
+      Expression::BinaryLShift.new(left, operator, right)
+    when '>>'
+      Expression::BinaryRShift.new(left, operator, right)
+    when '^'
+      Expression::BinaryXor.new(left, operator, right)
+    end
+  
+  Statement::Assign.new(left, expression, location)
 end
 
 def variable_decl_nodes val

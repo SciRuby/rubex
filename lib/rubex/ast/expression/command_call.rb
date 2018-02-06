@@ -14,9 +14,10 @@ module Rubex
             @expr = (@entry && !@entry.extern) ? Expression::Self.new : Expression::Empty.new
           end
           @expr.analyse_types(local_scope)
-          @expr.allocate_temps local_scope
-          @expr.release_temps local_scope
           analyse_command_type local_scope
+          @subexprs = []
+          @subexprs << @expr
+          @subexprs << @command
           super
         end
 
@@ -33,7 +34,8 @@ module Rubex
 
         def generate_assignment_code(rhs, code, local_scope)
           generate_evaluation_code code, local_scope
-          code << "#{c_code(local_scope)} = #{rhs.c_code(local_scope)};"
+#          code << "#{c_code(local_scope)} = #{rhs.c_code(local_scope)};"
+          code << "#{@c_code} = #{rhs.c_code(local_scope)};"
           code.nl
         end
 
@@ -58,16 +60,9 @@ module Rubex
           @entry && @entry.type.base_type.c_function?
         end
 
-        def allocate_and_release_temps(local_scope)
-          @command.allocate_temps local_scope
-          @command.release_temps local_scope
-        end
-
         def analyse_command_type(local_scope)
           if struct_member_call?
             @command = Expression::StructOrUnionMemberCall.new @expr, @command, @arg_list
-          # elsif ruby_method_call?
-          #   @command = Expression::RubyMethodCall.new @expr, @command, @arg_list
           elsif c_function_call?
             @command = Expression::CFunctionCall.new @expr, @command,  @arg_list
           else
@@ -75,7 +70,6 @@ module Rubex
           end
           @command.analyse_types local_scope
           @type = @command.type
-          allocate_and_release_temps local_scope
         end
       end
     end

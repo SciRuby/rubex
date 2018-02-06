@@ -19,6 +19,7 @@ module Rubex
             tail.analyse_types local_scope
             tail.allocate_temps local_scope
           end
+
           @tail_exprs.each do |tail|
             tail.release_temps local_scope
           end
@@ -38,7 +39,6 @@ module Rubex
         end
 
         def generate_code(code, local_scope)
-          @expr.generate_evaluation_code(code, local_scope)
           @tail_exprs.each do |tail|
             tail.generate_evaluation_code(code, local_scope)
           end
