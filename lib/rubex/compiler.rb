@@ -4,12 +4,13 @@ module Rubex
     CONFIG = Rubex::CompilerConfig.new
 
     class << self
-      def compile path, test: false, directory: nil, force: false, make: false
+      def compile path, test: false, directory: nil, force: false, make: false, debug: false
         tree = ast path, test: test
         target_name = extract_target_name path
         code = generate_code tree, target_name
         ext = extconf target_name, directory: directory
         CONFIG.flush
+        CONFIG.debug = debug
 
         return [tree, code, ext] if test
         write_files target_name, code, ext, directory: directory, force: force
@@ -37,6 +38,7 @@ module Rubex
         extconf = ""
         extconf << "require 'mkmf'\n"
         extconf << "$libs += \" #{CONFIG.link_flags}\"\n"
+        extconf << "$CFLAGS += \" -g \"\n" if CONFIG.debug
         extconf << "create_makefile('#{path}/#{target_name}')\n"
         extconf
       end

@@ -15,9 +15,7 @@ module Rubex
           end
           @expr.analyse_types(local_scope)
           analyse_command_type local_scope
-          @subexprs = []
-          @subexprs << @expr
-          @subexprs << @command
+          @subexprs = [@expr, @command]
           super
         end
 
@@ -34,8 +32,7 @@ module Rubex
 
         def generate_assignment_code(rhs, code, local_scope)
           generate_evaluation_code code, local_scope
-#          code << "#{c_code(local_scope)} = #{rhs.c_code(local_scope)};"
-          code << "#{@c_code} = #{rhs.c_code(local_scope)};"
+          code << "#{c_code(local_scope)} = #{rhs.c_code(local_scope)};"
           code.nl
         end
 

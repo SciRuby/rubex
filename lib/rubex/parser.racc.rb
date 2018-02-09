@@ -173,6 +173,7 @@ def op_assign val
   left = val[0]
   right = val[2]
   operator = val[1][0]
+  
   expression =
     case operator
     when '+'
@@ -197,9 +198,12 @@ def op_assign val
       Expression::BinaryRShift.new(left, operator, right)
     when '^'
       Expression::BinaryXor.new(left, operator, right)
+    else
+      raise "Cannot identify operator #{operator}"
     end
+
   
-  Statement::Assign.new(left, expression, location)
+   Statement::Assign.new(left.dup, expression, location)
 end
 
 def variable_decl_nodes val
@@ -1976,7 +1980,7 @@ module_eval(<<'.,.,', 'parser.racc', 313)
 
 module_eval(<<'.,.,', 'parser.racc', 315)
   def _reduce_70(val, _values, result)
-    
+    result = val[0]
     result
   end
 .,.,
