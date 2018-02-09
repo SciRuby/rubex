@@ -9,6 +9,7 @@ Rubex keeps you happy even when writing C extensions.
 # Status
 
 [![Gem Version](https://badge.fury.io/rb/rubex.svg)](https://badge.fury.io/rb/rubex)
+[![Open Source Helpers](https://www.codetriage.com/v0dro/rubex/badges/users.svg)](https://www.codetriage.com/v0dro/rubex)
 
 # Table of Contents
 
