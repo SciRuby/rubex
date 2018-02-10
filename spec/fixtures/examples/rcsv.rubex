@@ -117,14 +117,18 @@ class Rcsv
     parsed_field = ENCODED_STR_NEW(field_str, field_size, meta.encoding_index)
 
     # Filter by row values listed in meta->only_rows */
-    if ((meta.only_rows != NULL) && (meta.current_col < meta.num_only_rows) && (meta.only_rows[meta.current_col] != nil) && (!rb_ary_includes(meta.only_rows[meta.current_col], parsed_field)))
-      meta_p[0].skip_current_row = true
-      return
+    if meta.only_rows != NULL
+        if (meta.current_col < meta.num_only_rows) && (meta.only_rows[meta.current_col] != nil) && (!rb_ary_includes(meta.only_rows[meta.current_col], parsed_field))
+          meta_p[0].skip_current_row = true
+          return
+        end
     end
     # Filter out by row values listed in meta->except_rows
-    if ((meta.except_rows != NULL) && (meta.current_col < meta.num_except_rows) && (meta.except_rows[meta.current_col] != nil) && (rb_ary_includes(meta.except_rows[meta.current_col], parsed_field)))
-      meta.skip_current_row = true
-      return
+    if meta.except_rows != NULL
+      if (meta.current_col < meta.num_except_rows) && (meta.except_rows[meta.current_col] != nil) && (rb_ary_includes(meta.except_rows[meta.current_col], parsed_field))
+        meta.skip_current_row = true
+        return
+      end
     end
 
     # Assign the value to appropriate hash key if parsing into Hash */

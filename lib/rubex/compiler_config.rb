@@ -1,5 +1,7 @@
 module Rubex
   class CompilerConfig
+    attr_accessor :debug
+    
     def initialize
       @links = []
     end

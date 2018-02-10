@@ -2,13 +2,21 @@ language:
   ruby
 
 rvm:
-  - '2.2'
   - '2.3.0'
   - '2.4.0'
+  - '2.5.0'
 
 script:
   - bundle exec rake spec
 
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libcsv3
+  
 install:
   - gem install bundler
   - bundle install
+
+os:
+  - linux
+  

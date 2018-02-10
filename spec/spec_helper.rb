@@ -1,3 +1,7 @@
+require 'simplecov'
+SimpleCov.start do
+  add_filter '/spec/'
+end
 require 'rspec'
 require 'awesome_print'
 require 'pp'
@@ -12,8 +16,12 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'rubex'
 
-def dir_str test_case
-  "#{Dir.pwd}/spec/fixtures/#{test_case}"
+def dir_str test_case, example=nil
+  if example
+    "#{Dir.pwd}/spec/fixtures/#{test_case}/#{example}"
+  else
+    "#{Dir.pwd}/spec/fixtures/#{test_case}"
+  end
 end
 
 def path_str test_case, example=nil
@@ -23,7 +31,7 @@ end
 
 def generate_shared_object test_case, example=nil
   path = path_str test_case, example
-  dir = dir_str test_case
+  dir = dir_str test_case, example
 
   Rubex::Compiler.compile(path + '.rubex', directory: dir)
   Dir.chdir(dir) do
@@ -33,10 +41,10 @@ def generate_shared_object test_case, example=nil
 end
 
 def delete_generated_files test_case, example=nil
-  dir = dir_str test_case
+  dir = dir_str test_case, example
   test_case = example if example
   Dir.chdir(dir) do
-    FileUtils.rm Dir.glob("#{test_case}.{c,so,o,bundle,dll}") + ["Makefile", "extconf.rb"]
+    FileUtils.rm(Dir.glob("#{test_case}.{c,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true)
   end
 end
 

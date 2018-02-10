@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Rubex, hell: true do
+describe Rubex do
   test_case = "ruby_operators"
 
   context "Case: #{test_case}" do
@@ -17,7 +17,6 @@ describe Rubex, hell: true do
     context ".compile" do
       it "compiles to valid C file" do
         t,c,e = Rubex::Compiler.compile(@path + '.rubex', test: true)
-        puts c
       end
     end
 

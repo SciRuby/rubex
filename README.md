@@ -10,6 +10,7 @@ Rubex keeps you happy even when writing C extensions.
 
 [![Gem Version](https://badge.fury.io/rb/rubex.svg)](https://badge.fury.io/rb/rubex)
 [![Open Source Helpers](https://www.codetriage.com/v0dro/rubex/badges/users.svg)](https://www.codetriage.com/v0dro/rubex)
+[![Build Status](https://travis-ci.org/SciRuby/rubex.svg?branch=master)](https://travis-ci.org/SciRuby/rubex)
 
 # Table of Contents
 

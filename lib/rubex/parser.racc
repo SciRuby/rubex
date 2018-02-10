@@ -313,19 +313,19 @@ rule
       {
         result = Statement::While.new val[1], val[3], location
       }
-  | op_assign {}
+  | op_assign {result = val[0]}
   | struct_or_union_def
   | forward_declaration
   | alias_stmt
   | expr { result = Statement::Expression.new(val[0], location) }
   | kRAISE opt_lparen command_arg_list opt_rparen
       { 
-        result = Statement::Raise.new(Statement::ActualArgList.new(val[2]))
+        result = Statement::Raise.new(Expression::ActualArgList.new(val[2]))
       }
   | kBREAK { result = Statement::Break.new(location) }
   | kYIELD opt_lparen command_arg_list opt_rparen
       {
-        result = Statement::Yield.new(Statement::ActualArgList.new(val[2]))
+        result = Statement::Yield.new(Expression::ActualArgList.new(val[2]))
       }
   | begin_block
 
@@ -495,7 +495,7 @@ rule
   | method_or_attr tASSIGN expr
     {
       result = {
-        name: Expression::CommandCall.new(val[0][0], val[0][1], []),
+        name: Expression::CommandCall.new(val[0][0], val[0][1], Expression::ActualArgList.new([])),
         value: val[2]
       }
     }
@@ -583,8 +583,8 @@ rule
         val[1].typecast = val[0]
         result = val[1]
       }
-  | expr    tANDOP    expr  { result = binary_op val }
-  | expr    tOROP     expr  { result = binary_op val }
+  | expr    tANDOP    expr  { result = Expression::BinaryBoolAnd.new(val[0], val[1], val[2]) }
+  | expr    tOROP     expr  { result = Expression::BinaryBoolOr.new(val[0], val[1], val[2]) }
 
   typecast:
     tLT dtype opt_star tGT { result = Expression::Typecast.new(val[1], val[2]) }
@@ -596,17 +596,17 @@ rule
   | tLPAREN expr      tRPAREN    { result = val[1] }
 
   expr_value:
-    expr_value tPLUS       expr_value { result = binary_op val }
-  | expr_value tMINUS      expr_value { result = binary_op val }
-  | expr_value tSTAR       expr_value { result = binary_op val }
-  | expr_value tDIVIDE     expr_value { result = binary_op val }
-  | expr_value tEXPO       expr_value { result = binary_op val }
-  | expr_value tMODULUS    expr_value { result = binary_op val }
-  | expr_value tBIT_AND    expr_value { result = binary_op val }
-  | expr_value tBIT_OR     expr_value { result = binary_op val }
-  | expr_value tBIT_XOR    expr_value { result = binary_op val }
-  | expr_value tBIT_LSHIFT expr_value { result = binary_op val }
-  | expr_value tBIT_RSHIFT expr_value { result = binary_op val }
+    expr_value tPLUS       expr_value { result = Expression::BinaryAdd.new(val[0], val[1], val[2]) }
+  | expr_value tMINUS      expr_value { result = Expression::BinaryMinus.new(val[0], val[1], val[2]) }
+  | expr_value tSTAR       expr_value { result = Expression::BinaryMultiply.new(val[0], val[1], val[2]) }
+  | expr_value tDIVIDE     expr_value { result = Expression::BinaryDivide.new(val[0], val[1], val[2]) }
+  | expr_value tEXPO       expr_value { result = Expression::BinaryExpo.new(val[0], val[1], val[2]) }
+  | expr_value tMODULUS    expr_value { result = Expression::BinaryMod.new(val[0], val[1], val[2]) }
+  | expr_value tBIT_AND    expr_value { result = Expression::BinaryAnd.new(val[0], val[1], val[2]) }
+  | expr_value tBIT_OR     expr_value { result = Expression::BinaryOr.new(val[0], val[1], val[2]) }
+  | expr_value tBIT_XOR    expr_value { result = Expression::BinaryXor.new(val[0], val[1], val[2]) }
+  | expr_value tBIT_LSHIFT expr_value { result = Expression::BinaryLShift.new(val[0], val[1], val[2]) }
+  | expr_value tBIT_RSHIFT expr_value { result = Expression::BinaryRShift.new(val[0], val[1], val[2]) }
   | tMINUS     expr_value  =UMINUS    { result = unary_op val  }
   | tBIT_AND   expr_value  =ADDRESS_OF{ result = unary_op val  }
   | tBIT_NOT   expr_value             { result = unary_op val  } 
@@ -614,12 +614,12 @@ rule
   | atomic_value {}
 
   expr_cmp:
-    expr_value tEQ       expr_value { result = binary_op val }
-  | expr_value tNEQ      expr_value { result = binary_op val }
-  | expr_value tLT       expr_value { result = binary_op val }
-  | expr_value tLTEQ     expr_value { result = binary_op val }
-  | expr_value tGT       expr_value { result = binary_op val }
-  | expr_value tGTEQ     expr_value { result = binary_op val }
+    expr_value tEQ       expr_value { result = Expression::BinaryBoolEq.new(val[0], val[1], val[2]) }
+  | expr_value tNEQ      expr_value { result = Expression::BinaryBoolNEq.new(val[0], val[1], val[2]) }
+  | expr_value tLT       expr_value { result = Expression::BinaryBoolLt.new(val[0], val[1], val[2]) }
+  | expr_value tLTEQ     expr_value { result = Expression::BinaryBoolLtEq.new(val[0], val[1], val[2]) }
+  | expr_value tGT       expr_value { result = Expression::BinaryBoolGt.new(val[0], val[1], val[2]) }
+  | expr_value tGTEQ     expr_value { result = Expression::BinaryBoolGtEq.new(val[0], val[1], val[2]) }
   | tLPAREN    expr_cmp  tRPAREN    { result = val[1] }
 
   atomic_value:
@@ -664,8 +664,8 @@ rule
     }
 
   command_opt_args:
-    { result = [] }
-  | tLPAREN command_arg_list tRPAREN { result = val[1] }
+    { result = Expression::ActualArgList.new([]) }
+  | tLPAREN command_arg_list tRPAREN { result = Expression::ActualArgList.new(val[1]) }
 
   command_arg_list:
     { result = [] }
@@ -887,7 +887,40 @@ end
 
 # expr, op_assign, expr => expr = expr op expr
 def op_assign val
-  Statement::Assign.new(val[0], binary_op([val[0], val[1][0], val[2]]), location)
+  left = val[0]
+  right = val[2]
+  operator = val[1][0]
+  
+  expression =
+    case operator
+    when '+'
+      Expression::BinaryAdd.new(left, operator, right)
+    when '-'
+      Expression::BinaryMinus.new(left, operator, right)
+    when '*'
+      Expression::BinaryMultiply.new(left, operator, right)
+    when '/'
+      Expression::BinaryDivide.new(left, operator, right)
+    when '**'
+      Expression::BinaryExpo.new(left, operator, right)
+    when '%'
+      Expression::BinaryMod.new(left, operator, right)
+    when '&'
+      Expression::BinaryAnd.new(left, operator, right)
+    when '|'
+      Expression::BinaryOr.new(left, operator, right)
+    when '<<'
+      Expression::BinaryLShift.new(left, operator, right)
+    when '>>'
+      Expression::BinaryRShift.new(left, operator, right)
+    when '^'
+      Expression::BinaryXor.new(left, operator, right)
+    else
+      raise "Cannot identify operator #{operator}"
+    end
+
+  
+   Statement::Assign.new(left.dup, expression, location)
 end
 
 def variable_decl_nodes val

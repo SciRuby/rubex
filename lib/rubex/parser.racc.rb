@@ -170,7 +170,40 @@ end
 
 # expr, op_assign, expr => expr = expr op expr
 def op_assign val
-  Statement::Assign.new(val[0], binary_op([val[0], val[1][0], val[2]]), location)
+  left = val[0]
+  right = val[2]
+  operator = val[1][0]
+  
+  expression =
+    case operator
+    when '+'
+      Expression::BinaryAdd.new(left, operator, right)
+    when '-'
+      Expression::BinaryMinus.new(left, operator, right)
+    when '*'
+      Expression::BinaryMultiply.new(left, operator, right)
+    when '/'
+      Expression::BinaryDivide.new(left, operator, right)
+    when '**'
+      Expression::BinaryExpo.new(left, operator, right)
+    when '%'
+      Expression::BinaryMod.new(left, operator, right)
+    when '&'
+      Expression::BinaryAnd.new(left, operator, right)
+    when '|'
+      Expression::BinaryOr.new(left, operator, right)
+    when '<<'
+      Expression::BinaryLShift.new(left, operator, right)
+    when '>>'
+      Expression::BinaryRShift.new(left, operator, right)
+    when '^'
+      Expression::BinaryXor.new(left, operator, right)
+    else
+      raise "Cannot identify operator #{operator}"
+    end
+
+  
+   Statement::Assign.new(left.dup, expression, location)
 end
 
 def variable_decl_nodes val
@@ -1947,7 +1980,7 @@ module_eval(<<'.,.,', 'parser.racc', 313)
 
 module_eval(<<'.,.,', 'parser.racc', 315)
   def _reduce_70(val, _values, result)
-    
+    result = val[0]
     result
   end
 .,.,
@@ -1967,7 +2000,7 @@ module_eval(<<'.,.,', 'parser.racc', 319)
 
 module_eval(<<'.,.,', 'parser.racc', 322)
   def _reduce_75(val, _values, result)
-            result = Statement::Raise.new(Statement::ActualArgList.new(val[2]))
+            result = Statement::Raise.new(Expression::ActualArgList.new(val[2]))
       
     result
   end
@@ -1982,7 +2015,7 @@ module_eval(<<'.,.,', 'parser.racc', 324)
 
 module_eval(<<'.,.,', 'parser.racc', 327)
   def _reduce_77(val, _values, result)
-            result = Statement::Yield.new(Statement::ActualArgList.new(val[2]))
+            result = Statement::Yield.new(Expression::ActualArgList.new(val[2]))
       
     result
   end
@@ -2304,7 +2337,7 @@ module_eval(<<'.,.,', 'parser.racc', 493)
 module_eval(<<'.,.,', 'parser.racc', 496)
   def _reduce_122(val, _values, result)
           result = {
-        name: Expression::CommandCall.new(val[0][0], val[0][1], []),
+        name: Expression::CommandCall.new(val[0][0], val[0][1], Expression::ActualArgList.new([])),
         value: val[2]
       }
     
@@ -2541,14 +2574,14 @@ module_eval(<<'.,.,', 'parser.racc', 582)
 
 module_eval(<<'.,.,', 'parser.racc', 585)
   def _reduce_153(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryBoolAnd.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 586)
   def _reduce_154(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryBoolOr.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
@@ -2590,77 +2623,77 @@ module_eval(<<'.,.,', 'parser.racc', 595)
 
 module_eval(<<'.,.,', 'parser.racc', 598)
   def _reduce_160(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryAdd.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 599)
   def _reduce_161(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryMinus.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 600)
   def _reduce_162(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryMultiply.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 601)
   def _reduce_163(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryDivide.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 602)
   def _reduce_164(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryExpo.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 603)
   def _reduce_165(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryMod.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 604)
   def _reduce_166(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryAnd.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 605)
   def _reduce_167(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryOr.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 606)
   def _reduce_168(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryXor.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 607)
   def _reduce_169(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryLShift.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 608)
   def _reduce_170(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryRShift.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
@@ -2702,42 +2735,42 @@ module_eval(<<'.,.,', 'parser.racc', 613)
 
 module_eval(<<'.,.,', 'parser.racc', 616)
   def _reduce_176(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryBoolEq.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 617)
   def _reduce_177(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryBoolNEq.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 618)
   def _reduce_178(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryBoolLt.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 619)
   def _reduce_179(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryBoolLtEq.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 620)
   def _reduce_180(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryBoolGt.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 621)
   def _reduce_181(val, _values, result)
-     result = binary_op val 
+     result = Expression::BinaryBoolGtEq.new(val[0], val[1], val[2]) 
     result
   end
 .,.,
@@ -2829,14 +2862,14 @@ module_eval(<<'.,.,', 'parser.racc', 662)
 
 module_eval(<<'.,.,', 'parser.racc', 666)
   def _reduce_193(val, _values, result)
-     result = [] 
+     result = Expression::ActualArgList.new([]) 
     result
   end
 .,.,
 
 module_eval(<<'.,.,', 'parser.racc', 667)
   def _reduce_194(val, _values, result)
-     result = val[1] 
+     result = Expression::ActualArgList.new(val[1]) 
     result
   end
 .,.,

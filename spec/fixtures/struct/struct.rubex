@@ -1,3 +1,5 @@
+lib "rubex/ruby"; end
+
 def structure(a, i32 b, i32 c)
   fwd struct other_node
   i32 f[10]
@@ -74,9 +76,12 @@ def struct_ptr
     int i, j
   end
 
-  node *a
+  node *a = <node*>xmalloc(sizeof(node))
   a.i = 3
+  a.i += 1
+  a.i = a.i + 1
   a.j = 4
 
   return a.i + a.j
 end
+
