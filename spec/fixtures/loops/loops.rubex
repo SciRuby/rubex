@@ -22,7 +22,7 @@ end
 
 def break_stmt
   int i[5] = [1,2,3,4,5]
-  int j
+  int j = 0
 
   while j < 5 do
     break if i[j] == 3
