@@ -1,0 +1,4 @@
+def get_eid
+  return Process::UID.eid
+end
+
