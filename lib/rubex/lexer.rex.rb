@@ -34,6 +34,7 @@ class Rubex::Lexer
   ATTACH            = /attach/
   BLOCK_GIVEN       = /block_given\?/
   IDENTIFIER        = /[a-zA-Z_][a-zA-Z_0-9]*/
+  COLON2            = /::/
   LPAREN            = /\(/
   RPAREN            = /\)/
   LSQUARE           = /\[/
@@ -223,6 +224,8 @@ class Rubex::Lexer
             action { [:tQMARK, text]}
           when text = ss.scan(/#{DOT}/) then
             action { [:tDOT, text]    }
+          when text = ss.scan(/#{COLON2}/) then
+            action { [:tCOLON2, text]  }
           when text = ss.scan(/#{COLON}/) then
             action { [:tCOLON, text]  }
           when text = ss.scan(/#{PLUSASSIGN}/) then

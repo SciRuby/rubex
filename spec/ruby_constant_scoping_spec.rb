@@ -24,9 +24,17 @@ describe Rubex do
     context "Black Box testing" do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
+          class Foo
+            class Bar
+              class Baz
+                NUMBER = 10
+              end
+            end
+          end
           require_relative "#{dir}/#{test_case}.#{os_extension}"
           
           expect(get_eid.is_a?(Fixnum)).to eq(true)
+          expect(user_chained_const).to eq(10)
         end
       end
     end

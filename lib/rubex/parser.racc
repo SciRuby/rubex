@@ -12,7 +12,7 @@ token
   tCUSTOM_DTYPE kDTYPE_RB_ARR kDTYPE_RB_HSH
 
   tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL     tCOMMA tSQUOTE tSCOLON
-  EOF     tDOT    tQMARK   tSYMBOL  tLBRACE     tRBRACE tCOLON
+  EOF     tDOT    tQMARK   tSYMBOL  tLBRACE     tRBRACE tCOLON tCOLON2
 
   tPLUS tMINUS tSTAR tDIVIDE tEXPO      tMODULUS tASSIGN tEQ tLT tLTEQ tGT
   tGTEQ tANDOP tOROP tBANG   tOP_ASSIGN tSTRING  kSIZEOF
@@ -591,7 +591,7 @@ rule
 
   actual_expr:
     expr_value                   {}
-  | expr_cmp                     {}  
+  | expr_cmp                     {}
   | tBANG   expr                 { result = unary_op val }
   | tLPAREN expr      tRPAREN    { result = val[1] }
 
@@ -624,6 +624,7 @@ rule
 
   atomic_value:
     array_ref {}
+  | const_namespacing
   | literal {}
   | tIDENTIFIER command_opt_args
       {
@@ -646,6 +647,12 @@ rule
         result = Expression::ElementRef.new('data',
           Expression::Literal::Int.new('0'))
       }
+     
+  const_namespacing:
+    #const_namespacing tCOLON2 tIDENTIFIER { result = Expression::Colon2.new(val[0], val[2])  }
+   tIDENTIFIER tCOLON2 const_namespacing { result = Expression::Colon2.new(val[0], val[2])  }
+  | tIDENTIFIER tCOLON2 tIDENTIFIER { result = Expression::Colon2.new(val[0], val[2]) }
+
 
   command_call:
     method_or_attr command_opt_args

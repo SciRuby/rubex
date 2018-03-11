@@ -2,3 +2,6 @@ def get_eid
   return Process::UID.eid
 end
 
+def user_chained_const
+  return Foo::Bar::Baz::NUMBER
+end

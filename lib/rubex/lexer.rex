@@ -31,6 +31,7 @@ macros
   BLOCK_GIVEN     /block_given\?/
 
   IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
+  COLON2          /::/
   LPAREN          /\(/
   RPAREN          /\)/
   LSQUARE         /\[/
@@ -158,6 +159,7 @@ rules
   /#{NL}/                 { [:tNL, text] }
   /#{QMARK}/              { [:tQMARK, text]}
   /#{DOT}/                { [:tDOT, text]    }
+  /#{COLON2}/             { [:tCOLON2, text]  }
   /#{COLON}/              { [:tCOLON, text]  }
 
   # operators
