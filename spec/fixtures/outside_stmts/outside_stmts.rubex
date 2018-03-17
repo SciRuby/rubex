@@ -1,11 +1,8 @@
-require "numo/narray"
-
-a = Numo::DFloat.new(3,3).seq
-puts(a.shape)
+require("numo/narray")
 
 def use_narray
   a = Numo::DFloat.new(4,4).seq
   return a[1,3]
 end
 
-use_narray
+use_array

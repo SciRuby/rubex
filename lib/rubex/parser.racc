@@ -64,7 +64,8 @@ rule
     methods {}
   | klass {}
   | attached_klass {}
-  | struct_or_union_def {}
+  | stmt {}
+  # | struct_or_union_def
 
   klass:
     kCLASS tIDENTIFIER opt_inheritance eol top_stmts opt_terms kEND
@@ -284,7 +285,6 @@ rule
     { result = [] }
   | stmt { result = [*val[0]] }
   | stmts terms stmt { result = [*val[0], *val[2]] }
-
 
   stmt:
     var_decl_or_init { result = variable_decl_nodes val }
@@ -649,9 +649,8 @@ rule
       }
      
   const_namespacing:
-    #const_namespacing tCOLON2 tIDENTIFIER { result = Expression::Colon2.new(val[0], val[2])  }
-   tIDENTIFIER tCOLON2 const_namespacing { result = Expression::Colon2.new(val[0], val[2])  }
-  | tIDENTIFIER tCOLON2 tIDENTIFIER { result = Expression::Colon2.new(val[0], val[2]) }
+    tIDENTIFIER tCOLON2 const_namespacing { result = Expression::Colon2.new(val[0], val[2]) }
+  | tIDENTIFIER tCOLON2 tIDENTIFIER       { result = Expression::Colon2.new(val[0], val[2]) }
 
 
   command_call:
@@ -680,10 +679,14 @@ rule
   | command_arg_list tCOMMA expr { result = [*val[0], val[2]] }
 
   array_ref:
-    tIDENTIFIER tLSQUARE expr tRSQUARE
+    tIDENTIFIER tLSQUARE opt_array_args tRSQUARE
       {
-        result = Expression::ElementRef.new val[0], val[2]
+        result = Expression::ElementRef.new val[0], Expression::ActualArgList.new(val[2])
       }
+
+  opt_array_args:
+    expr { result = val }
+  | opt_array_args tCOMMA expr { result = [*val[0], val[2]]  }
 
   dtype:
     kDTYPE_UINT   | kDTYPE_LINT   | kDTYPE_LLINT | kDTYPE_CHAR   | kDTYPE_I8   |

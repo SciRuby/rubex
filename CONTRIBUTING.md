@@ -31,7 +31,7 @@ Couple of conventions that I followed when writing the code:
   - analyse_statement(local_scope)
   - generate_code(code, local_scope)
 * Expressions contain methods:
-  - analyse_statement(local_scope)
+  - analyse_types(local_scope)
   - c_code(local_scope)
 
 Sometimes it can so happen that an expression can consist simply of a single variable (like `if (a)`) or be a full expression (like `if (a == b)`). In the first case, the `a` is just read as an `IDENTIFIER` by the parser. In the second case, `a == b` is read as an `expr` and is stored in the AST as `Rubex::AST::Expression`.
@@ -39,6 +39,46 @@ Sometimes it can so happen that an expression can consist simply of a single var
 Now you might be thinking why expressions should also have a `analyse_statement` method, that's just for maintaining uniformity between exprs and stmts (maybe that should be just `analyse`?).
 
 When writing the `<=>` operator under Rubex::DataType classes, I have been forced to assume that `Int` is 32 bits long since I have not yet incorporated a way to figure out the number of bits used by a particular machine for representing an `int`. It will be changed later to make it machine-dependent.
+
+## Parser particulars
+
+Kinds of statements that can be defined at the top:
+* classes.
+* attached classes.
+* modules.
+* ruby/c methods.
+* all kinds of exprs. (command call/binary/unary etc.)
+* if stmts.
+* while.
+* for.
+* c bindings.
+* function declaration.
+* struct or union definition.
+* alias statements.
+* assignment statements.
+* variable decl and init.
+* forward declaration.
+
+stmts that can be defined inside other classes:
+* other classes.
+* attached classes.
+* modules.
+* c functions.
+* ruby methods.
+* struct/union definitions.
+* constants.
+* class variables.
+* attr reader/writer/accessor.
+* forward declaration.
+
+stmts that can be defined inside other functions/blocks:
+* EVERYTHING _except_:
+  - classes.
+  - attached classes.
+  - modules.
+  - ruby/c methods.
+  - c bindinds.
+
 
 # Important data representations
 
@@ -79,12 +119,10 @@ If Hash, it will look like this:
 ## Attach classes
 
 
-
 # Future work
 
 The following features in Rubex need to be implemented or can be made better:
 
-* Ability to have Ruby-style method arguments without parenthesis.
 * Multiline conditionals in the condition of if-elsif statements.
 * Special treatment for VALUE C arrays by marking each element with GC.
 * Checks for return statement. No return statement or wrong return type should raise error/warning.
