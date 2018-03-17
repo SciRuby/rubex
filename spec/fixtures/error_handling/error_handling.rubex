@@ -24,7 +24,7 @@ class Handler
 
   def test_uncaught_error
     begin
-      raise ArgumentError
+      raise(ArgumentError)
     rescue SyntaxError
     end
   end
@@ -32,7 +32,7 @@ class Handler
   def test_without_rescue
     int i = 1
     begin
-      raise ArgumentError
+      raise(ArgumentError)
     ensure
       return i
     end

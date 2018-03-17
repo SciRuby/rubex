@@ -57,11 +57,17 @@ module Rubex
           @entry && @entry.type.base_type.c_function?
         end
 
+        def raise_call?
+          !@entry && @command == "raise"
+        end
+
         def analyse_command_type(local_scope)
           if struct_member_call?
             @command = Expression::StructOrUnionMemberCall.new @expr, @command, @arg_list
           elsif c_function_call?
             @command = Expression::CFunctionCall.new @expr, @command,  @arg_list
+          elsif raise_call?
+            @command = Expression::Raise.new @arg_list
           else
             @command = Expression::RubyMethodCall.new @expr, @command, @arg_list
           end

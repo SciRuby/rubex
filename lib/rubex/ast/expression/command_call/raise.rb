@@ -1,12 +1,12 @@
 module Rubex
   module AST
-    module Statement
-      class Raise < Base
+    module Expression
+      class Raise < CommandCall
         def initialize(args)
           @args = args
         end
 
-        def analyse_statement(local_scope)
+        def analyse_types(local_scope)
           @args.analyse_types local_scope
           @args.allocate_temps local_scope
           @args.release_temps local_scope
@@ -14,31 +14,36 @@ module Rubex
                  @args[0].is_a?(AST::Expression::Literal::StringLit)
             raise Rubex::TypeMismatchError, "Wrong argument list #{@args.inspect} for raise."
           end
+          @subexprs = [@args]
         end
 
-        def generate_code(code, local_scope)
-          @args.generate_evaluation_code code, local_scope
-          str = ''
-          str << 'rb_raise('
+        def generate_evaluation_code(code, local_scope)
+          generate_and_dispose_subexprs(code, local_scope) do
+            @c_code = ''
+            @c_code << 'rb_raise('
 
-          if @args[0].is_a?(AST::Expression::Name)
-            str << @args[0].c_code(local_scope) + ','
-            args = @args[1..-1]
-          else
-            str << Rubex::DEFAULT_CLASS_MAPPINGS['RuntimeError'] + ','
-            args = @args
-          end
+            if @args[0].is_a?(AST::Expression::Name)
+              @c_code << @args[0].c_code(local_scope) + ','
+              args = @args[1..-1]
+            else
+              @c_code << Rubex::DEFAULT_CLASS_MAPPINGS['RuntimeError'] + ','
+              args = @args
+            end
 
-          unless args.empty?
-            str << "\"#{prepare_format_string(args)}\" ,"
-            str << args.map { |arg| (inspected_expr(arg, local_scope)).to_s }.join(',')
-          else
-            str << '""'
+            unless args.empty?
+              @c_code << "\"#{prepare_format_string(args)}\" ,"
+              @c_code << args.map { |arg| (inspected_expr(arg, local_scope)).to_s }.join(',')
+            else
+              @c_code << '""'
+            end
+            @c_code << ');'
           end
-          str << ');'
-          code << str
-          code.nl
-          @args.generate_disposal_code code
+        end
+
+        def generate_disposal_code(code); end
+
+        def c_code(_local_scope)
+          super + @c_code
         end
 
         private
