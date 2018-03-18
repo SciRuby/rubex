@@ -67,15 +67,29 @@ rule
   #| stmt {}
   | struct_or_union_def
 
+  klass_stmts:
+    { result = [] }
+  | klass_stmt { result = [val[0]] }
+  | klass_stmts terms klass_stmt { result = [*val[0], val[2]] }
+
+  klass_stmt:
+    methods
+  | klass
+  | attached_klass
+  | struct_or_union_def
+  | alias_stmt
+  | op_assign
+  | forward_declaration
+    
   klass:
-    kCLASS tIDENTIFIER opt_inheritance eol top_stmts opt_terms kEND
+    kCLASS tIDENTIFIER opt_inheritance eol klass_stmts opt_terms kEND
       { 
         raise Rubex::SyntaxError unless val[1][0].match(/[A-Z]/)
         result = TopStatement::Klass.new val[1], val[2], val[4]
       }
 
   attached_klass:
-    kCLASS tIDENTIFIER kATTACH dtype opt_inheritance eol top_stmts terms kEND
+    kCLASS tIDENTIFIER kATTACH dtype opt_inheritance eol klass_stmts terms kEND
       {
         raise Rubex::SyntaxError unless val[1][0].match(/[A-Z]/)
         result = TopStatement::AttachedKlass.new(val[1], val[3], val[4], val[6], 
