@@ -12,7 +12,7 @@ module Rubex
       def process_statements(target_name, code)
         @scope = Rubex::SymbolTable::Scope::Klass.new('Object', nil)
         add_top_statements_to_object_scope
-        analyse_statement
+        analyse_statements
         rescan_declarations @scope
         generate_preamble code
         generate_code code
@@ -28,9 +28,14 @@ module Rubex
       # Scan all the statements that do not belong to any particular class
       #   (meaning that they belong to Object) and add them to the Object class,
       #   which becomes the class from which all other classes will inherit from.
+      #
+      # Top-level statements that do not belong inside classes and which do not have any
+      #   relevance inside a class at the level of a C extension are added to a different
+      #   array and are analysed differently. 
       def add_top_statements_to_object_scope
         temp = []
         combined_statements = []
+        @outside_statements = []
         @statements.each do |stmt|
           if stmt.is_a?(TopStatement::Klass) || stmt.is_a?(TopStatement::CBindings)
             unless temp.empty?
@@ -40,6 +45,8 @@ module Rubex
 
             combined_statements << stmt
             temp = []
+          elsif outside_statement?(stmt)
+            @outside_statements << stmt
           else
             temp << stmt
           end
@@ -50,6 +57,11 @@ module Rubex
         end
 
         @statements = combined_statements
+      end
+
+      # TODO: accomodate all sorts of outside statements like if blocks/while/for etc.
+      def outside_statement?(stmt)
+        stmt.is_a?(Statement::Expression)
       end
 
       def generate_preamble(code)
@@ -143,10 +155,13 @@ module Rubex
         end
       end
 
-      def analyse_statement
+      def analyse_statements
         create_symtab_entries_for_top_statements
         @statements.each do |stat|
           stat.analyse_statement @scope
+        end
+        @outside_statements.each do |stmt|
+          stmt.analyse_statement @scope
         end
       end
 
@@ -212,56 +227,73 @@ module Rubex
         end
       end
 
+      def declare_c_variables_for_classes(code)
+        @statements.each do |top_stmt|
+          if top_stmt.is_a?(TopStatement::Klass) && top_stmt.name != 'Object'
+            entry = @scope.find top_stmt.name
+            code.declare_variable type: 'VALUE', c_name: entry.c_name
+          end
+        end
+        code.nl        
+      end
+
+      def define_classes(code)
+        @statements.each do |top_stmt|
+          # define a class
+          if top_stmt.is_a?(TopStatement::Klass) && top_stmt.name != 'Object'
+            entry = top_stmt.entry
+            ancestor_entry = @scope.find top_stmt.ancestor.name
+            c_name = ancestor_entry ? ancestor_entry.c_name : 'rb_cObject'
+            rhs = "rb_define_class(\"#{entry.name}\", #{c_name})"
+            code.init_variable lhs: entry.c_name, rhs: rhs
+          end
+
+          # specify allocation method in case of attached class
+          next unless top_stmt.is_a?(TopStatement::AttachedKlass)
+          entry = top_stmt.entry
+          scope = top_stmt.scope
+          alloc = ''
+          alloc << "rb_define_alloc_func(#{entry.c_name}, "
+          alloc << "#{scope.find(TopStatement::AttachedKlass::ALLOC_FUNC_NAME).c_name});\n"
+
+          code << alloc
+        end
+        code.nl
+      end
+
+      def define_instance_and_singleton_methods_for_all_classes(code)
+        @statements.each do |top_stmt|
+          next unless top_stmt.is_a? TopStatement::Klass
+          entry = @scope.find top_stmt.name
+          klass_scope = entry.type.scope
+          klass_scope.ruby_method_entries.each do |meth|
+            if meth.singleton?
+              code.write_singleton_method klass: entry.c_name,
+                                          method_name: meth.name, method_c_name: meth.c_name
+            else
+              code.write_instance_method klass: entry.c_name,
+                                         method_name: meth.name, method_c_name: meth.c_name
+            end
+          end
+        end        
+      end
+
+      def write_outside_statements(code)
+        @outside_statements.each do |stmt|
+          stmt.generate_code(code, @scope)
+        end
+      end
+      
       def generate_init_method(target_name, code)
         name = "Init_#{target_name}"
         code.new_line
         code.write_func_declaration type: 'void', c_name: name, args: [], static: false
         code.write_c_method_header type: 'void', c_name: name, args: [], static: false
         code.block do
-          @statements.each do |top_stmt|
-            if top_stmt.is_a?(TopStatement::Klass) && top_stmt.name != 'Object'
-              entry = @scope.find top_stmt.name
-              code.declare_variable type: 'VALUE', c_name: entry.c_name
-            end
-          end
-          code.nl
-
-          @statements.each do |top_stmt|
-            # define a class
-            if top_stmt.is_a?(TopStatement::Klass) && top_stmt.name != 'Object'
-              entry = top_stmt.entry
-              ancestor_entry = @scope.find top_stmt.ancestor.name
-              c_name = ancestor_entry ? ancestor_entry.c_name : 'rb_cObject'
-              rhs = "rb_define_class(\"#{entry.name}\", #{c_name})"
-              code.init_variable lhs: entry.c_name, rhs: rhs
-            end
-
-            # specify allocation method in case of attached class
-            next unless top_stmt.is_a?(TopStatement::AttachedKlass)
-            entry = top_stmt.entry
-            scope = top_stmt.scope
-            alloc = ''
-            alloc << "rb_define_alloc_func(#{entry.c_name}, "
-            alloc << "#{scope.find(TopStatement::AttachedKlass::ALLOC_FUNC_NAME).c_name});\n"
-
-            code << alloc
-          end
-          code.nl
-
-          @statements.each do |top_stmt|
-            next unless top_stmt.is_a? TopStatement::Klass
-            entry = @scope.find top_stmt.name
-            klass_scope = entry.type.scope
-            klass_scope.ruby_method_entries.each do |meth|
-              if meth.singleton?
-                code.write_singleton_method klass: entry.c_name,
-                                            method_name: meth.name, method_c_name: meth.c_name
-              else
-                code.write_instance_method klass: entry.c_name,
-                                           method_name: meth.name, method_c_name: meth.c_name
-              end
-            end
-          end
+          declare_c_variables_for_classes(code)
+          write_outside_statements(code)
+          define_classes(code)
+          define_instance_and_singleton_methods_for_all_classes(code)
         end
       end
     end

@@ -69,6 +69,10 @@ module Rubex
           !@entry && @command == "print"
         end
 
+        def require_call?
+          !@entry && @command == "require"
+        end
+
         def analyse_command_type(local_scope)
           if struct_member_call?
             @command = Expression::StructOrUnionMemberCall.new @expr, @command, @arg_list
@@ -80,6 +84,8 @@ module Rubex
             @command = Expression::Yield.new @arg_list
           elsif print_call?
             @command = Expression::Print.new @arg_list
+          elsif require_call?
+            @command = Expression::Require.new @arg_list
           else
             @command = Expression::RubyMethodCall.new @expr, @command, @arg_list
           end

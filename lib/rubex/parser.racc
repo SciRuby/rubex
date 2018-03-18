@@ -64,8 +64,7 @@ rule
     methods {}
   | klass {}
   | attached_klass {}
-  #| stmt {}
-  | struct_or_union_def
+  | stmt {}
 
   klass_stmts:
     { result = [] }

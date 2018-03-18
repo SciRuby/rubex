@@ -15,7 +15,7 @@ describe Rubex do
       end
     end
 
-    context ".compile", hell: true do
+    context ".compile" do
       it "generates valid C code" do
         t, c, e = Rubex::Compiler.compile @path + ".rubex", test: true
       end
@@ -26,7 +26,7 @@ describe Rubex do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.#{os_extension}"
           
-          expect(addition(4,5)).to eq(9)
+          expect(use_narray).to eq(3.0)
         end
       end
     end
