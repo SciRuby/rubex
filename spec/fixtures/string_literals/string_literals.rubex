@@ -4,8 +4,8 @@ def strings
   int a = 4
   float b = 5.6
 
-  print "The number a is : #{a}\nThe number b is: #{b}.\n Their sum is #{a+b}."
-  print "a - b :", a - b, " a * b : ", a * b, " a + b * a : ", a + b * a
+  print("The number a is : #{a}\nThe number b is: #{b}.\n Their sum is #{a+b}.")
+  print("a - b :", a - b, " a * b : ", a * b, " a + b * a : ", a + b * a)
 
   return obj
 end

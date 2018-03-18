@@ -9,7 +9,7 @@ def additive(float a, u64 b, i32 qq)
   i64 ww = -342, rew = 2342
   unsigned char delhi = 55
 
-  print q
+  print(q)
 
   return a + c
 end

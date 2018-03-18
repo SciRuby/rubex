@@ -3,7 +3,7 @@ class Bhau
     int i = 0
 
     while i < 10 do
-      print string
+      print(string)
       i += 1
     end
 

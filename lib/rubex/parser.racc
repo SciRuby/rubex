@@ -1,9 +1,9 @@
 class Rubex::Parser
 token
-  kDEF kEND kRETURN kPRINT  kIF    kELSIF  kELSE   kTHEN  kSTATIC_ARRAY kFOR 
+  kDEF kEND kRETURN  kIF    kELSIF  kELSE   kTHEN  kSTATIC_ARRAY kFOR 
   kDOT_EACH kDO     kTRUE   kFALSE kNIL    kSTRUCT kUNION kALIAS        kLIB 
-  kCFUNC    kSELF   kNULL   kFWD   kATTACH kBREAK kBLOCK_GIVEN  kYIELD
-  kBEGIN    kRESCUE kENSURE kWHILE  kCLASS kDATA_VAR
+  kCFUNC    kSELF   kNULL   kFWD   kATTACH kBREAK kBLOCK_GIVEN  kBEGIN  kRESCUE
+  kENSURE   kWHILE  kCLASS  kDATA_VAR
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT  kDTYPE_CHAR   kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8    kDTYPE_UI16   kDTYPE_UI32 kDTYPE_UI64
@@ -289,8 +289,6 @@ rule
   stmt:
     var_decl_or_init { result = variable_decl_nodes val }
   | kRETURN opt_expr { result = Statement::Return.new val[1], location }
-  | kPRINT opt_lparen command_arg_list opt_rparen 
-      { result = Statement::Print.new val[2], location }
   | normal_init
       {
         match = val[0]
@@ -320,10 +318,6 @@ rule
   | expr { result = Statement::Expression.new(val[0], location) }
 
   | kBREAK { result = Statement::Break.new(location) }
-  | kYIELD opt_lparen command_arg_list opt_rparen
-      {
-        result = Statement::Yield.new(Expression::ActualArgList.new(val[2]))
-      }
   | begin_block
 
   begin_block:
@@ -700,14 +694,6 @@ rule
     { result = nil }
   | expr
 
-  opt_lparen:
-    {}
-  | tLPAREN
-
-  opt_rparen:
-    {}
-  | tRPAREN
-
   opt_terms:
     {}
   | terms {}
@@ -800,8 +786,6 @@ def check_for_keyword token
     return [:kEND, match]
   elsif match == "return"
     return [:kRETURN, match]
-  elsif match == "print"
-    return [:kPRINT , match]
   elsif match == "if"
     return [:kIF    , match]
   elsif match == "elsif"
@@ -869,8 +853,6 @@ def check_for_primitive_dtype token
     return [:kDTYPE_RB_ARR, match]
   elsif match == "hsh"
     return [:kDTYPE_RB_HSH, match]
-  elsif match == "yield"
-    return [:kYIELD, match]
   elsif match == "bool"
     return [:kDTYPE_BOOL, match]
   end

@@ -1,13 +1,12 @@
 module Rubex
   module AST
-    module Statement
+    module Expression
       class Print < Base
-        def initialize(expressions, location)
-          super(location)
+        def initialize(expressions)
           @expressions = expressions
         end
 
-        def analyse_statement(local_scope)
+        def analyse_types(local_scope)
           @expressions.each do |expr|
             expr.analyse_types local_scope
             expr.allocate_temps local_scope
@@ -15,7 +14,7 @@ module Rubex
           end
         end
 
-        def generate_code(code, local_scope)
+        def generate_evaluation_code(code, local_scope)
           super
           @expressions.each do |expr|
             expr.generate_evaluation_code code, local_scope

@@ -3,11 +3,11 @@
 #   expression that is actually a statement.
 
 def test_string_return
-  print "This string."
+  print("This string.")
 end
 
 def test_with_args(int a)
-  print "hello", a
+  print("hello", a)
 end
 
 def expr_stat

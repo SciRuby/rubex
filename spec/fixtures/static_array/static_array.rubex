@@ -5,7 +5,7 @@ def static_array
   i32 e[size]
 
   a[2] = 443
-  print a[2]
+  print(a[2])
 
   if a[2] == 443
     b[4] = 123
@@ -13,8 +13,8 @@ def static_array
 
   e[53] = 4311
 
-  print e[53]
-  print b[4]
+  print(e[53])
+  print(b[4])
 
   return b[4]
 end

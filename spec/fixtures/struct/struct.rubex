@@ -35,7 +35,7 @@ def structure(a, i32 b, i32 c)
     f[i] = i + 4
   end
 
-  print n.c[7]
+  print(n.c[7])
 
   return shell.a
 end

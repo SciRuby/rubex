@@ -8,12 +8,12 @@ def looper(i32 size)
   m = 0
 
   for j > m >= i do
-    print a[m]
+    print(a[m])
   end
 
   i32 f = 0
   while !(a[f] != 45) do
-    print a[f]
+    print(a[f])
     f = f + 1
   end
 

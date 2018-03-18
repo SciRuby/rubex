@@ -10,7 +10,7 @@ class DataInit
     emp = []
     emp2 = {}
 
-    print h["hello"]
+    print(h["hello"])
 
     return h
   end

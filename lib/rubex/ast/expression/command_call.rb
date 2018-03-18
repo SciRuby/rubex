@@ -61,6 +61,14 @@ module Rubex
           !@entry && @command == "raise"
         end
 
+        def yield_call?
+          !@entry && @command == "yield"
+        end
+
+        def print_call?
+          !@entry && @command == "print"
+        end
+
         def analyse_command_type(local_scope)
           if struct_member_call?
             @command = Expression::StructOrUnionMemberCall.new @expr, @command, @arg_list
@@ -68,6 +76,10 @@ module Rubex
             @command = Expression::CFunctionCall.new @expr, @command,  @arg_list
           elsif raise_call?
             @command = Expression::Raise.new @arg_list
+          elsif yield_call?
+            @command = Expression::Yield.new @arg_list
+          elsif print_call?
+            @command = Expression::Print.new @arg_list
           else
             @command = Expression::RubyMethodCall.new @expr, @command, @arg_list
           end
