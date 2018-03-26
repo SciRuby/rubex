@@ -160,7 +160,7 @@ module Rubex
             'begin_block_' + local_scope.klass_name + '_' + local_scope.name + '_' +
               local_scope.begin_block_counter.to_s
           end
-
+          
           def create_c_function_to_house_statements(scope)
             func_name = @block_scope.name
             arg_list = Statement::ArgumentList.new([
