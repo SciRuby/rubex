@@ -1,0 +1,4 @@
+def test_pow(double n, double a)
+  return n ** a + 4
+end
+
