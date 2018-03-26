@@ -11,6 +11,7 @@ module Rubex
         ext = extconf target_name, directory: directory
         CONFIG.flush
         CONFIG.debug = debug
+        CONFIG.add_link "m" # link cmath libraries
 
         return [tree, code, ext] if test
         write_files target_name, code, ext, directory: directory, force: force

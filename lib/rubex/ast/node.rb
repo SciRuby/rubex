@@ -68,6 +68,7 @@ module Rubex
         code << "#include <ruby.h>\n"
         code << "#include <stdint.h>\n"
         code << "#include <stdbool.h>\n"
+        code << "#include <math.h>\n"
         @scope.include_files.each do |name|
           code <<
             if name[0] == '<' && name[-1] == '>'

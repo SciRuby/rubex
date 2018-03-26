@@ -228,6 +228,8 @@ class Rubex::Lexer
             action { [:tCOLON2, text]  }
           when text = ss.scan(/#{COLON}/) then
             action { [:tCOLON, text]  }
+          when text = ss.scan(/#{EXPOASSIGN}/) then
+            action { [:tOP_ASSIGN, text]}
           when text = ss.scan(/#{PLUSASSIGN}/) then
             action { [:tOP_ASSIGN, text]}
           when text = ss.scan(/#{MINUSASSIGN}/) then
@@ -240,6 +242,8 @@ class Rubex::Lexer
             action { [:tOP_ASSIGN, text]}
           when text = ss.scan(/#{MODULUSASSIGN}/) then
             action { [:tOP_ASSIGN, text]}
+          when text = ss.scan(/#{EXPO}/) then
+            action { [:tEXPO, text]}
           when text = ss.scan(/#{PLUS}/) then
             action { [:tPLUS, text]}
           when text = ss.scan(/#{MINUS}/) then
@@ -248,8 +252,6 @@ class Rubex::Lexer
             action { [:tSTAR, text]}
           when text = ss.scan(/#{DIVIDE}/) then
             action { [:tDIVIDE, text]}
-          when text = ss.scan(/#{EXPO}/) then
-            action { [:tEXPO, text]}
           when text = ss.scan(/#{MODULUS}/) then
             action { [:tMODULUS, text]}
           when text = ss.scan(/#{EXPO}/) then

@@ -164,17 +164,18 @@ rules
 
   # operators
 
+  /#{EXPOASSIGN}/       { [:tOP_ASSIGN, text]}
   /#{PLUSASSIGN}/       { [:tOP_ASSIGN, text]}
   /#{MINUSASSIGN}/      { [:tOP_ASSIGN, text]}
   /#{STARASSIGN}/       { [:tOP_ASSIGN, text]}
   /#{DIVIDEASSIGN}/     { [:tOP_ASSIGN, text]}
   /#{EXPOASSIGN}/       { [:tOP_ASSIGN, text]}
   /#{MODULUSASSIGN}/    { [:tOP_ASSIGN, text]}
+  /#{EXPO}/             { [:tEXPO, text]}
   /#{PLUS}/             { [:tPLUS, text]}
   /#{MINUS}/            { [:tMINUS, text]}
   /#{STAR}/             { [:tSTAR, text]}
   /#{DIVIDE}/           { [:tDIVIDE, text]}
-  /#{EXPO}/             { [:tEXPO, text]}
   /#{MODULUS}/          { [:tMODULUS, text]}
   /#{EXPO}/             { [:tEXPO, text]}
   /#{EQ}/               { [:tEQ, text]  }

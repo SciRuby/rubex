@@ -13,9 +13,6 @@ module Rubex
       class BinaryDivide < Binary
       end
 
-      class BinaryExpo < Binary
-      end
-
       class BinaryMod < Binary
       end
 
