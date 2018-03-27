@@ -15,7 +15,7 @@ def work_without_gil(n)
 end
 
 def work_with_gil(double n)
-  while n > 0
+  while n > 0 do
     n ** 0.5 + 4
     n -= 1
   end

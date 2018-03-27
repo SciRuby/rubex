@@ -33,6 +33,7 @@ class Rubex::Lexer
   NULL              = /NULL/
   ATTACH            = /attach/
   BLOCK_GIVEN       = /block_given\?/
+  NO_GIL            = /no_gil/
   IDENTIFIER        = /[a-zA-Z_][a-zA-Z_0-9]*/
   COLON2            = /::/
   LPAREN            = /\(/
@@ -198,6 +199,8 @@ class Rubex::Lexer
             action { [:kUNION, text]  }
           when text = ss.scan(/#{ALIAS}\ /) then
             action { [:kALIAS, text]  }
+          when text = ss.scan(/#{NO_GIL}/) then
+            action { [:kNO_GIL, text] }
           when text = ss.scan(/:#{IDENTIFIER}/) then
             action { [:tSYMBOL, text] }
           when text = ss.scan(/#{IDENTIFIER}/) then

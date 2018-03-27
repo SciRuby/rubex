@@ -169,7 +169,7 @@ module Rubex
                                                      )
                                                    ])
             @begin_func = TopStatement::CFunctionDef.new(
-              'object', '', func_name, arg_list, @statements
+              'object', '', func_name, arg_list, nil, @statements
             )
             arg_list.analyse_statement @block_scope
             add_to_symbol_table @begin_func.name, arg_list, scope

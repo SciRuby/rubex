@@ -1,9 +1,9 @@
 class Rubex::Parser
 token
-  kDEF kEND kRETURN  kIF    kELSIF  kELSE   kTHEN  kSTATIC_ARRAY kFOR 
-  kDOT_EACH kDO     kTRUE   kFALSE kNIL    kSTRUCT kUNION kALIAS        kLIB 
-  kCFUNC    kSELF   kNULL   kFWD   kATTACH kBREAK kBLOCK_GIVEN  kBEGIN  kRESCUE
-  kENSURE   kWHILE  kCLASS  kDATA_VAR
+  kDEF kEND kRETURN  kIF    kELSIF    kELSE   kTHEN   kSTATIC_ARRAY kFOR 
+  kDOT_EACH kDO     kTRUE   kFALSE    kNIL    kSTRUCT kUNION        kALIAS  kLIB 
+  kCFUNC    kSELF   kNULL   kFWD      kATTACH kBREAK  kBLOCK_GIVEN  kBEGIN  kRESCUE
+  kENSURE   kWHILE  kCLASS  kDATA_VAR kNO_GIL
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT  kDTYPE_CHAR   kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8    kDTYPE_UI16   kDTYPE_UI32 kDTYPE_UI64
@@ -256,7 +256,7 @@ rule
       }
 
   c_function:
-    kCFUNC dtype opt_star tIDENTIFIER opt_c_func_arg_list eol compstmt kEND
+    kCFUNC dtype opt_star tIDENTIFIER opt_c_func_arg_list opt_c_func_tags eol compstmt kEND
       { 
         if val[4].empty? # since last arg of cfunc must be self.
           val[4] = Statement::ArgumentList.new(
@@ -268,8 +268,12 @@ rule
           ) 
         end
         result = TopStatement::CFunctionDef.new(val[1], val[2], val[3], 
-          val[4], val[6])
+          val[4], val[5], val[7])
       }
+
+  opt_c_func_tags:
+    { result = nil }    
+  | kNO_GIL { result = "no_gil" }
 
   c_func_normal_arg:
     dtype opt_star
@@ -332,6 +336,10 @@ rule
 
   | kBREAK { result = Statement::Break.new(location) }
   | begin_block
+  | no_gil_block
+
+  no_gil_block:
+    kNO_GIL terms compstmt kEND { result = Statement::NoGilBlock.new val[2]  }
 
   begin_block:
     kBEGIN terms compstmt opt_begin_block_tails kEND

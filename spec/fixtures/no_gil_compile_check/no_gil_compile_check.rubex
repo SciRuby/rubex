@@ -1,0 +1,4 @@
+cfunc void problem_function(int a) no_gil
+  b =  Array.new(a)
+end
+

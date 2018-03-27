@@ -29,6 +29,7 @@ macros
   NULL            /NULL/
   ATTACH          /attach/
   BLOCK_GIVEN     /block_given\?/
+  NO_GIL          /no_gil/
 
   IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
   COLON2          /::/
@@ -145,6 +146,7 @@ rules
   /#{STRUCT}\ / { [:kSTRUCT, text] }
   /#{UNION}\ /  { [:kUNION, text]  }
   /#{ALIAS}\ /  { [:kALIAS, text]  }
+  /#{NO_GIL}/   { [:kNO_GIL, text] }
 
   /:#{IDENTIFIER}/        { [:tSYMBOL, text] }
   /#{IDENTIFIER}/         { [:tIDENTIFIER, text] }

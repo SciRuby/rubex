@@ -4,14 +4,18 @@ module Rubex
       class CFunctionDef < MethodDef
         attr_reader :type, :return_ptr_level
 
-        def initialize(type, return_ptr_level, name, arg_list, statements)
+        def initialize(type, return_ptr_level, name, arg_list, function_tags, statements)
           super(name, arg_list, statements)
           @type = type
           @return_ptr_level = return_ptr_level
+          @function_tags = function_tags
         end
 
         def analyse_statement(outer_scope, extern: false)
           super(outer_scope)
+          if @function_tags == "no_gil"
+            @no_gil = true
+          end
         end
 
         def generate_code(code)
