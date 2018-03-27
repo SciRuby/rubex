@@ -9,22 +9,23 @@ describe Rubex do
     end
 
     context '.ast' do
-      skip 'generates a valid AST' do
+      it 'generates a valid AST' do
         t = Rubex::Compiler.ast(@path + '.rubex')
       end
     end
 
-    context '.compile' do
-      skip 'compiles to valid C code' do
+    context '.compile', hell: true do
+      it 'compiles to valid C code' do
         t, c, e = Rubex::Compiler.compile(@path + '.rubex', test: true)
+        puts c
       end
     end
 
-    context 'Black Box testing' do
-      skip 'compiles and checks for valid output' do
+    context 'Black Box testing', hell: true do
+      it 'compiles and checks for valid output' do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.#{os_extension}"
-          expect(Fibonnaci.new.compute(5)).to eq(5)
+          expect(Fibonnaci.new.compute(10)).to eq(55)
         end
       end
     end
