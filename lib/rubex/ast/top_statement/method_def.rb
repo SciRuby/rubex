@@ -6,7 +6,7 @@ module Rubex
         # Ruby name of the method.
         attr_reader :name
         # Method arguments. Accessor because arguments need to be modified in
-        # case of auxillary C functions of attach classes.
+        #   case of auxillary C functions of attach classes.
         attr_accessor :arg_list
         # The statments/expressions contained within the method.
         attr_reader :statements
@@ -104,7 +104,6 @@ module Rubex
           end
         end
       end
-
     end
   end
 end

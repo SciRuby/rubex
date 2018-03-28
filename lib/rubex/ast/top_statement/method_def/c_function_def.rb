@@ -12,10 +12,10 @@ module Rubex
         end
 
         def analyse_statement(outer_scope, extern: false)
-          super(outer_scope)
           if @function_tags == "no_gil"
             @no_gil = true
           end
+          super(outer_scope)
         end
 
         def generate_code(code)

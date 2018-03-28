@@ -34,11 +34,15 @@ Couple of conventions that I followed when writing the code:
   - analyse_types(local_scope)
   - c_code(local_scope)
 
-Sometimes it can so happen that an expression can consist simply of a single variable (like `if (a)`) or be a full expression (like `if (a == b)`). In the first case, the `a` is just read as an `IDENTIFIER` by the parser. In the second case, `a == b` is read as an `expr` and is stored in the AST as `Rubex::AST::Expression`.
+Sometimes it can so happen that an expression can consist simply of a single variable 
+(like `if (a)`) or be a full expression (like `if (a == b)`). In the first case, the 
+`a` is just read as an `IDENTIFIER` by the parser. In the second case, `a == b` is 
+read as an `expr` and is stored in the AST as `Rubex::AST::Expression`.
 
-Now you might be thinking why expressions should also have a `analyse_statement` method, that's just for maintaining uniformity between exprs and stmts (maybe that should be just `analyse`?).
-
-When writing the `<=>` operator under Rubex::DataType classes, I have been forced to assume that `Int` is 32 bits long since I have not yet incorporated a way to figure out the number of bits used by a particular machine for representing an `int`. It will be changed later to make it machine-dependent.
+When writing the `<=>` operator under Rubex::DataType classes, I have been forced to 
+assume that `Int` is 32 bits long since I have not yet incorporated a way to figure 
+out the number of bits used by a particular machine for representing an `int`. 
+It will be changed later to make it machine-dependent.
 
 ## Parser particulars
 
@@ -92,7 +96,8 @@ This consists of a hash that looks like this:
 }
 ```
 
-The `:variables` field might be `nil` in case of a function declaration in which case it is not necessary to specify the name of the variable.
+The `:variables` field might be `nil` in case of a function declaration in which
+case it is not necessary to specify the name of the variable.
 
 The `:variables` key maps to a value that is an Array of Hashes that contains a single Hash:
 ```
@@ -103,7 +108,8 @@ The `:variables` key maps to a value that is an Array of Hashes that contains a 
 }
 ```
 
-`identity` can be a Hash in case of a function pointer argument, or a simple String in case its an identifier, or an `ElementRef` if specifying an array of elements.
+`identity` can be a Hash in case of a function pointer argument, or a simple String in case 
+its an identifier, or an `ElementRef` if specifying an array of elements.
 
 If Hash, it will look like this:
 ```
@@ -118,6 +124,18 @@ If Hash, it will look like this:
 
 ## Attach classes
 
+## no_gil block code generation
+
+The generated code for the `no_gil` block has the following components:
+* a function that is namespaced according to the name of the scoping
+    function, class and number of no_gil blocks that occur in the function.
+* all the statements that are present in the no_gil block are present in this function.
+* all the variables that are present in the block are made global and are properly
+    namespaced accoring to above namespacing criteria.
+* code appropriate for `rb_thread_call_without_gvl` is generated and a pointer to the
+  generated function is passed to the function.
+* the new code using the `without_gvl` call is inserted in the place where the `no_gil`
+    block was present.
 
 # Future work
 

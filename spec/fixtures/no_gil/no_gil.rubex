@@ -6,9 +6,9 @@ cfunc void _work_without_gil(double n) no_gil
 end
 
 def work_without_gil(n)
-  double i = 0
+  double i = n
   no_gil
-    _work_without_gil(n)
+    _work_without_gil(i)
   end
 
   return i

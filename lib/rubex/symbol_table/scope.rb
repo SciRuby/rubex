@@ -191,7 +191,11 @@ module Rubex
       class Klass
         include Rubex::SymbolTable::Scope
         attr_accessor :include_files #TODO: this should probably not be here.
+        # Stores callbacks for begin blocks since they cannot be a part of the
+        #   statements of a class.
         attr_accessor :begin_block_callbacks
+        # Similar to begin_block_callbacks
+        attr_accessor :no_gil_block_callbacks
 
         def initialize name, outer_scope
           super(outer_scope)
@@ -199,6 +203,7 @@ module Rubex
           @klass_name = @name
           @include_files = []
           @begin_block_callbacks = []
+          @no_gil_block_callbacks = []
         end
 
         def object_scope
@@ -214,17 +219,24 @@ module Rubex
         def add_begin_block_callback func
           @begin_block_callbacks << func
         end
+
+        # Stores CFunctionDef nodes that represent no_gil block callbacks.
+        def add_no_gil_block_callback func
+          @no_gil_block_callbacks << func
+        end
       end # class Klass
 
       class Local
         include Rubex::SymbolTable::Scope
-        attr_reader :begin_block_counter
+        attr_reader :begin_block_counter,
+                    :no_gil_block_counter
 
         def initialize name, outer_scope
           super(outer_scope)
           @name = name
           @klass_name = outer_scope.klass_name
           @begin_block_counter = 0
+          @no_gil_block_counter = 0
         end
 
         # args - Rubex::AST::ArgumentList. Creates sym. table entries for args.
@@ -239,6 +251,10 @@ module Rubex
 
         def found_begin_block
           @begin_block_counter += 1
+        end
+
+        def found_no_gil_block
+          @no_gil_block_counter += 1
         end
       end # class Local
 
@@ -267,6 +283,10 @@ module Rubex
         # scope with the method above and below it. However, when translating to
         # C, the begin block must be put inside its own C function, which is then
         # sent as a callback to rb_protect().
+        #
+        # The same as above applies to a no_gil block, which is why the NoGilBlock
+        # (defined below) inherits from this class and completely imitates its
+        # behaviour.
         #
         # As a result, it is necesary to 'upgrade' the local variables present
         # inside the begin block to C global variables so that they can be shared
@@ -314,6 +334,8 @@ module Rubex
           @outer_scope.type_entries     -= @outer_scope.global_entries
         end
       end # class BeginBlock
+
+      class NoGilBlock < BeginBlock; end
 
       class StructOrUnion
         include Rubex::SymbolTable::Scope

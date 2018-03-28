@@ -267,6 +267,8 @@ rule
             ]
           ) 
         end
+
+        val[4].pop if val[5] == "no_gil" # remove VALUE self argument if no_gil function.
         result = TopStatement::CFunctionDef.new(val[1], val[2], val[3], 
           val[4], val[5], val[7])
       }

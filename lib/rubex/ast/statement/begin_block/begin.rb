@@ -165,7 +165,8 @@ module Rubex
             func_name = @block_scope.name
             arg_list = Statement::ArgumentList.new([
                                                      AST::Expression::ArgDeclaration.new(
-                                                       { dtype: 'object', variables: [{ ident: 'dummy' }] }
+                                                     { dtype: 'object',
+                                                       variables: [{ ident: 'dummy' }] }
                                                      )
                                                    ])
             @begin_func = TopStatement::CFunctionDef.new(
