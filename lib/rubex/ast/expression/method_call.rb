@@ -22,8 +22,10 @@ module Rubex
         private
 
         def type_check_arg_types(entry)
-          @arg_list.map!.with_index do |arg, idx|
-            Helpers.to_lhs_type(entry.type.base_type.arg_list[idx], arg)
+          unless @arg_list.empty?
+            @arg_list.map!.with_index do |arg, idx|
+              Helpers.to_lhs_type(entry.type.base_type.arg_list[idx], arg)
+            end
           end
         end
 

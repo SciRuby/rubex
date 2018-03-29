@@ -25,7 +25,9 @@ module Rubex
         private
 
         def append_self_argument
-          @arg_list << Expression::Self.new
+          if !@entry.no_gil
+            @arg_list << Expression::Self.new
+          end
         end
 
         def code_for_c_method_call(local_scope)

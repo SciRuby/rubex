@@ -14,22 +14,21 @@ describe Rubex do
       end
     end
 
-    context ".compile", hell: true do
+    context ".compile" do
       it "compiles to valid C file" do
         t,c,e = Rubex::Compiler.compile(@path + '.rubex', test: true)
-        puts c
       end
     end
 
-    context "Black Box testing", hell: true do
+    context "Black Box testing"  do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.#{os_extension}"
-          
-          N = 9999          
+          N = 999
+
           n = Thread.new { work_without_gil(N) }
-          n = Thread.new { work_without_gil(N) }
-          n.join; n.join
+          m = Thread.new { work_without_gil(N) }
+          n.join; m.join
         end
       end
     end

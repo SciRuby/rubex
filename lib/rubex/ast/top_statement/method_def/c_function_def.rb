@@ -12,19 +12,19 @@ module Rubex
         end
 
         def analyse_statement(outer_scope, extern: false)
-          if @function_tags == "no_gil"
-            @no_gil = true
-          end
           super(outer_scope)
+          if @function_tags == "no_gil"
+            @entry.no_gil = true
+          end
         end
 
         def generate_code(code)
           code.write_c_method_header(type: @entry.type.type.to_s,
-                                     c_name: @entry.c_name, args: Helpers.create_arg_arrays(@arg_list))
+                                     c_name: @entry.c_name,
+                                     args: Helpers.create_arg_arrays(@arg_list))
           super code, c_function: true
         end
       end
-
     end
   end
 end
