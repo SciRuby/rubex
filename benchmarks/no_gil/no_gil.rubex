@@ -1,0 +1,22 @@
+cfunc void _work_without_gil(double n) no_gil
+  while n > 0 do
+    n ** 0.5 + 4
+    n -= 1
+  end
+end
+
+def work_without_gil(n)
+  double i = n
+  no_gil
+    _work_without_gil(i)
+  end
+
+  return i
+end
+
+def work_with_gil(double n)
+  while n > 0 do
+    n ** 0.5 + 4
+    n -= 1
+  end
+end

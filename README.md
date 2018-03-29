@@ -118,14 +118,11 @@ Notice the only difference between the above Rubex code and Ruby is the specific
 Rubex also takes care of the initial setup and compilation of the C files, so all you need to do is execute a bunch of commands and your extension is up and running!
 
 # Installation
-To build, requires Ruby version >= 2.3.0
+Requires Ruby version >= 2.3.0
 
-The gem as of now has not reached v0.1. However, you can try it out with:
+Install with:
 ```
-git clone https://github.com/v0dro/rubex.git
-cd rubex
-bundle install
-rake install
+gem install rubex
 ```
 
 # Usage
@@ -157,5 +154,6 @@ See the [CONTRIBUTING](CONTRIBUTING.md) and the GitHub issue tracker for future 
 # Acknowledgements
 
 * The Ruby Association (Japan) for providing the initial funding for this project through the Ruby Association Grant 2016.
-* Koichi Sasada (@ko1) and Kenta Murata (@mrkn) for their support and mentorship throughout this project.
+* Koichi Sasada (@ko1), Kenta Murata (@mrkn) and Naotoshi Seo (@sonots) for their support and mentorship throughout this project.
 * Fukuoka Ruby Award 2017.
+* Tokyo Institute of Technology.
