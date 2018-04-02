@@ -29,9 +29,9 @@ module Rubex
       #   (meaning that they belong to Object) and add them to the Object class,
       #   which becomes the class from which all other classes will inherit from.
       #
-      # Top-level statements that do not belong inside classes and which do not have any
-      #   relevance inside a class at the level of a C extension are added to a different
-      #   array and are analysed differently. 
+      # Top-level statements that do not belong inside classes and which do not
+      #   have any relevance inside a class at the level of a C extension are
+      #   added to a different array and are analysed differently. 
       def add_top_statements_to_object_scope
         temp = []
         combined_statements = []
@@ -59,7 +59,7 @@ module Rubex
         @statements = combined_statements
       end
 
-      # TODO: accomodate all sorts of outside statements like if blocks/while/for etc.
+      # TODO: accomodate all sorts of outside stmts like if blocks/while/for etc
       def outside_statement?(stmt)
         stmt.is_a?(Statement::Expression)
       end

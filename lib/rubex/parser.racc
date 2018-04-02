@@ -45,7 +45,7 @@ preclow
 rule
 
   program:
-    opt_terms top_compstmts opt_terms {result = Node.new(val[1])}
+    opt_terms top_compstmts opt_terms { result = Node.new(val[1]) }
 
   top_compstmts:
     top_compstmt { result = [val[0]] }
@@ -132,7 +132,9 @@ rule
     dtype opt_star tIDENTIFIER opt_c_func_arg_list
       { 
         if !val[3].empty? # function decl
-          val[3].pop # HACK: because declared external C functions don't have implicit self argument.
+          # HACK: because declared external C functions don't have
+          #   implicit self argument.
+          val[3].pop
           result = Statement::CFunctionDecl.new val[0], val[1], val[2], val[3]
         else # var/macro decl
           result = variable_decl_nodes([{
@@ -268,7 +270,8 @@ rule
           ) 
         end
 
-        val[4].pop if val[5] == "no_gil" # remove VALUE self argument if no_gil function.
+        # remove VALUE self argument if no_gil function.
+        val[4].pop if val[5] == "no_gil"
         result = TopStatement::CFunctionDef.new(val[1], val[2], val[3], 
           val[4], val[5], val[7])
       }
@@ -509,7 +512,8 @@ rule
   | method_or_attr tASSIGN expr
     {
       result = {
-        name: Expression::CommandCall.new(val[0][0], val[0][1], Expression::ActualArgList.new([])),
+        name: Expression::CommandCall.new(
+          val[0][0], val[0][1], Expression::ActualArgList.new([])),
         value: val[2]
       }
     }
@@ -659,12 +663,18 @@ rule
   | kDATA_VAR 
       { 
         result = Expression::ElementRef.new('data',
-          Expression::Literal::Int.new('0'))
+          Expression::ActualArgList.new([Expression::Literal::Int.new('0')]))
       }
 
   const_namespacing:
-    tIDENTIFIER tCOLON2 const_namespacing { result = Expression::Colon2.new(val[0], val[2]) }
-  | tIDENTIFIER tCOLON2 tIDENTIFIER       { result = Expression::Colon2.new(val[0], val[2]) }
+    tIDENTIFIER tCOLON2 const_namespacing
+      {
+        result = Expression::Colon2.new(val[0], val[2])
+      }
+  | tIDENTIFIER tCOLON2 tIDENTIFIER
+    {
+      result = Expression::Colon2.new(val[0], val[2])
+    }
 
 
   command_call:
@@ -685,7 +695,10 @@ rule
 
   command_opt_args:
     { result = Expression::ActualArgList.new([]) }
-  | tLPAREN command_arg_list tRPAREN { result = Expression::ActualArgList.new(val[1]) }
+  | tLPAREN command_arg_list tRPAREN
+    {
+      result = Expression::ActualArgList.new(val[1])
+    }
 
   command_arg_list:
     { result = [] }
@@ -693,14 +706,18 @@ rule
   | command_arg_list tCOMMA expr { result = [*val[0], val[2]] }
 
   array_ref:
-    tIDENTIFIER tLSQUARE expr tRSQUARE
+    tIDENTIFIER tLSQUARE opt_array_args tRSQUARE
       {
-        result = Expression::ElementRef.new val[0], val[2]
+        result = Expression::ElementRef.new(
+          val[0],
+          Expression::ActualArgList.new(val[2])
+        )
       }
 
-  # opt_array_args:
-  #   expr { result = val }
-  # | opt_array_args tCOMMA expr { result = [*val[0], val[2]]  }
+  opt_array_args:
+    { result = nil  }    
+  | expr { result = val }
+  | opt_array_args tCOMMA expr { result = [*val[0], val[2]]  }
 
   dtype:
     kDTYPE_UINT   | kDTYPE_LINT   | kDTYPE_LLINT | kDTYPE_CHAR   | kDTYPE_I8   |

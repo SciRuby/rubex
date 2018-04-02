@@ -8,7 +8,7 @@ module Rubex
           super(location)
           @name = array_ref.name
           @array_list = array_list
-          @dimension = array_ref.pos
+          @dimension = array_ref.pos[0]
           @type = Rubex::TYPE_MAPPINGS[type].new
         end
 

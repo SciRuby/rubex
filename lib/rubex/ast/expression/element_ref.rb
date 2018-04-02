@@ -5,12 +5,17 @@ module Rubex
         # Readers needed for accessing elements due to delegator classes.
         attr_reader :entry, :pos, :name, :subexprs
         extend Forwardable
-        def_delegators :@element_ref, :generate_disposal_code, :generate_evaluation_code,
-        :analyse_statement, :generate_element_ref_code,
-        :generate_assignment_code, :has_temp, :c_code,
-        :allocate_temps, :release_temps, :to_ruby_object,
-        :from_ruby_object
+        def_delegators :@element_ref, :generate_disposal_code,
+                       :generate_evaluation_code,
+                       :analyse_statement, :generate_element_ref_code,
+                       :generate_assignment_code, :has_temp, :c_code,
+                       :allocate_temps, :release_temps, :to_ruby_object,
+                       :from_ruby_object
 
+        # Initialize an array_ref. Can be in an expression or variable decl.
+        #
+        # @param name [String] The name in the code of the variable.
+        # @param pos [Expression::ActualArgList] Position information.
         def initialize(name, pos)
           @name = name
           @pos = pos

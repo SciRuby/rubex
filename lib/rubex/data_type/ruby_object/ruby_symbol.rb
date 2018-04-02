@@ -5,6 +5,5 @@ module Rubex
         true
       end
     end
-
   end
 end

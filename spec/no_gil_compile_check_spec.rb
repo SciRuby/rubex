@@ -14,7 +14,7 @@ describe Rubex do
       end
     end
 
-    context ".compile", hell: true do
+    context ".compile" do
       it "raises compile error" do
         expect {
           Rubex::Compiler.compile(@path + '.rubex', test: true)
