@@ -1,0 +1,5 @@
+class B
+  def initialize(foo)
+    @foo = foo
+  end
+end

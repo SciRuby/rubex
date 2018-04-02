@@ -1,0 +1,14 @@
+require_rubex("a")
+require_rubex("b.rubex")
+
+class C < A
+  def initialize(a)
+    @a = a
+  end
+end
+
+class D < B
+  def foo
+    return @foo + "hello world"
+  end
+end

@@ -1,0 +1,10 @@
+class Test
+  def initialize(foo, bar)
+    @foo = foo
+    @bar = bar
+  end
+
+  def addition
+    return @foo + @bar
+  end
+end

@@ -1,0 +1,5 @@
+class A
+  def bar
+    return @a
+  end
+end
