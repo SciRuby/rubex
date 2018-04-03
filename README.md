@@ -147,6 +147,12 @@ Give yourself 5 min and go through the [TUTORIAL](TUTORIAL.md). Convert a part o
 
 Read the full Rubex reference in [REFERENCE](REFERENCE.md).
 
+# Differences with Ruby
+
+Although Rubex tries its best to support the Ruby syntax as much as possible, in some cases it is not feasible or necessary to provide full support. Following is a list of differences between Ruby and Rubex syntax:
+
+
+
 # Roadmap
 
 See the [CONTRIBUTING](CONTRIBUTING.md) and the GitHub issue tracker for future features.

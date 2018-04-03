@@ -203,6 +203,8 @@ class Rubex::Lexer
             action { [:kNO_GIL, text] }
           when text = ss.scan(/:#{IDENTIFIER}/) then
             action { [:tSYMBOL, text] }
+          when text = ss.scan(/@#{IDENTIFIER}/) then
+            action { [:tINSTANCE_VAR, text] }
           when text = ss.scan(/#{IDENTIFIER}/) then
             action { [:tIDENTIFIER, text] }
           when text = ss.scan(/#{LBRACE}/) then

@@ -24,7 +24,7 @@ describe Rubex do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.#{os_extension}"
-          expect(C.new("hello", " ruby").addition).to eq("hello ruby")
+          expect(Test.new("hello", " ruby").addition).to eq("hello ruby")
         end
       end
     end

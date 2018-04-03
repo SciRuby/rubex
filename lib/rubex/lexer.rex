@@ -149,6 +149,7 @@ rules
   /#{NO_GIL}/   { [:kNO_GIL, text] }
 
   /:#{IDENTIFIER}/        { [:tSYMBOL, text] }
+  /@#{IDENTIFIER}/        { [:tINSTANCE_VAR, text] }
   /#{IDENTIFIER}/         { [:tIDENTIFIER, text] }
   /#{LBRACE}/             { [:tLBRACE, text] }
   /#{RBRACE}/             { [:tRBRACE, text] }

@@ -13,6 +13,7 @@ token
 
   tLPAREN tRPAREN tLSQUARE tRSQUARE tIDENTIFIER tNL     tCOMMA tSQUOTE tSCOLON
   EOF     tDOT    tQMARK   tSYMBOL  tLBRACE     tRBRACE tCOLON tCOLON2
+  tINSTANCE_VAR
 
   tPLUS tMINUS tSTAR tDIVIDE tEXPO      tMODULUS tASSIGN tEQ tLT tLTEQ tGT
   tGTEQ tANDOP tOROP tBANG   tOP_ASSIGN tSTRING  kSIZEOF
@@ -500,6 +501,7 @@ rule
   | expr { result = [*val[0]] }
   | array_list tCOMMA expr { result = [*val[0], val[2]] }
 
+  # FIXME: There should be a better way to write this rule. Too repetitive.
   normal_init:
     tIDENTIFIER tASSIGN expr 
       { 
@@ -510,13 +512,20 @@ rule
       }
   | array_ref tASSIGN expr   { result = { name: val[0], value: val[2] } }
   | method_or_attr tASSIGN expr
-    {
-      result = {
-        name: Expression::CommandCall.new(
-          val[0][0], val[0][1], Expression::ActualArgList.new([])),
-        value: val[2]
+      {
+        result = {
+          name: Expression::CommandCall.new(
+            val[0][0], val[0][1], Expression::ActualArgList.new([])),
+          value: val[2]
+        }
       }
-    }
+  | tINSTANCE_VAR tASSIGN expr
+      {
+        result = {
+          name: Expression::InstanceVar.new(val[0]),
+          value: val[2]
+        }
+      }
 
   literal:
     tINTEGER     { result = Expression::Literal::Int.new val[0]    }
@@ -665,6 +674,7 @@ rule
         result = Expression::ElementRef.new('data',
           Expression::ActualArgList.new([Expression::Literal::Int.new('0')]))
       }
+  | tINSTANCE_VAR { result = Expression::InstanceVar.new(val[0]) }
 
   const_namespacing:
     tIDENTIFIER tCOLON2 const_namespacing
