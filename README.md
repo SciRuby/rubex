@@ -151,7 +151,10 @@ Read the full Rubex reference in [REFERENCE](REFERENCE.md).
 
 Although Rubex tries its best to support the Ruby syntax as much as possible, in some cases it is not feasible or necessary to provide full support. Following is a list of differences between Ruby and Rubex syntax:
 
-
+* All methods in Rubex (including `require` calls) must use round brackets for arguments.
+* No support Ruby blocks.
+* No support for class variables.
+* All methods and functions in Rubex must use the `return` statement for returning values.
 
 # Roadmap
 

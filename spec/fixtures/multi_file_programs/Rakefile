@@ -1,0 +1,8 @@
+require 'rubex/rake_task'
+
+# specify all the rubex files to be compiled, along with the name of the main
+# program that serves as the 'main' entry point.
+Rubex::RakeTask.new("multi_file_programs") do
+  rubex_files ["a.rubex", "b.rubex", "multi_file_program.rubex"]
+end
+
