@@ -1,7 +1,7 @@
-require 'rubex/helpers'
-require 'rubex/ast/statement'
-Dir['./lib/rubex/ast/statement/**/*.rb'].sort.each { |f| require f }
-require 'rubex/ast/expression'
-Dir['./lib/rubex/ast/expression/**/*.rb'].sort.each { |f| require f }
-require 'rubex/ast/top_statement'
-require 'rubex/ast/node'
+require_relative 'helpers'
+require_relative 'ast/statement'
+require_relative 'ast/expression'
+Dir[File.join(File.dirname(File.dirname(__FILE__)), "rubex", "ast", "statement", "**", "*.rb" )].sort.each { |f| require f }
+Dir[File.join(File.dirname(File.dirname(__FILE__)), "rubex", "ast", "expression", "**", "*.rb" )].sort.each { |f| require f }
+require_relative 'ast/top_statement'
+require_relative 'ast/node'

@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), *%w[.. lib])
 require 'rubex'
 if Rubex::Cli.all_tasks.keys.include?(ARGV[0]) || ARGV.empty?
   Rubex::Cli.start

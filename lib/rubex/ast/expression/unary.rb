@@ -1,5 +1,5 @@
 require_relative 'unary_base'
-Dir['./lib/rubex/ast/expression/unary_base/*.rb'].each { |f| require f }
+Dir[File.join(File.dirname(File.dirname(__FILE__)), "expression", "unary_base", "*.rb" )].each { |f| require f }
 module Rubex
   module AST
     module Expression
