@@ -1,4 +1,7 @@
 module Rubex
+  # Class for storing configuration of the compiler (gcc) that will compile
+  #   the generated C code. This includes file names, compiler flags and other
+  #   options required by Rubex.
   class CompilerConfig
     attr_accessor :debug
     

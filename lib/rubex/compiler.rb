@@ -4,7 +4,38 @@ module Rubex
     CONFIG = Rubex::CompilerConfig.new
 
     class << self
-      def compile path, test: false, directory: nil, force: false, make: false, debug: false
+      # Compile the Rubex file(s) into .c file(s). Do not use this function directly
+      #   unless you're contributing to Rubex. Use the Rake tasks or command line
+      #   interface instead.
+      #
+      # @param path [String] Full path to file. Main file in case of multiple
+      #   file compilation.
+      # @param test [Boolean] false Set to true if compiling rubex files for
+      #   a test case.
+      # @param directory [String] nil Directory where the compiled rubex files
+      #   should be placed.
+      # @param force [Boolean] false If set to true, will forcefully overwrite
+      #    any .c files that were previously generated.
+      # @param make [Boolean] false If true, will automatically generate the .so
+      #    file from compiled C binaries.
+      # @param debug [Boolean] false If true, will compile C programs with gcc
+      #    using the -g option.
+      # @param source_dir [String] nil String specifying the source directory
+      #    inside which the source Rubex files will be placed in case of multi-file
+      #    programs.
+      # @param files [Array[String]] nil An Array specifying the file names to
+      #   compile w.r.t the source_dir directory.
+      #
+      # TODO: change the directory: option to target_dir to make it more verbose.
+      # TODO: The path can be relative to the source_dir if source_dir is specified.
+      def compile path,
+                  test: false,
+                  directory: nil,
+                  force: false,
+                  make: false,
+                  debug: false,
+                  source_dir: nil,
+                  files: nil
         tree = ast path, test: test
         target_name = extract_target_name path
         code = generate_code tree, target_name
@@ -20,6 +51,12 @@ module Rubex
         run_make full_path if make
       end
 
+      # Generate the AST from Rubex source code. Do not use this function unless
+      #   contributing to Rubex. Use CLI or rake tasks instead.
+      #
+      # @param path [String] Full path name of the rubex file.
+      # @param test [Boolean] false Set to true if compiling rubex files for
+      #   a test case.
       def ast path, test: false
         parser = Rubex::Parser.new
         parser.parse(path)

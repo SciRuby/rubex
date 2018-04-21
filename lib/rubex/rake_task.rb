@@ -19,7 +19,7 @@ module Rubex
       define_compile_tasks
     end
 
-    # Change the directory that contains rubex files in a gem. Overrides default
+    # Change the directory that contains rubex files. Overrides default
     # assumption of gem file structure.
     #
     # @param [String] ext_dir Path to new ext dir.
@@ -30,7 +30,8 @@ module Rubex
     # Specify the names of Rubex files with respect to ext directory if compiling
     # multiple files.
     #
-    # @param [Array[String]] files Array containing names of all files as Strings.
+    # @param [Array[String]] files Array containing names of all files relative to
+    #   ext directory as Strings.
     def files files
       @rubex_files = files
     end

@@ -3,7 +3,7 @@ token
   kDEF kEND kRETURN  kIF    kELSIF    kELSE   kTHEN   kSTATIC_ARRAY kFOR 
   kDOT_EACH kDO     kTRUE   kFALSE    kNIL    kSTRUCT kUNION        kALIAS  kLIB 
   kCFUNC    kSELF   kNULL   kFWD      kATTACH kBREAK  kBLOCK_GIVEN  kBEGIN  kRESCUE
-  kENSURE   kWHILE  kCLASS  kDATA_VAR kNO_GIL
+  kENSURE   kWHILE  kCLASS  kDATA_VAR kNO_GIL kREQUIRE_RUBEX
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT  kDTYPE_CHAR   kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8    kDTYPE_UI16   kDTYPE_UI32 kDTYPE_UI64
@@ -54,6 +54,10 @@ rule
 
   top_compstmt:
     c_bindings {}
+  | kREQUIRE_RUBEX tLPAREN tSTRING tRPAREN
+      {
+        parse_required_file_and_load_ast(val[2])
+      }
   | top_stmts terms { result = val[0] }
 
   top_stmts:
@@ -998,4 +1002,8 @@ def force_into_func_ptr_internal_args data
   data.map! do |arg|
     Expression::FuncPtrInternalArgDeclaration.new(arg.data_hash)
   end 
+end
+
+def parse_required_file_and_load_ast file_name
+  
 end

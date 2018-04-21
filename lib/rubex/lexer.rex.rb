@@ -34,6 +34,7 @@ class Rubex::Lexer
   ATTACH            = /attach/
   BLOCK_GIVEN       = /block_given\?/
   NO_GIL            = /no_gil/
+  REQUIRE_RUBEX     = /require_rubex/
   IDENTIFIER        = /[a-zA-Z_][a-zA-Z_0-9]*/
   COLON2            = /::/
   LPAREN            = /\(/
@@ -179,6 +180,8 @@ class Rubex::Lexer
             action { [:kBLOCK_GIVEN, text] }
           when text = ss.scan(/data\$/) then
             action { [:kDATA_VAR, text] }
+          when text = ss.scan(/#{REQUIRE_RUBEX}/) then
+            action { [:kREQUIRE_RUBEX, text] }
           when text = ss.scan(/#{DOT}#{EACH}/) then
             action { [:kDOT_EACH, text] }
           when text = ss.scan(/unsigned long long int/) then

@@ -58,10 +58,25 @@ def setup_and_teardown_compiled_files test_case, example=nil, &block
   end
 end
 
+def setup_and_teardown_multiple_compiled_files test_case, source_dir, files, &block
+  Rubex::Compiler.compile(test_case, source_dir: source_dir, files: files)
+  begin
+    block.call(source_dir)
+  ensure
+    Dir.chdir(source_dir) do
+      FileUtils.rm(
+        Dir.glob(
+        "#{source_dir}/#{name}.{c,so,o,bundle,dll}") + ["Makefile", "extconf.rb"],
+        force: true
+      )
+    end
+    FileUtils.rmdir(source_dir)
+  end
+end
+
 def expect_compiled_code code, path
   expect(code.to_s).to eq(File.read(path))
 end
-
 
 def detect_os
   @os ||= (
