@@ -31,14 +31,25 @@ module Rubex
         #
         # Top-level statements that do not belong inside classes and which do not
         #   have any relevance inside a class at the level of a C extension are
-        #   added to a different array and are analysed differently. 
+        #   added to a different array and are analysed differently. For example
+        #   'require' statements that are top level statements but cannot be 'defined'
+        #   inside the Init_ method the way a ruby class or method can be. These are
+        #   stored in @outside_statements.
+        #
+        # If the user defines multiple Object classes, they will share the same @scope
+        #   object and will therefore have accessible members between each other. Since
+        #   Ruby also allows users to open classes whenever and wherever they want, this
+        #   behaviour is conformant with actual Ruby behaviour. It also implies that a
+        #   FileNode can basically create an Object class of its own and the scope will
+        #   shared between FileNode and MainNode and other FileNodes as long as the FileNode
+        #   shares the same @scope object.
         def add_top_statements_to_object_scope
           temp = []
           combined_statements = []
           @outside_statements = []
           @statements.each do |stmt|
             if stmt.is_a?(TopStatement::Klass) || stmt.is_a?(TopStatement::CBindings)
-              unless temp.empty?
+              if !temp.empty?
                 object_klass = TopStatement::Klass.new('Object', @scope, temp)
                 combined_statements << object_klass
               end
