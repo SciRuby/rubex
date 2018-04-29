@@ -46,7 +46,7 @@ preclow
 rule
 
   program:
-    opt_terms top_compstmts opt_terms { result = Node.new(val[1]) }
+    opt_terms top_compstmts opt_terms { result = Node::MainNode.new(val[1]) }
 
   top_compstmts:
     top_compstmt { result = [val[0]] }

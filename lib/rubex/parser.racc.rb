@@ -1450,7 +1450,7 @@ Racc_debug_parser = false
 
 module_eval(<<'.,.,', 'parser.racc', 48)
   def _reduce_1(val, _values, result)
-     result = Node.new(val[1]) 
+     result = Node::MainNode.new(val[1]) 
     result
   end
 .,.,

@@ -83,8 +83,8 @@ module Rubex
 
       def generate_code tree, target_name
         code = Rubex::CodeWriter.new target_name
-        raise "Must be a Rubex::AST::Node, not #{tree.class}" unless
-          tree.is_a? Rubex::AST::Node
+        raise "Must be a Rubex::AST::Node::MainNode, not #{tree.class}" unless
+          tree.is_a? Rubex::AST::Node::MainNode
         tree.process_statements target_name, code
         code
       end
