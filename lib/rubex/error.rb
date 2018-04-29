@@ -14,4 +14,6 @@ module Rubex
   class LibraryNotFoundError < StandardError; end
 
   class CompileCheckError < StandardError; end
+
+  class FileNotFoundError < StandardError; end
 end

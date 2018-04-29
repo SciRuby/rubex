@@ -12,12 +12,11 @@ describe Rubex do
 
     context ".ast" do
       it "generates the AST" do
-        t = Rubex::Compiler.ast(@main_file + '.rubex', files: @file_names,
-                                source_dir: @dir)
+        t = Rubex::Compiler.ast(@main_file + '.rubex', source_dir: @dir)
       end
     end
 
-    context ".compile" do
+    context ".compile", hell: true do
       it "compiles to valid C file" do
         t,c,e = Rubex::Compiler.compile(@main_file + '.rubex', files: @file_names,
                                         source_dir: @dir, test: true)

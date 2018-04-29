@@ -36,7 +36,7 @@ module Rubex
                   debug: false,
                   source_dir: nil,
                   files: nil
-        tree = ast path, test: test
+        tree = ast path, source_dir: source_dir, test: test
         target_name = extract_target_name path
         code = generate_code tree, target_name
         ext = extconf target_name, directory: directory
@@ -57,9 +57,11 @@ module Rubex
       # @param path [String] Full path name of the rubex file.
       # @param test [Boolean] false Set to true if compiling rubex files for
       #   a test case.
-      def ast path, test: false
+      # @param source_dir [String] nil Path of the directory that contains the
+      #   source files.
+      def ast path, test: false, source_dir: nil
         parser = Rubex::Parser.new
-        parser.parse(path)
+        parser.parse(path, source_dir, false)
         parser.do_parse
       rescue Racc::ParseError => e
         raise e if test
