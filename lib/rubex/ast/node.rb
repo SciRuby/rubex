@@ -101,7 +101,7 @@ module Rubex
           write_global_variable_declarations header
           write_function_declarations header
           write_usability_functions header
-          header << "#endif\n"
+          header << "#endif"
           header.nl
         end
 

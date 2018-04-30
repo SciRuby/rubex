@@ -10,7 +10,8 @@ module Rubex
     desc 'generate FILE', 'generates directory with name specified in the argument and creates an extconf.rb file which is required for C extensions'
     option :force, aliases: '-f', desc: 'replace existing files and directories'
     option :dir, aliases: '-d', desc: 'specify a directory for generating files', type: :string
-    option :install, aliases: '-i', desc: 'automatically run install command after generating Makefile'
+    option :install, aliases: '-i',
+           desc: 'automatically run install command after generating Makefile'
     option :debug, aliases: '-g', desc: 'enable debugging symbols when compiling with GCC'
     def generate(file)
       if (force = options[:force])
@@ -20,7 +21,7 @@ module Rubex
         confirmation = STDIN.gets.chomp
         force = (confirmation == 'Y')
       end
-      Rubex::Compiler.compile file, directory: options[:dir], force: force,
+      Rubex::Compiler.compile file, target_dir: options[:dir], force: force,
                               make: options[:install], debug: options[:debug]
     end
 

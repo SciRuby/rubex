@@ -23,7 +23,7 @@ describe Rubex do
       end
     end
 
-    context "black box testing" do
+    context "black box testing", hell: true do
       it "compiles and checks for valid output" do
         setup_and_teardown_multiple_compiled_files(@main_file + '.rubex', @dir, @file_names) do |dir|
           require_relative "#{dir}/#{test_case}.#{os_extension}"

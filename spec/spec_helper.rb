@@ -33,7 +33,7 @@ def generate_shared_object test_case, example=nil
   path = path_str test_case, example
   dir = dir_str test_case, example
 
-  Rubex::Compiler.compile(path + '.rubex', directory: dir)
+  Rubex::Compiler.compile(path + '.rubex', target_dir: dir)
   Dir.chdir(dir) do
     `ruby extconf.rb`
     `make`
@@ -61,18 +61,15 @@ def setup_and_teardown_compiled_files test_case, example=nil, &block
 end
 
 def setup_and_teardown_multiple_compiled_files test_case, source_dir, files, &block
-  Rubex::Compiler.compile(test_case, source_dir: source_dir, files: files)
+  Rubex::Compiler.compile(test_case, source_dir: source_dir, files: files,
+                          target_dir: source_dir)
   begin
     block.call(source_dir)
   ensure
     Dir.chdir(source_dir) do
       FileUtils.rm(
-        Dir.glob(
-        "#{source_dir}/#{name}.{c,so,o,bundle,dll}") + ["Makefile", "extconf.rb"],
-        force: true
-      )
+        Dir.glob("#{source_dir}/*.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true)
     end
-    FileUtils.rmdir(source_dir)
   end
 end
 

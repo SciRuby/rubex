@@ -41,5 +41,9 @@ module Rubex
     def code(file_name)
       @data[file_name][:code]
     end
+
+    def files
+      @data.keys
+    end
   end
 end

@@ -28,12 +28,11 @@ module Rubex
       # @param files [Array[String]] nil An Array specifying the file names to
       #   compile w.r.t the source_dir directory.
       #
-      # TODO: change the directory: option to target_dir to make it more verbose.
       # TODO: The path can be relative to the source_dir if source_dir is specified.
       def compile path,
                   test: false,
                   multi_file: false,
-                  directory: nil,
+                  target_dir: nil,
                   force: false,
                   make: false,
                   debug: false,
@@ -42,7 +41,7 @@ module Rubex
         tree = ast path, source_dir: source_dir, test: test
         target_name = extract_target_name path
         supervisor = generate_code tree, target_name
-        ext = extconf target_name, directory: directory
+        ext = extconf target_name, target_dir: target_dir
         CONFIG.flush
         CONFIG.debug = debug
         CONFIG.add_link "m" # link cmath libraries
@@ -53,8 +52,8 @@ module Rubex
         elsif test && multi_file
           return [tree, supervisor, ext]
         end
-        write_files target_name, supervisor, ext, directory: directory, force: force
-        full_path = build_path(directory, target_name)
+        write_files target_name, supervisor, ext, target_dir: target_dir, force: force
+        full_path = build_path(target_dir, target_name)
         load_extconf full_path
         run_make full_path if make
       end
@@ -81,8 +80,8 @@ module Rubex
         STDERR.puts error_msg
       end
 
-      def extconf target_name, directory: nil
-        path = build_path(directory, target_name)
+      def extconf target_name, target_dir: nil
+        path = build_path(target_dir, target_name)
         extconf = ""
         extconf << "require 'mkmf'\n"
         extconf << "$libs += \" #{CONFIG.link_flags}\"\n"
@@ -112,22 +111,17 @@ module Rubex
       # @param directory [String] nil Target directory in which files are to be placed.
       # @param force [Boolean] false Recreate the target directory and rewrite the
       #   files whether they are already present or not.
-      def write_files target_name, supervisor, ext, directory: nil, force: false
-        path = build_path(directory, target_name)
+      def write_files target_name, supervisor, ext, target_dir: nil, force: false
+        path = build_path(target_dir, target_name)
         FileUtils.rm_rf(path) if force && Dir.exist?(path)
         Dir.mkdir(path) unless Dir.exist?(path)
 
-        code_file = File.new "#{path}/#{target_name}.c", "w+"
-        code_file.puts supervisor.code(target_name).to_s
-        code_file.close
-
-        header_file = File.new "#{path}/#{target_name}.h", "w+"
-        header_file.puts supervisor.header(target_name).to_s
-        header_file.close
-
-        extconf_file = File.new "#{path}/extconf.rb", "w+"
-        extconf_file.puts ext
-        extconf_file.close
+        supervisor.files.each do |file|
+          write_to_file "#{path}/#{file}.c", supervisor.code(target_name).to_s
+          write_to_file "#{path}/#{file}.h", supervisor.header(target_name).to_s
+        end
+        
+        write_to_file "#{path}/extconf.rb", ext
       end
 
       def load_extconf path
@@ -144,10 +138,18 @@ module Rubex
 
       def build_path directory, target_name
         directory = (directory ? directory.to_s : Dir.pwd)
-        unless directory.end_with?(target_name)
+       unless directory.end_with?(target_name)
           directory += "/#{target_name}"
-        end
+       end
         directory
+      end
+      
+      private
+
+      def write_to_file path, contents
+        f = File.new path, "w+"
+        f.puts contents
+        f.close
       end
     end
   end
