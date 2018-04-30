@@ -31,7 +31,6 @@ module Rubex
 
       def declare_types(code, scope)
         scope.type_entries.each do |entry|
-          # if !entry.extern
           type = entry.type
 
           if type.alias_type?
@@ -54,7 +53,6 @@ module Rubex
             end
           end
           code.nl
-          # end
         end
       end
 

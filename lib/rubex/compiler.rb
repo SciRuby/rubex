@@ -38,14 +38,15 @@ module Rubex
                   files: nil
         tree = ast path, source_dir: source_dir, test: test
         target_name = extract_target_name path
-        code = generate_code tree, target_name
+        supervisor = generate_code tree, target_name
         ext = extconf target_name, directory: directory
         CONFIG.flush
         CONFIG.debug = debug
         CONFIG.add_link "m" # link cmath libraries
 
-        return [tree, code, ext] if test
-        write_files target_name, code, ext, directory: directory, force: force
+        return [tree, supervisor.code(target_name), ext,
+                supervisor.header(target_name)] if test
+        write_files target_name, supervisor, ext, directory: directory, force: force
         full_path = build_path(directory, target_name)
         load_extconf full_path
         run_make full_path if make
@@ -84,25 +85,38 @@ module Rubex
       end
 
       def generate_code tree, target_name
-        code = Rubex::CodeWriter.new target_name
+        supervisor = Rubex::CodeSupervisor.new
+        supervisor.init_file(target_name)
         raise "Must be a Rubex::AST::Node::MainNode, not #{tree.class}" unless
           tree.is_a? Rubex::AST::Node::MainNode
-        tree.process_statements target_name, code
-        code
+        tree.process_statements target_name, supervisor
+        supervisor
       end
 
       def extract_target_name path
         File.basename(path).split('.')[0]
       end
 
-      def write_files target_name, code, ext, directory: nil, force: false
+      # Write .c and .h files from the generated C code from rubex files.
+      #
+      # @param target_name [String] Target name of the root file.
+      # @param supervisor [Rubex::CodeSupervisor] Container for code.
+      # @param ext [String] A String representing the extconf file.
+      # @param directory [String] nil Target directory in which files are to be placed.
+      # @param force [Boolean] false Recreate the target directory and rewrite the
+      #   files whether they are already present or not.
+      def write_files target_name, supervisor, ext, directory: nil, force: false
         path = build_path(directory, target_name)
         FileUtils.rm_rf(path) if force && Dir.exist?(path)
         Dir.mkdir(path) unless Dir.exist?(path)
 
         code_file = File.new "#{path}/#{target_name}.c", "w+"
-        code_file.puts code.to_s
+        code_file.puts supervisor.code(target_name).to_s
         code_file.close
+
+        header_file = File.new "#{path}/#{target_name}.h", "w+"
+        header_file.puts supervisor.header(target_name).to_s
+        header_file.close
 
         extconf_file = File.new "#{path}/extconf.rb", "w+"
         extconf_file.puts ext

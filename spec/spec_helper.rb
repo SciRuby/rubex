@@ -44,7 +44,9 @@ def delete_generated_files test_case, example=nil
   dir = dir_str test_case, example
   test_case = example if example
   Dir.chdir(dir) do
-    FileUtils.rm(Dir.glob("#{test_case}.{c,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true)
+    FileUtils.rm(
+      Dir.glob("#{test_case}.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"],
+      force: true)
   end
 end
 

@@ -54,7 +54,7 @@ describe "rake" do
       Dir.chdir(dir) do
         FileUtils.rm(
           Dir.glob(
-          "#{dir}/#{name}.{c,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true
+          "#{dir}/#{name}.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true
         )
       end
       FileUtils.rmdir(dir)
@@ -91,7 +91,7 @@ describe "rake" do
       Dir.chdir(dir) do
         FileUtils.rm(
           Dir.glob(
-          "#{dir}/#{name}.{c,so,o,bundle,dll}") + ["Makefile", "extconf.rb"],
+          "#{dir}/#{name}.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"],
           force: true
         )
       end
