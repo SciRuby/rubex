@@ -38,14 +38,16 @@ module Rubex
                   debug: false,
                   source_dir: nil,
                   files: nil
-        tree = ast path, source_dir: source_dir, test: test
-        target_name = extract_target_name path
-        supervisor = generate_code tree, target_name
-        ext = extconf target_name, target_dir: target_dir
         CONFIG.flush
         CONFIG.debug = debug
         CONFIG.add_link "m" # link cmath libraries
-
+        target_name = extract_target_name path
+        CONFIG.add_dep target_name
+        
+        tree = ast path, source_dir: source_dir, test: test
+        supervisor = generate_code tree, target_name
+        ext = extconf target_name, target_dir: target_dir
+        
         if test && !multi_file
           return [tree, supervisor.code(target_name), ext,
                   supervisor.header(target_name)]
@@ -86,6 +88,13 @@ module Rubex
         extconf << "require 'mkmf'\n"
         extconf << "$libs += \" #{CONFIG.link_flags}\"\n"
         extconf << "$CFLAGS += \" -g \"\n" if CONFIG.debug
+        
+        srcs_config = CONFIG.srcs.map { |s| "\"#{s}\""}.join(',')
+        extconf << "$srcs = [#{srcs_config}]\n"
+
+        objs_config = CONFIG.objs.map { |o| "\"#{o}\""}.join(',')
+        extconf << "$objs = [#{objs_config}]\n"
+        
         extconf << "create_makefile('#{path}/#{target_name}')\n"
         extconf
       end

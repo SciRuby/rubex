@@ -1031,6 +1031,7 @@ def parse_required_file_and_load_ast file_name
     raise Rubex::FileNotFoundError,
           "cannot find file #{file_name} in #{@source_dir}"
   end
+  Rubex::Compiler::CONFIG.add_dep(File.basename(file_name).split('.')[0])
   parser = Rubex::Parser.new
   parser.parse(full_name, @source_dir, true)
   file_node_ast = parser.do_parse

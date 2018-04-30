@@ -60,15 +60,15 @@ def setup_and_teardown_compiled_files test_case, example=nil, &block
   end
 end
 
-def setup_and_teardown_multiple_compiled_files test_case, source_dir, files, &block
+def setup_and_teardown_multiple_compiled_files test_case, source_dir, t_dir, files, &block
   Rubex::Compiler.compile(test_case, source_dir: source_dir, files: files,
-                          target_dir: source_dir)
+                          target_dir: t_dir)
   begin
-    block.call(source_dir)
+    block.call(t_dir)
   ensure
-    Dir.chdir(source_dir) do
+    Dir.chdir(t_dir) do
       FileUtils.rm(
-        Dir.glob("#{source_dir}/*.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true)
+        Dir.glob("#{t_dir}/*.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true)
     end
   end
 end

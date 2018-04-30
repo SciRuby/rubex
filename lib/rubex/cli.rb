@@ -25,7 +25,8 @@ module Rubex
                               make: options[:install], debug: options[:debug]
     end
 
-    desc 'install PATH', 'run "make" utility to generate a shared object file required for C extensions'
+    desc 'install PATH',
+         'run "make" utility to generate a shared object file required for C extensions'
     def install(path)
       Rubex::Compiler.run_make path
     end
