@@ -3,10 +3,12 @@ module Rubex
   module AST
     module Node
       class Base
-        attr_reader :statements
+        include Rubex::Helpers::Writers
+        attr_reader :statements, :file_name
         
-        def initialize(statements)
+        def initialize(statements, file_name)
           @statements = statements.flatten
+          @file_name = file_name
         end
 
         def ==(other)
@@ -56,6 +58,8 @@ module Rubex
               temp = []
             elsif outside_statement?(stmt)
               @outside_statements << stmt
+            elsif stmt.is_a?(Node::FileNode)
+              combined_statements << stmt
             else
               temp << stmt
             end
@@ -225,9 +229,14 @@ module Rubex
           end
         end
 
-        def generate_code(code)
+        # FIXME: Find a way to eradicate the if statement.
+        def generate_code(supervisor)
           @statements.each do |stat|
-            stat.generate_code code
+            if stat.is_a?(Rubex::AST::Node::FileNode)
+              stat.generate_code supervisor
+            else
+              stat.generate_code supervisor.code(@file_name)
+            end
           end
         end
 

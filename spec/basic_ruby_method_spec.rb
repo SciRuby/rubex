@@ -15,10 +15,9 @@ describe Rubex do
       end
     end
 
-    context ".compile", tat: true do
+    context ".compile", tit: true do
       it "generates valid C code" do
-        t, c, e = Rubex::Compiler.compile @path + ".rubex", test: true
-        puts c
+        t, c, e, h = Rubex::Compiler.compile @path + ".rubex", test: true
       end
     end
 

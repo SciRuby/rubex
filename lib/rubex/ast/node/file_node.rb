@@ -11,6 +11,15 @@ module Rubex
           super()
           rescan_declarations @scope
         end
+
+        def generate_code(supervisor)
+          supervisor.init_file(@file_name)
+          code_writer = supervisor.code(@file_name)
+          code_writer.write_include @file_name
+          generate_header_file @file_name, supervisor.header(@file_name)
+          super
+          generate_init_method @file_name, code_writer
+        end
       end
     end
   end

@@ -24,17 +24,18 @@ attr_reader :lineno, :location, :string
 #   In order to perform the actual parsing you need to also call the do_parse method
 #   on the Racc::Parser object.
 #
-# @param file_name [String] File name of the rubex file to compile.
+# @param path [String] path of the rubex file to compile.
 # @param source_dir [String] Source directory in case of multi-file program.
 # @param is_inside_file_node [Boolean] Whether this file is within a main file or not.
-def parse file_name, source_dir, is_inside_file_node
+def parse path, source_dir, is_inside_file_node
   @lexer = Rubex::Lexer.new
   @yydebug = true
   @custom_dtypes = {}
   @prev_token = nil
   @source_dir = source_dir
   @is_inside_file_node = is_inside_file_node
-  @lexer.parse_file file_name
+  @file_name = File.basename(path, ".rubex")
+  @lexer.parse_file path
 end
 
 def set_location
@@ -1472,9 +1473,9 @@ Racc_debug_parser = false
 module_eval(<<'.,.,', 'parser.racc', 50)
   def _reduce_1(val, _values, result)
             if @is_inside_file_node
-          result = Node::FileNode.new(val[1])
+          result = Node::FileNode.new(val[1], @file_name)
         else
-          result = Node::MainNode.new(val[1])
+          result = Node::MainNode.new(val[1], @file_name)
         end      
       
     result

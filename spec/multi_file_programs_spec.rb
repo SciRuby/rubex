@@ -19,8 +19,7 @@ describe Rubex do
     context ".compile", hell: true do
       it "compiles to valid C file" do
         t,c,e = Rubex::Compiler.compile(@main_file + '.rubex', files: @file_names,
-                                        source_dir: @dir, test: true)
-        puts c
+                                        source_dir: @dir, test: true, multi_file: true)
       end
     end
 

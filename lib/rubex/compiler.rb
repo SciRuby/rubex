@@ -12,6 +12,8 @@ module Rubex
       #   file compilation.
       # @param test [Boolean] false Set to true if compiling rubex files for
       #   a test case.
+      # @param multi_file [Boolean] false If true, return the CodeSupervisor
+      #   object for code analysis by user. Applicable only if test: opt is true.
       # @param directory [String] nil Directory where the compiled rubex files
       #   should be placed.
       # @param force [Boolean] false If set to true, will forcefully overwrite
@@ -30,6 +32,7 @@ module Rubex
       # TODO: The path can be relative to the source_dir if source_dir is specified.
       def compile path,
                   test: false,
+                  multi_file: false,
                   directory: nil,
                   force: false,
                   make: false,
@@ -44,8 +47,12 @@ module Rubex
         CONFIG.debug = debug
         CONFIG.add_link "m" # link cmath libraries
 
-        return [tree, supervisor.code(target_name), ext,
-                supervisor.header(target_name)] if test
+        if test && !multi_file
+          return [tree, supervisor.code(target_name), ext,
+                  supervisor.header(target_name)]
+        elsif test && multi_file
+          return [tree, supervisor, ext]
+        end
         write_files target_name, supervisor, ext, directory: directory, force: force
         full_path = build_path(directory, target_name)
         load_extconf full_path

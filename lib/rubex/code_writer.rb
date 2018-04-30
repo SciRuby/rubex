@@ -24,6 +24,11 @@ module Rubex
       new_line
     end
 
+    def write_include file_name
+      @code << "#include \"#{file_name}.h\""
+      new_line
+    end
+
     def colon
       @code << ";"
       new_line
