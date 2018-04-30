@@ -127,7 +127,45 @@ gem install rubex
 
 # Usage
 
-Installing the gem will also install the `rubex` binary. You can now write a Rubex file (with a `.rubex` file extension) and compile it into C code with:
+Installing the gem will also install the `rubex` binary. You can now write a Rubex file (with a `.rubex` file extension) and compile it into C code using the following commands.
+
+## Commands
+
+#### Generate
+
+Create all the necessary files for the C extension.
+
+```
+rubex generate file_name.rubex
+```
+
+```
+Options
+  -f, [--force]            # replace existing files and directories
+  -d, [--dir=DIR]          # specify a directory for generating files
+  -i, [--install]          # automatically run install command after generating Makefile
+  -g, [--debug]            # enable debugging symbols when compiling with GCC
+```
+
+#### Install
+
+Run the `make` utility on generated files.
+
+```
+rubex install path/to/generated/directory
+```
+
+#### Help
+
+Describe available commands or one specific command
+
+```
+rubex help [COMMAND]
+```
+
+## Manual Usage
+If you want to manually generate the files, you can do that with:
+
 ```
 rubex file_name.rubex
 ```
