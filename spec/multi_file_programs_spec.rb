@@ -5,24 +5,31 @@ describe Rubex do
 
   context "Case: #{test_case}" do
     before do
-      @path = path_str test_case
+      @dir = dir_str test_case
+      @t_dir = @dir + "/#{test_case}"
+      @main_file = path_str test_case
+      @file_names = ["a.rubex", "b.rubex", "multi_file_programs.rubex"]
     end
 
     context ".ast" do
       it "generates the AST" do
-        t = Rubex::Compiler.ast(@path + '.rubex')
+        t = Rubex::Compiler.ast(@main_file + '.rubex', source_dir: @dir)
       end
     end
 
     context ".compile" do
       it "compiles to valid C file" do
-        t,c,e = Rubex::Compiler.compile(@path + '.rubex', test: true)
+        t,c,e = Rubex::Compiler.compile(@main_file + '.rubex', files: @file_names,
+                                        source_dir: @dir, test: true, multi_file: true,
+                                        target_dir: @t_dir)
       end
     end
 
-    context "Black box testing" do
+    context "black box testing", hell: true do
       it "compiles and checks for valid output" do
-        setup_and_teardown_compiled_files(test_case) do |dir|
+        setup_and_teardown_multiple_compiled_files(
+          @main_file + '.rubex', @dir, @t_dir, @file_names) do |dir|
+          
           require_relative "#{dir}/#{test_case}.#{os_extension}"
           expect(C.new("hello ruby").bar).to eq("hello ruby")
           expect(D.new("ruby ").foo).to eq("ruby hello world")
@@ -31,3 +38,4 @@ describe Rubex do
     end
   end
 end
+

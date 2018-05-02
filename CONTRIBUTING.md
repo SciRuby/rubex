@@ -83,6 +83,14 @@ stmts that can be defined inside other functions/blocks:
   - ruby/c methods.
   - c bindinds.
 
+## Multi file programs
+
+When specifying mutliple rubex files using rake tasks or the command line, rubex will read
+the name of the main file, find the main file and start compiling that first. Whatever
+
+Since above approach does not really require user to specify all the files at compile time,
+the 'files' option is only useful when the user is only running the Rubex compiler and not
+generating any binaries.
 
 # Important data representations
 

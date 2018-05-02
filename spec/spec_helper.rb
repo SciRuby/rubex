@@ -33,7 +33,7 @@ def generate_shared_object test_case, example=nil
   path = path_str test_case, example
   dir = dir_str test_case, example
 
-  Rubex::Compiler.compile(path + '.rubex', directory: dir)
+  Rubex::Compiler.compile(path + '.rubex', target_dir: dir)
   Dir.chdir(dir) do
     `ruby extconf.rb`
     `make`
@@ -44,7 +44,9 @@ def delete_generated_files test_case, example=nil
   dir = dir_str test_case, example
   test_case = example if example
   Dir.chdir(dir) do
-    FileUtils.rm(Dir.glob("#{test_case}.{c,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true)
+    FileUtils.rm(
+      Dir.glob("*.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"],
+      force: true)
   end
 end
 
@@ -58,10 +60,22 @@ def setup_and_teardown_compiled_files test_case, example=nil, &block
   end
 end
 
+def setup_and_teardown_multiple_compiled_files test_case, source_dir, t_dir, files, &block
+  Rubex::Compiler.compile(test_case, source_dir: source_dir, files: files,
+                          target_dir: t_dir, make: true)
+  begin
+    block.call(t_dir)
+  ensure
+    Dir.chdir(t_dir) do
+      FileUtils.rm(
+        Dir.glob("#{t_dir}/*.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true)
+    end
+  end
+end
+
 def expect_compiled_code code, path
   expect(code.to_s).to eq(File.read(path))
 end
-
 
 def detect_os
   @os ||= (

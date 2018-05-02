@@ -30,6 +30,7 @@ macros
   ATTACH          /attach/
   BLOCK_GIVEN     /block_given\?/
   NO_GIL          /no_gil/
+  REQUIRE_RUBEX   /require_rubex/
 
   IDENTIFIER      /[a-zA-Z_][a-zA-Z_0-9]*/
   COLON2          /::/
@@ -128,6 +129,7 @@ rules
   # Method hacks
 
   /data\$/                { [:kDATA_VAR, text] }
+  /#{REQUIRE_RUBEX}/       { [:kREQUIRE_RUBEX, text] }
   /#{DOT}#{EACH}/ { [:kDOT_EACH, text] }
 
   # Data Types

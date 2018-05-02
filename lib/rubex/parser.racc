@@ -3,7 +3,7 @@ token
   kDEF kEND kRETURN  kIF    kELSIF    kELSE   kTHEN   kSTATIC_ARRAY kFOR 
   kDOT_EACH kDO     kTRUE   kFALSE    kNIL    kSTRUCT kUNION        kALIAS  kLIB 
   kCFUNC    kSELF   kNULL   kFWD      kATTACH kBREAK  kBLOCK_GIVEN  kBEGIN  kRESCUE
-  kENSURE   kWHILE  kCLASS  kDATA_VAR kNO_GIL
+  kENSURE   kWHILE  kCLASS  kDATA_VAR kNO_GIL kREQUIRE_RUBEX
 
   kDTYPE_UINT   kDTYPE_LINT kDTYPE_LLINT  kDTYPE_CHAR   kDTYPE_I8   kDTYPE_I16
   kDTYPE_I32    kDTYPE_I64  kDTYPE_UI8    kDTYPE_UI16   kDTYPE_UI32 kDTYPE_UI64
@@ -46,7 +46,14 @@ preclow
 rule
 
   program:
-    opt_terms top_compstmts opt_terms { result = Node.new(val[1]) }
+    opt_terms top_compstmts opt_terms
+      {
+        if @is_inside_file_node
+          result = Node::FileNode.new(val[1], @file_name)
+        else
+          result = Node::MainNode.new(val[1], @file_name)
+        end      
+      }
 
   top_compstmts:
     top_compstmt { result = [val[0]] }
@@ -54,6 +61,10 @@ rule
 
   top_compstmt:
     c_bindings {}
+  | kREQUIRE_RUBEX tLPAREN tSTRING tRPAREN
+      {
+        result = parse_required_file_and_load_ast(val[2])
+      }
   | top_stmts terms { result = val[0] }
 
   top_stmts:
@@ -780,12 +791,22 @@ include Rubex::Helpers
 
 attr_reader :lineno, :location, :string
 
-def parse file_name
+# Invoke an instance of the  lexer and set various state variables like the lexer
+#   In order to perform the actual parsing you need to also call the do_parse method
+#   on the Racc::Parser object.
+#
+# @param path [String] path of the rubex file to compile.
+# @param source_dir [String] Source directory in case of multi-file program.
+# @param is_inside_file_node [Boolean] Whether this file is within a main file or not.
+def parse path, source_dir, is_inside_file_node
   @lexer = Rubex::Lexer.new
   @yydebug = true
   @custom_dtypes = {}
   @prev_token = nil
-  @lexer.parse_file file_name
+  @source_dir = source_dir
+  @is_inside_file_node = is_inside_file_node
+  @file_name = File.basename(path, ".rubex")
+  @lexer.parse_file path
 end
 
 def set_location
@@ -999,3 +1020,21 @@ def force_into_func_ptr_internal_args data
     Expression::FuncPtrInternalArgDeclaration.new(arg.data_hash)
   end 
 end
+
+# Parse the file given by file_name using this parser and return a FileNode
+#   object that will be placed in the statements of the MainNode or other
+#   FileNode(s).
+def parse_required_file_and_load_ast file_name
+  file_name += ".rubex" if File.extname(file_name) == ""
+  full_name = @source_dir + "/" + file_name
+  if !Dir[@source_dir + "/*"].include?(full_name)
+    raise Rubex::FileNotFoundError,
+          "cannot find file #{file_name} in #{@source_dir}"
+  end
+  Rubex::Compiler::CONFIG.add_dep(File.basename(file_name).split('.')[0])
+  parser = Rubex::Parser.new
+  parser.parse(full_name, @source_dir, true)
+  file_node_ast = parser.do_parse
+  file_node_ast
+end
+
