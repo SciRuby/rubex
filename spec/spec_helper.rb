@@ -45,7 +45,7 @@ def delete_generated_files test_case, example=nil
   test_case = example if example
   Dir.chdir(dir) do
     FileUtils.rm(
-      Dir.glob("#{test_case}.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"],
+      Dir.glob("*.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"],
       force: true)
   end
 end
@@ -66,10 +66,10 @@ def setup_and_teardown_multiple_compiled_files test_case, source_dir, t_dir, fil
   begin
     block.call(t_dir)
   ensure
-    # Dir.chdir(t_dir) do
-    #   FileUtils.rm(
-    #     Dir.glob("#{t_dir}/*.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true)
-    # end
+    Dir.chdir(t_dir) do
+      FileUtils.rm(
+        Dir.glob("#{t_dir}/*.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true)
+    end
   end
 end
 

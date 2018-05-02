@@ -21,9 +21,7 @@ module Rubex
           @name = name
           @ancestor = ancestor
           @statements = statements
-
           @ancestor = 'Object' if @ancestor.nil?
-          puts ">>> #{@name} #{@ancestor}"
         end
 
         def analyse_statement(local_scope, attach_klass: false)

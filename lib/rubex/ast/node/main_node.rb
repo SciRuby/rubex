@@ -17,6 +17,7 @@ module Rubex
           end
           @scope = Rubex::SymbolTable::Scope::Klass.new('Object', nil)
           add_top_statements_to_object_scope
+          create_symtab_entries_for_top_statements(@scope)
           analyse_statement
           rescan_declarations @scope
           generate_common_utils_files supervisor
@@ -47,7 +48,7 @@ module Rubex
           code_writer = supervisor.code(@file_name)
           code_writer.write_include @file_name
           generate_code supervisor
-          generate_init_method @file_name, code_writer
+          generate_init_method code_writer
         end
       end
     end

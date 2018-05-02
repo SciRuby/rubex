@@ -5,8 +5,7 @@ module Rubex
       #   Takes the Object scope from the MainNode or other FileNode objects and
       #   uses that for storing any symbols that it encounters.
       class FileNode < Base
-        def analyse_statement(object_scope)
-          @scope = object_scope
+        def analyse_statement(_local_scope)
           add_top_statements_to_object_scope
           super()
           rescan_declarations @scope
@@ -18,7 +17,7 @@ module Rubex
           code_writer.write_include @file_name
           generate_header_file @file_name, supervisor.header(@file_name)
           super
-          generate_init_method @file_name, code_writer
+          generate_init_method code_writer
         end
       end
     end

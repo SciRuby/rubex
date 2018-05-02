@@ -9,6 +9,7 @@ module Rubex
         def initialize(statements, file_name)
           @statements = statements.flatten
           @file_name = file_name
+          @dependent_files = []
         end
 
         def ==(other)
@@ -16,9 +17,9 @@ module Rubex
         end
 
         def analyse_statement
-          create_symtab_entries_for_top_statements
           @statements.each do |stat|
-            stat.analyse_statement @scope
+          @dependent_files << stat.file_name if stat.is_a?(Node::FileNode)
+          stat.analyse_statement @scope         
           end
           @outside_statements.each do |stmt|
             stmt.analyse_statement @scope
@@ -95,6 +96,8 @@ module Rubex
             write_user_klasses header
             write_global_variable_declarations header
             write_function_declarations header
+            header.write_func_declaration type: 'void', c_name: init_function,
+                                          args: [], static: false
           end
         end
 
@@ -143,8 +146,10 @@ module Rubex
           end
         end
 
-        def create_symtab_entries_for_top_statements
+        def create_symtab_entries_for_top_statements(s)
+          @scope = s
           @statements.each do |stat|
+            stat.create_symtab_entries_for_top_statements(@scope) if stat.is_a?(Node::FileNode)
             next unless stat.is_a? Rubex::AST::TopStatement::Klass
             name = stat.name
             # The top level scope in Ruby is Object. The Object class's immediate
@@ -153,7 +158,6 @@ module Rubex
             # the same scope object is used for 'Object' class every single time
             # throughout the compilation process.
             if name != 'Object'
-              #binding.pry if name == "C"
               ancestor_entry = @scope.find(stat.ancestor)
               if !ancestor_entry && Rubex::DEFAULT_CLASS_MAPPINGS[stat.ancestor]
                 ancestor_c_name = Rubex::DEFAULT_CLASS_MAPPINGS[stat.ancestor]
@@ -211,23 +215,12 @@ module Rubex
           end
         end
 
-        def declare_c_variables_for_classes(code)
-          @statements.each do |top_stmt|
-            if top_stmt.is_a?(TopStatement::Klass) && top_stmt.name != 'Object'
-              entry = @scope.find top_stmt.name
-              code.declare_variable type: 'VALUE', c_name: entry.c_name
-            end
-          end
-          code.nl        
-        end
-
         def define_classes(code)
           @statements.each do |top_stmt|
             # define a class
             if top_stmt.is_a?(TopStatement::Klass) && top_stmt.name != 'Object'
               entry = top_stmt.entry
               ancestor_entry = @scope.find top_stmt.ancestor.name
-             # binding.pry if entry.name == "C"
               c_name = ancestor_entry ? ancestor_entry.c_name : 'rb_cObject'
               rhs = "rb_define_class(\"#{entry.name}\", #{c_name})"
               code.init_variable lhs: entry.c_name, rhs: rhs
@@ -268,14 +261,24 @@ module Rubex
             stmt.generate_code(code, @scope)
           end
         end
+
+        def init_function
+          "Init_#{@file_name}"
+        end
+
+        def call_dependent_init_methods(code)
+          @dependent_files.each do |dep|
+            code << "Init_#{dep}();"
+            code.nl
+          end
+        end
         
-        def generate_init_method(target_name, code)
-          name = "Init_#{target_name}"
+        def generate_init_method(code)
+          name = init_function
           code.new_line
-          code.write_func_declaration type: 'void', c_name: name, args: [], static: false
           code.write_c_method_header type: 'void', c_name: name, args: [], static: false
           code.block do
-            declare_c_variables_for_classes(code)
+            call_dependent_init_methods(code)
             write_outside_statements(code)
             define_classes(code)
             define_instance_and_singleton_methods_for_all_classes(code)
