@@ -17,7 +17,7 @@ describe Rubex do
       end
     end
 
-    context ".compile", hell: true do
+    context ".compile" do
       it "compiles to valid C file" do
         t,c,e = Rubex::Compiler.compile(@main_file + '.rubex', files: @file_names,
                                         source_dir: @dir, test: true, multi_file: true,

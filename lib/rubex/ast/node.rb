@@ -79,30 +79,23 @@ module Rubex
 
         def generate_header_file(target_name, header)
           header_def_name = target_name.gsub("/", "_").gsub(".", "_").upcase + "_H"
-          header << "#ifndef #{header_def_name}\n"
-          header << "#define #{header_def_name}\n"
-          header << "#include <ruby.h>\n"
-          header << "#include <stdint.h>\n"
-          header << "#include <stdbool.h>\n"
-          header << "#include <math.h>\n"
-          @scope.include_files.each do |name|
-            header <<
-              if name[0] == '<' && name[-1] == '>'
-                "#include #{name}\n"
-              else
-                "#include \"#{name}\"\n"
-              end
+          header.in_header_guard(header_def_name) do
+            header.write_include Rubex::COMMON_UTILS_FILE
+            @scope.include_files.each do |name|
+              header <<
+                if name[0] == '<' && name[-1] == '>'
+                  "#include #{name}\n"
+                else
+                  "#include \"#{name}\"\n"
+                end
+            end
+            @statements.grep(Rubex::AST::TopStatement::Klass).each do |klass|
+              declare_types header, klass.scope
+            end
+            write_user_klasses header
+            write_global_variable_declarations header
+            write_function_declarations header
           end
-          write_usability_macros header
-          @statements.grep(Rubex::AST::TopStatement::Klass).each do |klass|
-            declare_types header, klass.scope
-          end
-          write_user_klasses header
-          write_global_variable_declarations header
-          write_function_declarations header
-          write_usability_functions header
-          header << "#endif"
-          header.nl
         end
 
         def write_global_variable_declarations(code)
@@ -125,29 +118,6 @@ module Rubex
               code << "VALUE #{klass.c_name};" 
               code.nl
             end
-          end
-        end
-
-        def write_usability_macros(code)
-          code.nl
-          code.c_macro Rubex::RUBEX_PREFIX + 'INT2BOOL(arg) (arg ? Qtrue : Qfalse)'
-          code.nl
-        end
-
-        def write_usability_functions(code)
-          code.nl
-          write_char_2_ruby_str code
-        end
-
-        def write_char_2_ruby_str(code)
-          code << "VALUE #{Rubex::C_FUNC_CHAR2RUBYSTR}(char ch);"
-          code.nl
-          code << "VALUE #{Rubex::C_FUNC_CHAR2RUBYSTR}(char ch)"
-          code.block do
-            code << "char s[2];\n"
-            code << "s[0] = ch;\n"
-            code << "s[1] = '\\0';\n"
-            code << "return rb_str_new2(s);\n"
           end
         end
 
@@ -183,6 +153,7 @@ module Rubex
             # the same scope object is used for 'Object' class every single time
             # throughout the compilation process.
             if name != 'Object'
+              #binding.pry if name == "C"
               ancestor_entry = @scope.find(stat.ancestor)
               if !ancestor_entry && Rubex::DEFAULT_CLASS_MAPPINGS[stat.ancestor]
                 ancestor_c_name = Rubex::DEFAULT_CLASS_MAPPINGS[stat.ancestor]
@@ -256,6 +227,7 @@ module Rubex
             if top_stmt.is_a?(TopStatement::Klass) && top_stmt.name != 'Object'
               entry = top_stmt.entry
               ancestor_entry = @scope.find top_stmt.ancestor.name
+             # binding.pry if entry.name == "C"
               c_name = ancestor_entry ? ancestor_entry.c_name : 'rb_cObject'
               rhs = "rb_define_class(\"#{entry.name}\", #{c_name})"
               code.init_variable lhs: entry.c_name, rhs: rhs

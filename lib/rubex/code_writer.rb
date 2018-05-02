@@ -15,6 +15,17 @@ module Rubex
       @is_header
     end
 
+    def in_header_guard guard, &block
+      if header?
+        @code << "#ifndef #{guard}\n"
+        @code << "#define #{guard}\n"
+        block.call
+        @code << "#endif\n"
+      else
+        raise "file is not a header file."
+      end
+    end
+
     # type - Return type of the method.
     # c_name - C Name.
     # args - Array of Arrays containing data type and variable name.

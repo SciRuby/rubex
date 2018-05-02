@@ -72,6 +72,37 @@ module Rubex
           code.declare_variable type: var.type.to_s, c_name: var.c_name
         end
       end
+
+      def write_usability_macros(code)
+        code.nl
+        code.c_macro Rubex::RUBEX_PREFIX + 'INT2BOOL(arg) (arg ? Qtrue : Qfalse)'
+        code.nl
+      end
+
+      def write_usability_functions_header(header)
+        header.nl
+        write_char_2_ruby_str_header header
+      end
+
+      def write_usability_functions_code(code)
+        code.nl
+        write_char_2_ruby_str_code(code)
+      end
+
+      def write_char_2_ruby_str_header(header)
+        header.nl
+        header << "VALUE #{Rubex::C_FUNC_CHAR2RUBYSTR}(char ch);"
+      end
+
+      def write_char_2_ruby_str_code(code)
+        code << "VALUE #{Rubex::C_FUNC_CHAR2RUBYSTR}(char ch)"
+        code.block do
+          code << "char s[2];\n"
+          code << "s[0] = ch;\n"
+          code << "s[1] = '\\0';\n"
+          code << "return rb_str_new2(s);\n"
+        end
+      end
     end
   end
 end

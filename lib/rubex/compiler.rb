@@ -125,9 +125,11 @@ module Rubex
         FileUtils.rm_rf(path) if force && Dir.exist?(path)
         Dir.mkdir(path) unless Dir.exist?(path)
 
+        write_to_file "#{path}/#{Rubex::COMMON_UTILS_FILE}.h",
+                      supervisor.header(Rubex::COMMON_UTILS_FILE).to_s
         supervisor.files.each do |file|
-          write_to_file "#{path}/#{file}.c", supervisor.code(target_name).to_s
-          write_to_file "#{path}/#{file}.h", supervisor.header(target_name).to_s
+          write_to_file "#{path}/#{file}.c", supervisor.code(file).to_s
+          write_to_file "#{path}/#{file}.h", supervisor.header(file).to_s
         end
         
         write_to_file "#{path}/extconf.rb", ext

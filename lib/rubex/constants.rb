@@ -15,6 +15,9 @@ module Rubex
 
   ACTUAL_ARGS_SUFFIX = "_actual_args"
 
+  COMMON_UTILS_CONST = RUBEX_PREFIX + "_COMMON_UTILS_H"
+  COMMON_UTILS_FILE = RUBEX_PREFIX + "_common_utils_"
+
   TYPE_MAPPINGS = {
     'char'                   => Rubex::DataType::Char,
     'bool'                   => Rubex::DataType::CBoolean,
