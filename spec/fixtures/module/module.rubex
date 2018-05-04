@@ -1,0 +1,28 @@
+module Foo
+  class Bar
+    def initialize
+    end
+
+    def baz
+      return "hello world"
+    end
+  end
+end
+
+module Bar
+  def self.a
+    return "a"
+  end
+
+  def b
+    return "b"
+  end
+end
+
+module Outer
+  module Inner
+    def abc
+      return "abc"
+    end
+  end
+end
