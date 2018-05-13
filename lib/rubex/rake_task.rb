@@ -41,7 +41,7 @@ module Rubex
         desc "Compile a Rubex file into a shared object."
         task :compile do
           file_name = "#{@ext_dir}/#{@name}#{@source_pattern[1..-1]}"
-          Rubex::Compiler.compile file_name, directory: "#{@ext_dir}"
+          Rubex::Compiler.compile file_name, target_dir: "#{@ext_dir}"
         end
       end
       Rake::ExtensionTask.new(@name)

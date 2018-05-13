@@ -54,7 +54,7 @@ describe "rake" do
       Dir.chdir(dir) do
         FileUtils.rm(
           Dir.glob(
-          "#{dir}/#{name}.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true
+          "#{dir}/*.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true
         )
       end
       FileUtils.rmdir(dir)
@@ -74,28 +74,36 @@ describe "rake" do
       Rake::Task.clear
     end
     
-    it "generates the shared object file after compilation" do
-      ext_path = "#{Dir.pwd}/spec/fixtures/rake_task/single_file"
-      name = "test"
-      Rubex::RakeTask.new(name) do
-        ext ext_path
-      end
-      Rake::Task["rubex:compile:install"].invoke
+    context "for single file" do
+      it "generates the shared object file after compilation" do
+        ext_path = "#{Dir.pwd}/spec/fixtures/rake_task/single_file"
+        name = "test"
+        Rubex::RakeTask.new(name) do
+          ext ext_path
+        end
+        Rake::Task["rubex:compile:install"].invoke
 
-      expect(File.exist?("#{ext_path}/#{name}/#{name}.c")).to eq(true)
-      expect(File.exist?("#{ext_path}/#{name}/extconf.rb")).to eq(true)
-      expect(File.exist?("#{ext_path}/#{name}/#{name}.so")).to eq(true)
+        expect(File.exist?("#{ext_path}/#{name}/#{name}.c")).to eq(true)
+        expect(File.exist?("#{ext_path}/#{name}/extconf.rb")).to eq(true)
+        expect(File.exist?("#{ext_path}/#{name}/#{name}.so")).to eq(true)
 
-      # delete generated files
-      dir = "#{ext_path}/#{name}"
-      Dir.chdir(dir) do
-        FileUtils.rm(
-          Dir.glob(
-          "#{dir}/#{name}.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"],
-          force: true
-        )
+        # delete generated files
+        dir = "#{ext_path}/#{name}"
+        Dir.chdir(dir) do
+          FileUtils.rm(
+            Dir.glob(
+            "#{dir}/#{name}.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"],
+            force: true
+          )
+        end
+        FileUtils.rmdir(dir)
       end
-      FileUtils.rmdir(dir)
+    end
+
+    context "for multi file" do
+      skip "generates .so file after compilation" do
+        # TODO
+      end
     end
   end
 end
