@@ -46,7 +46,7 @@ describe "rake", hell: true do
       end
       Rake::Task["rubex:compile"].invoke
 
-      build_path = "#{ext_path}/#{name}/build"
+      build_path = "#{ext_path}/#{name}"
       expect(File.exist?("#{build_path}/#{name}.c")).to eq(true)
       expect(File.exist?("#{build_path}/extconf.rb")).to eq(true)
 
@@ -69,12 +69,12 @@ describe "rake", hell: true do
     end
   end
 
-  context "rake:clobber" do
+  context "rake:clobber", focus: :hell do
     before do
       Rake::Task.clear
     end
 
-    it "clobbers generated files inside build/ directory." do
+    it "clobbers generated files." do
       ext_path = "#{Dir.pwd}/spec/fixtures/rake_task/single_file"
       name = "test"
       Rubex::RakeTask.new(name) do
@@ -83,8 +83,8 @@ describe "rake", hell: true do
       Rake::Task["rubex:compile"].invoke
       Rake::Task["rubex:clobber"].invoke
 
-      expect(!File.exist?("#{ext_path}/#{name}/build/#{name}.c")).to eq(true)
-      expect(!File.exist?("#{ext_path}/#{name}/build/extconf.rb")).to eq(true)
+      expect(!File.exist?("#{ext_path}/#{name}/#{name}.c")).to eq(true)
+      expect(!File.exist?("#{ext_path}/#{name}/extconf.rb")).to eq(true)
     end
   end
 

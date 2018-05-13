@@ -27,8 +27,6 @@ module Rubex
       #    programs.
       # @param files [Array[String]] nil An Array specifying the file names to
       #   compile w.r.t the source_dir directory.
-      # @param invoker [Symbol] nil Determines whether the invoker is a command line
-      #   program or a rake task. Affect build directory for rake task.
       #
       # TODO: The path can be relative to the source_dir if source_dir is specified.
       def compile path,
@@ -39,8 +37,7 @@ module Rubex
                   make: false,
                   debug: false,
                   source_dir: nil,
-                  files: nil,
-                  invoker: nil
+                  files: nil
         CONFIG.flush
         CONFIG.debug = debug
         CONFIG.add_link "m" # link cmath libraries
@@ -57,9 +54,8 @@ module Rubex
         elsif test && multi_file
           return [tree, supervisor, ext]
         end
-        write_files target_name, supervisor, ext, target_dir: target_dir, force: force,
-                    invoker: invoker
-        full_path = build_path(target_dir, target_name, invoker: invoker)
+        write_files target_name, supervisor, ext, target_dir: target_dir, force: force
+        full_path = build_path(target_dir, target_name)
         load_extconf full_path
         run_make full_path if make
       end
@@ -124,12 +120,10 @@ module Rubex
       # @param directory [String] nil Target directory in which files are to be placed.
       # @param force [Boolean] false Recreate the target directory and rewrite the
       #   files whether they are already present or not.
-      # @param invoker [Symbol|NilClass] nil Determines the build directory based on whether
-      #   it being invoked by a rake task or cmd.
-      def write_files target_name, supervisor, ext, target_dir: nil, force: false, invoker: nil
-        path = build_path(target_dir, target_name, invoker: invoker)
+      def write_files target_name, supervisor, ext, target_dir: nil, force: false
+        path = build_path(target_dir, target_name)
         FileUtils.rm_rf(path) if force && Dir.exist?(path)
-        FileUtils.mkdir_p(path) unless Dir.exist?(path)
+        Dir.mkdir(path) unless Dir.exist?(path)
 
         write_to_file "#{path}/#{Rubex::COMMON_UTILS_FILE}.h",
                       supervisor.header(Rubex::COMMON_UTILS_FILE).to_s
@@ -158,14 +152,10 @@ module Rubex
       #
       # @param directory [String] The directory inside which this build path will exist.
       # @param target_name [String] Name of the folder inside the directory.
-      # @param invoker [Symbol|NilClass] nil The calling program. Can be :rake or :cmd.      
-      def build_path directory, target_name, invoker: nil
+      def build_path directory, target_name
         directory = (directory ? directory.to_s : Dir.pwd)
        unless directory.end_with?(target_name)
          directory += "/#{target_name}"
-         if invoker == :rake
-           directory += "/build"
-         end
        end
         directory
       end
