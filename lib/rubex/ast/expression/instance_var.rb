@@ -8,10 +8,12 @@ module Rubex
 
         def analyse_types(local_scope)
           @type = DataType::RubyObject.new
+          @has_temp = true
         end
 
         def generate_evaluation_code(code, local_scope)
-          @c_code = "rb_iv_get(#{local_scope.self_name}, \"#{@name}\")"
+          code << "#{@c_code} = rb_iv_get(#{local_scope.self_name}, \"#{@name}\");"
+          code.nl
         end
 
         def generate_assignment_code(rhs, code, local_scope)

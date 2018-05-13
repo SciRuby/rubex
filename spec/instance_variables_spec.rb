@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Rubex, hell: true do
+describe Rubex do
   test_case = "instance_variables"
 
   context "Case: #{test_case}" do
