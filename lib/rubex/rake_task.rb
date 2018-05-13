@@ -41,7 +41,19 @@ module Rubex
         desc "Compile a Rubex file into a shared object."
         task :compile do
           file_name = "#{@ext_dir}/#{@name}#{@source_pattern[1..-1]}"
-          Rubex::Compiler.compile file_name, target_dir: "#{@ext_dir}"
+          Rubex::Compiler.compile file_name, target_dir: "#{@ext_dir}", invoker: :rake
+        end
+
+        desc "Delete all generated files inside build/ folder."
+        task :clobber do
+          path = "#{@ext_dir}/#{@name}/build"
+          Dir.chdir(path) do
+            FileUtils.rm(
+              Dir.glob(
+              "#{path}/*.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true
+            )
+          end
+          FileUtils.rmdir(path)
         end
       end
       Rake::ExtensionTask.new(@name)

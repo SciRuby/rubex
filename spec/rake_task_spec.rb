@@ -32,7 +32,7 @@ describe Rubex::RakeTask do
   end
 end
 
-describe "rake" do
+describe "rake", hell: true do
   context "rubex:compile" do
     before do
       Rake::Task.clear
@@ -46,18 +46,18 @@ describe "rake" do
       end
       Rake::Task["rubex:compile"].invoke
 
-      expect(File.exist?("#{ext_path}/#{name}/#{name}.c")).to eq(true)
-      expect(File.exist?("#{ext_path}/#{name}/extconf.rb")).to eq(true)
+      build_path = "#{ext_path}/#{name}/build"
+      expect(File.exist?("#{build_path}/#{name}.c")).to eq(true)
+      expect(File.exist?("#{build_path}/extconf.rb")).to eq(true)
 
       # delete generated files
-      dir = "#{ext_path}/#{name}"
-      Dir.chdir(dir) do
+      Dir.chdir(build_path) do
         FileUtils.rm(
           Dir.glob(
-          "#{dir}/*.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true
+          "#{build_path}/*.{c,h,so,o,bundle,dll}") + ["Makefile", "extconf.rb"], force: true
         )
       end
-      FileUtils.rmdir(dir)
+      FileUtils.rmdir(build_path)
     end
 
     it "compiles a multiple file program" do
@@ -66,6 +66,25 @@ describe "rake" do
         files ["a.rubex", "test.rubex"]
       end
       Rake::Task["rubex:compile"].invoke      
+    end
+  end
+
+  context "rake:clobber" do
+    before do
+      Rake::Task.clear
+    end
+
+    it "clobbers generated files inside build/ directory." do
+      ext_path = "#{Dir.pwd}/spec/fixtures/rake_task/single_file"
+      name = "test"
+      Rubex::RakeTask.new(name) do
+        ext ext_path
+      end
+      Rake::Task["rubex:compile"].invoke
+      Rake::Task["rubex:clobber"].invoke
+
+      expect(!File.exist?("#{ext_path}/#{name}/build/#{name}.c")).to eq(true)
+      expect(!File.exist?("#{ext_path}/#{name}/build/extconf.rb")).to eq(true)
     end
   end
 

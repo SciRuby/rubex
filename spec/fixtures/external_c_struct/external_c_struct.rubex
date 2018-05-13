@@ -1,0 +1,16 @@
+lib "<stdio.h>"
+  struct FILE
+  end
+
+  alias FILE = struct FILE
+end
+
+struct hello
+  FILE f
+end
+
+class HelloFile
+  def foo
+    FILE a
+  end
+end
