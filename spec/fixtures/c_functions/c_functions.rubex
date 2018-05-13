@@ -23,3 +23,16 @@ class CFunctions
     
   end
 end
+
+# Try to typecast ruby object to target type when sending to function with a
+#   given type.
+class TypeCast
+  cfunc int bar(char * s, int a, int b)
+    return a + b
+  end
+
+  def foo(i, j)
+    s = "hello world!"
+    return bar(s,i,j)
+  end
+end

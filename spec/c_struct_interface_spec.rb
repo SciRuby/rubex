@@ -15,13 +15,14 @@ describe Rubex do
       end
     end
 
-    context ".compile" do
+    context ".compile", hell: true do
       it "generates valid C code" do
         t, c, e = Rubex::Compiler.compile @path + ".rubex", test: true
+        puts c
       end
     end
 
-    context "Black Box testing" do
+    context "Black Box testing", hell: true do
       it "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.#{os_extension}"
@@ -31,6 +32,7 @@ describe Rubex do
           expect(m.artist).to eq("Animals as Leaders")
           expect(m.title) .to eq("CAFO")
           expect(m.id)    .to eq(id)
+          expect(m.id_i)  .to eq(id + 1)
         end
       end
     end

@@ -9,12 +9,12 @@ module Rubex
         def analyse_types(local_scope)
           @args.analyse_types local_scope
           @args.allocate_temps local_scope
-          @args.release_temps local_scope
           unless @args.empty? || @args[0].is_a?(AST::Expression::Name) ||
                  @args[0].is_a?(AST::Expression::Literal::StringLit)
             raise Rubex::TypeMismatchError, "Wrong argument list #{@args.inspect} for raise."
           end
           @subexprs = [@args]
+          @args.release_temps local_scope
         end
 
         def generate_evaluation_code(code, local_scope)

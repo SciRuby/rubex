@@ -31,4 +31,12 @@ class Music attach mp3info
   def id
     return data$.mp3info.id
   end
+
+  cfunc int inc_id
+    return (data$.mp3info.id + 1)
+  end
+  
+  def id_i
+    return inc_id
+  end
 end

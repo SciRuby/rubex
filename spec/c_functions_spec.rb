@@ -28,6 +28,8 @@ describe Rubex do
           c = CFunctions.new
           expect(c.pure_ruby_method).to eq(50)
           expect { c.first_c_function(1,2) }.to raise_error(NoMethodError)
+
+          expect(TypeCast.new.foo(5,5)).to eq(10)
         end
       end
     end
