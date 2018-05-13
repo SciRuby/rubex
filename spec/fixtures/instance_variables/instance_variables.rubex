@@ -17,6 +17,9 @@ class ToChar
   def bar
     char * b
     b = @foo
+
+    char * c = @foo
+    
     return b
   end
 end

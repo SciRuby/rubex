@@ -17,7 +17,9 @@ module Rubex
           @type = Helpers.determine_dtype @type, @ptr_level
           if @value
             @value.analyse_for_target_type(@type, local_scope)
+            @value.allocate_temps(local_scope)
             @value = Helpers.to_lhs_type(self, @value)
+            @value.release_temps(local_scope)
           end
 
           @entry = local_scope.declare_var name: @name, c_name: @c_name,
