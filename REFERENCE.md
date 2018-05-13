@@ -2,59 +2,63 @@
 
 Rubex is a language designed to keep you happy even when writing C extension.
 
-# Table of Contents
-<!-- MarkdownTOC autolink="true" bracket="round" depth="3"-->
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
+**Table of Contents**
 
+- [Rubex (RUBy EXtension Language)](#rubex-ruby-extension-language)
+- [Table of Contents](#table-of-contents)
 - [Comments](#comments)
 - [C data types](#c-data-types)
-  - [Primitive data types](#primitive-data-types)
-  - [C struct, union and enum](#c-struct-union-and-enum)
-    - [Forward declarations](#forward-declarations)
-  - [Pointers](#pointers)
+    - [Primitive data types](#primitive-data-types)
+    - [C struct, union and enum](#c-struct-union-and-enum)
+        - [Forward declarations](#forward-declarations)
+    - [Pointers](#pointers)
 - [Ruby Objects](#ruby-objects)
 - [Literals](#literals)
-  - [Integer](#integer)
-  - [Float](#float)
-  - [Character](#character)
-  - [String](#string)
-  - [Ruby Literals](#ruby-literals)
-    - [Ruby Symbol](#ruby-symbol)
-    - [Ruby Array](#ruby-array)
-    - [Ruby Hash](#ruby-hash)
+    - [Integer](#integer)
+    - [Float](#float)
+    - [Character](#character)
+    - [String](#string)
+    - [Ruby Literals](#ruby-literals)
+        - [Ruby Symbol](#ruby-symbol)
+        - [Ruby Array](#ruby-array)
+        - [Ruby Hash](#ruby-hash)
 - [C Functions and Ruby Methods](#c-functions-and-ruby-methods)
 - [Ruby Constants](#ruby-constants)
 - [The print statement](#the-print-statement)
 - [Loops](#loops)
-  - [The while loop](#the-while-loop)
-  - [The for loop](#the-for-loop)
+    - [The while loop](#the-while-loop)
+    - [The for loop](#the-for-loop)
 - [Conditionals](#conditionals)
-  - [Important Note](#important-note)
+    - [Important Note](#important-note)
 - [Interfacing C libraries with lib](#interfacing-c-libraries-with-lib)
-  - [Basic Usage](#basic-usage)
-  - [Supported declarations](#supported-declarations)
-    - [Functions](#functions)
-    - [Variables](#variables)
-    - [Macros](#macros)
-    - [Types](#types)
-    - [Typedefs](#typedefs)
-  - [Linking Libraries](#linking-libraries)
-  - [Ready-to-use C functions](#ready-to-use-c-functions)
-    - [Filename: "rubex/ruby"](#filename-rubexruby)
-    - [Filename: "rubex/ruby/encoding"](#filename-rubexrubyencoding)
-    - [Filename: "rubex/stdlib"](#filename-rubexstdlib)
+    - [Basic Usage](#basic-usage)
+    - [Supported declarations](#supported-declarations)
+        - [Functions](#functions)
+        - [Variables](#variables)
+        - [Macros](#macros)
+        - [Types](#types)
+        - [Typedefs](#typedefs)
+    - [Linking Libraries](#linking-libraries)
+    - [Ready-to-use C functions](#ready-to-use-c-functions)
+        - [Filename: "rubex/ruby"](#filename-rubexruby)
+        - [Filename: "rubex/ruby/encoding"](#filename-rubexrubyencoding)
+        - [Filename: "rubex/stdlib"](#filename-rubexstdlib)
 - [Exception Handling](#exception-handling)
 - ['Attach' Classes](#attach-classes)
-  - [The attach keyword](#the-attach-keyword)
-  - [The data$ variable](#the-data-variable)
-  - [Special C functions in attach classes](#special-c-functions-in-attach-classes)
-    - [deallocate](#deallocate)
-    - [allocate](#allocate)
-    - [memcount](#memcount)
-    - [get_struct](#getstruct)
-    - [gc_mark](#gcmark)
+    - [The attach keyword](#the-attach-keyword)
+    - [The data$ variable](#the-data-variable)
+    - [Special C functions in attach classes](#special-c-functions-in-attach-classes)
+        - [deallocate](#deallocate)
+        - [allocate](#allocate)
+        - [memcount](#memcount)
+        - [get_struct](#getstruct)
+        - [gc_mark](#gcmark)
 - [Typecast](#typecast)
 - [Alias](#alias)
 - [Conversions between Ruby and C data](#conversions-between-ruby-and-c-data)
+- [Releasing the Global Interpreter Lock](#releasing-the-global-interpreter-lock)
+- [Multi-file rubex programs](#multi-file-rubex-programs)
 - [C callbacks](#c-callbacks)
 - [Inline C](#inline-c)
 - [Handling Strings](#handling-strings)
@@ -62,7 +66,7 @@ Rubex is a language designed to keep you happy even when writing C extension.
 - [Differences from Ruby](#differences-from-ruby)
 - [Limitations](#limitations)
 
-<!-- /MarkdownTOC -->
+<!-- markdown-toc end -->
 
 # Comments
 
@@ -681,7 +685,43 @@ end
 
 # Conversions between Ruby and C data
 
-Rubex will implicitly convert most primitive C types like `char`, `int` and `float` to their equivalent Ruby types and vice versa. However, types conversions for user defined types like structs and unions are not supported.
+Rubex will implicitly convert most primitive C types like `char`, `int` and `float`
+to their equivalent Ruby types and vice versa. However, types conversions for user
+defined types like structs and unions are not supported.
+
+# Releasing the Global Interpreter Lock
+
+Rubex can release the GIL a very simple `no_gil` construct. Some care must be taken when
+using other functions inside this block. As a rule you cannot use any Ruby objects
+inside a `no_gil` block. All data handling must be done _only_ by C data types.
+
+Functions that are called inside the `no_gil` block cannot use any Ruby objects either, and
+must be tagged using the `no_gil` keyword. This will ensure that Rubex checks for Ruby
+objects inside these functions and raises an error if you accidentally use Ruby objects. Note
+that these checks are not exhaustive and the user should be careful.
+
+Here's an example of using a `no_gil` block from a Ruby method:
+``` ruby
+cfunc void _work_without_gil(double n) no_gil
+  while n > 0 do
+    n ** 0.5 + 4
+    n -= 1
+  end
+end
+
+def work_without_gil(n)
+  double i = n
+  no_gil
+    _work_without_gil(i)
+  end
+
+  return i
+end
+```
+
+# Multi-file rubex programs
+
+
 
 # C callbacks
 
