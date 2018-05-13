@@ -32,7 +32,7 @@ describe Rubex::RakeTask do
   end
 end
 
-describe "rake", hell: true do
+describe "rake" do
   context "rubex:compile" do
     before do
       Rake::Task.clear
@@ -69,7 +69,7 @@ describe "rake", hell: true do
     end
   end
 
-  context "rake:clobber", focus: :hell do
+  context "rake:clobber" do
     before do
       Rake::Task.clear
     end

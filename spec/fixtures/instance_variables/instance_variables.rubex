@@ -8,3 +8,14 @@ class Test
     return @foo + @bar
   end
 end
+
+class ToChar
+  def initialize(foo)
+    @foo = foo
+  end
+
+  def bar
+    char * b = @foo
+    return b
+  end
+end

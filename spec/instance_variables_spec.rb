@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Rubex do
+describe Rubex, hell: true do
   test_case = "instance_variables"
 
   context "Case: #{test_case}" do
@@ -25,6 +25,7 @@ describe Rubex do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.#{os_extension}"
           expect(Test.new("hello", " ruby").addition).to eq("hello ruby")
+          expect(ToChar.new("hello").bar).to eq("hello")
         end
       end
     end
