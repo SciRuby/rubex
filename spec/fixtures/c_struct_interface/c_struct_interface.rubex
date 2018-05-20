@@ -41,3 +41,22 @@ class Music attach mp3info
     return inc_id()
   end
 end
+
+struct test
+  int *a
+end
+
+class A attach test
+  cfunc void allocate
+    data$.test.a = <int*>xmalloc(sizeof(int)*100)
+  end
+
+  def foo
+    data$.test.a[3] = 55
+    return data$.test.a
+  end
+
+  cfunc void deallocate
+    xfree(data$.test.a)
+  end
+end
