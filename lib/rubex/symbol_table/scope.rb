@@ -270,11 +270,14 @@ module Rubex
         def upgrade_symbols_to_global
           @block_entries.uniq!
           @block_entries.each do |entry|
-            entry.c_name = Rubex::GLOBAL_PREFIX + @name + entry.c_name
             @outer_scope.global_entries << entry
           end
 
           remove_global_from_local_entries
+          
+          @outer_scope.global_entries.each do |entry| 
+            entry.c_name = Rubex::GLOBAL_PREFIX + @name + entry.c_name
+          end
         end
 
         # IMPORTANT NOTE TO PROGRAMMER:
@@ -306,7 +309,7 @@ module Rubex
         # of @outer_scope get carried forward into this begin block callback.
         # Therefore these variables get declared inside the begin block callback
         # as well. So whenever one of these Arrays is called for this particular
-        # scope, we return an empty array so that nothing gets declared.
+        # scope, we preturn an empty array so that nothing gets declared.
         def method_missing meth, *args, &block
           return [] if meth == :var_entries
           ret = @outer_scope.send(meth, *args, &block)
