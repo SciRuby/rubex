@@ -132,7 +132,7 @@ module Rubex
         def member_struct_allocations
           c_name = @scope.find(@attached_type).c_name
           binding.pry
-          data->#{Rubex::POINTER_PREFIX + @attached_type} = (#{c_name}*)xmalloc(sizeof(#{c_name}));\n"
+         "data->#{Rubex::POINTER_PREFIX + @attached_type} = (#{c_name}*)xmalloc(sizeof(#{c_name}));\n"
         end
 
         # Actually write the dealloc function into C code.
