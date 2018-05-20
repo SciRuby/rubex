@@ -17,13 +17,13 @@ module Rubex
 
         def analyse_statement(outer_scope)
           super(outer_scope, attach_klass: true)
-          prepare_data_holding_struct
+          prepare_data_holding_struct!
           prepare_rb_data_type_t_struct
           detach_and_modify_auxillary_c_functions_from_statements
           add_auxillary_functions_to_klass_scope
           prepare_auxillary_c_functions
           @statements[1..-1].each do |stmt| # 0th stmt is the data struct
-            if ruby_method_or_c_func?(stmt)
+            if ruby_method_or_c_func_without_gil_lock?(stmt)
               rewrite_method_with_data_fetching stmt
             end
             stmt.analyse_statement @scope
@@ -198,7 +198,7 @@ module Rubex
 
         # Prepare the data holding struct 'data' that will hold a pointer to the
         #   struct that is attached to this class.
-        def prepare_data_holding_struct
+        def prepare_data_holding_struct!
           struct_name = @name + '_data_struct'
           declarations = declarations_for_data_struct
           @data_struct = Statement::CStructOrUnionDef.new(
@@ -230,8 +230,8 @@ module Rubex
           prepare_get_struct_c_function
         end
 
-        def ruby_method_or_c_func?(stmt)
-          stmt.is_a?(RubyMethodDef) || stmt.is_a?(CFunctionDef)
+        def ruby_method_or_c_func_without_gil_lock?(stmt)
+          stmt.is_a?(RubyMethodDef) || (stmt.is_a?(CFunctionDef) && !stmt.no_gil)
         end
 
         # Rewrite method `stmt` so that the `data` variable becomes available

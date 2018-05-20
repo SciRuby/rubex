@@ -1,3 +1,5 @@
+lib "rubex/ruby"; end
+
 cfunc void _work_without_gil(double n) no_gil
   while n > 0 do
     n ** 0.5 + 4
@@ -18,5 +20,23 @@ def work_with_gil(double n)
   while n > 0 do
     n ** 0.5 + 4
     n -= 1
+  end
+end
+
+struct test
+  int a
+end
+
+class A attach test
+  cfunc void __bar no_gil
+    int b
+  end
+  
+  def foo
+    __bar
+  end
+
+  cfunc void deallocate
+    xfree(data$.test)
   end
 end

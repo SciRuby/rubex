@@ -2,20 +2,22 @@ module Rubex
   module AST
     module TopStatement
       class CFunctionDef < MethodDef
-        attr_reader :type, :return_ptr_level
+        attr_reader :type, :return_ptr_level, :no_gil
 
         def initialize(type, return_ptr_level, name, arg_list, function_tags, statements)
           super(name, arg_list, statements)
           @type = type
           @return_ptr_level = return_ptr_level
           @function_tags = function_tags
+          @no_gil = false
+          if @function_tags == "no_gil"
+            @no_gil = true
+          end
         end
 
         def analyse_statement(outer_scope, extern: false)
           super(outer_scope)
-          if @function_tags == "no_gil"
-            @entry.no_gil = true
-          end
+          @entry.no_gil = @no_gil
         end
 
         def generate_code(code)
