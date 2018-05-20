@@ -22,21 +22,3 @@ def work_with_gil(double n)
     n -= 1
   end
 end
-
-struct test
-  int a
-end
-
-class A attach test
-  cfunc void __bar no_gil
-    int b
-  end
-  
-  def foo
-    __bar
-  end
-
-  cfunc void deallocate
-    xfree(data$.test)
-  end
-end

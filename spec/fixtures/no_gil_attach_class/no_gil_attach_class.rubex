@@ -1,0 +1,23 @@
+struct test
+  int a
+end
+
+class A attach test
+  cfunc void __bar(int a) no_gil
+    int b = a
+  end
+  
+  def foo
+    data$.test.a = 4
+
+    no_gil
+      __bar(data$.test.a)
+    end
+
+    return data$.test.a
+  end
+
+  cfunc void deallocate
+    xfree(data$.test)
+  end
+end
