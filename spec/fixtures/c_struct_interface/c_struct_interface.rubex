@@ -37,6 +37,7 @@ class Music attach mp3info
   end
   
   def id_i
-    return inc_id
+    inc_id()  
+    return inc_id()
   end
 end

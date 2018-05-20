@@ -6,10 +6,16 @@ module Rubex
           @entry = local_scope.find(@method_name)
           super
           append_self_argument unless @entry.extern?
-          @arg_list.analyse_types local_scope
+          @type = @entry.type.base_type
+          #puts @method_name
+          if @method_name == "bar"
+            #binding.pry
+          end
+          #@arg_list.analyse_types local_scope
+          @arg_list.analyse_for_target_type @type.arg_list, local_scope
           @arg_list.allocate_temps local_scope
           @arg_list.release_temps local_scope
-          @type = @entry.type.base_type
+
           type_check_arg_types @entry
         end
 

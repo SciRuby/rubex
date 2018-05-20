@@ -3,6 +3,7 @@ module Rubex
     module Expression
       # internal node for converting to ruby object.
       class ToRubyObject < CoerceObject
+        #attr_reader :expr
         attr_reader :type
 
         def initialize(expr)

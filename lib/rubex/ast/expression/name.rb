@@ -47,13 +47,22 @@ module Rubex
               add_as_ruby_method_to_scope local_scope
             end
           end
-          analyse_as_ruby_method(local_scope) if @entry.type.ruby_method?
           assign_type_based_on_whether_wrapped_type
+          analyse_as_ruby_method(local_scope) if @entry.type.ruby_method?
+          analyse_as_c_function(local_scope) if @entry.type.c_function?
           if @name.is_a?(Expression::Base)
             @name.allocate_temps local_scope
             @name.release_temps local_scope
           end
           super
+        end
+
+        def analyse_as_c_function(local_scope)
+          @name = Rubex::AST::Expression::CFunctionCall.new(
+            Expression::Self.new, @name,
+            Expression::ActualArgList.new([])
+          )
+          @name.analyse_types(local_scope)
         end
 
         def generate_evaluation_code(code, local_scope)

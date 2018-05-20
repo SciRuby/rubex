@@ -14,7 +14,7 @@ module Rubex
 
         # If the typecast exists, the typecast is made the overall type of
         # the expression.
-        def analyse_types local_scope
+        def analyse_types local_scope, extern: false
           if @typecast
             @typecast.analyse_types(local_scope)
             @type = @typecast.type

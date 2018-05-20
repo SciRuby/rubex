@@ -13,14 +13,18 @@ module Rubex
 
         def initialize(operator, expr)
           @operator = operator
-          @expr = expr
+          @expr = OP_CLASS_MAP[@operator].new(expr)
         end
 
         def analyse_types(local_scope)
-          @expr = OP_CLASS_MAP[@operator].new(@expr)
           @expr.analyse_types local_scope
           @type = @expr.type
           super
+        end
+
+        def analyse_for_target_type(target_type, local_scope)
+          @expr.analyse_for_target_type(target_type, local_scope)
+          @type = @expr.type
         end
 
         def generate_evaluation_code(code, local_scope)

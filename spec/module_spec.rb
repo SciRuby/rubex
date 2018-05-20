@@ -9,19 +9,19 @@ describe Rubex do
     end
 
     context ".ast" do
-      it "generates the AST" do
+      skip "generates the AST" do
         t = Rubex::Compiler.ast(@path + '.rubex')
       end
     end
 
     context ".compile" do
-      it "compiles to valid C file" do
+      skip "compiles to valid C file" do
         t,c,e = Rubex::Compiler.compile(@path + '.rubex', test: true)
       end
     end
 
     context "Black Box testing" do
-      it "compiles and checks for valid output" do
+      skip "compiles and checks for valid output" do
         setup_and_teardown_compiled_files(test_case) do |dir|
           require_relative "#{dir}/#{test_case}.#{os_extension}"
 

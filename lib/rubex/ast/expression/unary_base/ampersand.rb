@@ -7,6 +7,11 @@ module Rubex
           @type = DataType::CPtr.new @expr.type
         end
 
+        def analyse_for_target_type(target_type, local_scope)
+          @expr.analyse_for_target_type(target_type, local_scope)
+          @type = DataType::CPtr.new @expr.type
+        end
+        
         def c_code(local_scope)
           "&#{@expr.c_code(local_scope)}"
         end

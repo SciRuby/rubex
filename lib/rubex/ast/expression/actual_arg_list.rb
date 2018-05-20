@@ -27,6 +27,13 @@ module Rubex
           end
         end
 
+        def analyse_for_target_type(arg_list, local_scope)
+          @args.each_with_index do |arg, i|
+            arg.analyse_for_target_type arg_list[i].type, local_scope
+            @subexprs << arg
+          end
+        end
+
         def generate_evaluation_code(code, local_scope)
           @args.each { |a| a.generate_evaluation_code(code, local_scope) }
         end

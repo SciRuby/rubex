@@ -27,6 +27,7 @@ module Rubex
             else
               t
             end
+
           @expression = @expression.to_ruby_object if local_scope.type.type.object?
 
           # TODO: Raise error if type as inferred from the
