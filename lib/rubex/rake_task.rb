@@ -6,6 +6,7 @@ require_relative '../rubex.rb'
 module Rubex
   class RakeTask < ::Rake::TaskLib
     attr_reader :ext_dir, :rubex_files
+    attr_accessor :debug
 
     def initialize name, gem_spec=nil, &block
       @name = name
@@ -15,6 +16,7 @@ module Rubex
       @source_pattern = "*.rubex"
       @compiled_pattern = "*.c"
       @config_script = "extconf.rb"
+      @debug = true
       instance_eval(&block) if block_given?
       define_compile_tasks
     end
@@ -41,7 +43,7 @@ module Rubex
         desc "Compile a Rubex file into a shared object."
         task :compile do
           file_name = "#{@ext_dir}/#{@name}#{@source_pattern[1..-1]}"
-          Rubex::Compiler.compile file_name, target_dir: "#{@ext_dir}"
+          Rubex::Compiler.compile file_name, target_dir: "#{@ext_dir}", debug: @debug
         end
 
         desc "Delete all generated files."

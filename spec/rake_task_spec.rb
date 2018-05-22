@@ -30,6 +30,20 @@ describe Rubex::RakeTask do
       expect(task.ext_dir).to eq(Dir.pwd)
     end
   end
+
+  context "#debug" do
+    before do
+      @task_name = "test"
+    end
+    
+    it "sets debug flag -g during compilation" do
+      task = Rubex::RakeTask.new(@task_name) do
+        debug = true
+      end
+
+      expect(task.debug).to eq(true)
+    end
+  end
 end
 
 describe "rake" do
