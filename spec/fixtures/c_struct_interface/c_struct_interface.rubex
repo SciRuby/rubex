@@ -47,13 +47,13 @@ struct test
 end
 
 class A attach test
-  cfunc void allocate
+  cfunc object allocate
     data$.test.a = <int*>xmalloc(sizeof(int)*100)
   end
 
   def foo
     data$.test.a[3] = 55
-    return data$.test.a
+    return data$.test.a[3]
   end
 
   cfunc void deallocate

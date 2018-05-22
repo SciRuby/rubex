@@ -644,6 +644,25 @@ The `xfree` function, which is the standard memory freeing function provided by 
 
 ### allocate
 
+The `allocate` function is called by the Ruby interpreter before it initializes the class
+using `initialize`. It is here that the C level memory allocations that are assigned to a
+particular class via attached structs should be `xmalloc`'d. The correponding data should be
+freed using `xfree` inside the `deallocate` function that is documented below.
+
+Keep in mind that if you choose to define your own `allocate` function, it must have a return
+type `object`. An example `deallocate` would look like so:
+``` ruby
+struct test
+  int *a
+end
+
+class A attach test
+  cfunc object allocate
+    data$.test.a = <int*>xmalloc(sizeof(int)*100)
+  end
+end
+```
+
 ### memcount
 
 ### get_struct

@@ -53,7 +53,7 @@ module Rubex
         private
 
         def generate_function_definition(code, c_function:)
-          declare_types code, @scope
+          declare_types code, @scope.type_entries
           declare_args code unless c_function
           declare_vars code, @scope
           declare_carrays code, @scope

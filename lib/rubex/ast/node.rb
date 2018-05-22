@@ -78,6 +78,15 @@ module Rubex
           stmt.is_a?(Statement::Expression)
         end
 
+        def declare_unique_types header
+          types = []
+          @statements.grep(Rubex::AST::TopStatement::Klass).each do |klass|
+            types.concat klass.scope.type_entries
+          end
+          types.uniq!
+          declare_types header, types
+        end
+        
         def generate_header_file(target_name, header)
           header_def_name = target_name.gsub("/", "_").gsub(".", "_").upcase + "_H"
           header.in_header_guard(header_def_name) do
@@ -90,9 +99,7 @@ module Rubex
                   "#include \"#{name}\"\n"
                 end
             end
-            @statements.grep(Rubex::AST::TopStatement::Klass).each do |klass|
-              declare_types header, klass.scope
-            end
+            declare_unique_types header
             write_user_klasses header
             write_global_variable_declarations header
             write_function_declarations header

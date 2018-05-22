@@ -17,8 +17,7 @@ describe Rubex do
 
     context ".compile", hell: true do
       it "generates valid C code" do
-        t, c, e = Rubex::Compiler.compile @path + ".rubex", test: true
-        puts c
+        t, c, e, h = Rubex::Compiler.compile @path + ".rubex", test: true
       end
     end
 

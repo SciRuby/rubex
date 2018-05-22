@@ -72,6 +72,7 @@ module Rubex
               if stmt.name == ALLOC_FUNC_NAME
                 @auxillary_c_functions[ALLOC_FUNC_NAME] = stmt
                 @user_defined_alloc = true
+                modify_alloc_func stmt
                 indexes << idx
               elsif stmt.name == DEALLOC_FUNC_NAME
                 @auxillary_c_functions[DEALLOC_FUNC_NAME] = stmt
@@ -90,8 +91,8 @@ module Rubex
             end
           end
 
-          indexes.each do |idx|
-            @statements.delete_at idx
+          @statements.delete_if.with_index do |s, i|
+            indexes.include? i
           end
         end
 
@@ -100,10 +101,22 @@ module Rubex
           write_memcount_c_function code
         end
 
+        # FIXME : change this. its too ugly.
+        def ugly_code_mod_hack code
+          ret = ""
+          ret << 'return TypedData_Wrap_Struct('
+          ret << "#{@alloc_c_func.type.arg_list[0].entry.c_name},"
+          ret << "&#{@data_type_t}, #{Rubex::POINTER_PREFIX}data);\n"
+
+          c = code.instance_variable_get(:@code)
+          c.insert -4, ret
+        end
+        
         # Actually write the alloc function into C code.
-        def write_alloc_c_function(code)
+        def write_alloc_c_function(code)          
           if user_defined_alloc?
             @auxillary_c_functions[ALLOC_FUNC_NAME].generate_code code
+            ugly_code_mod_hack code
           else
             code.write_c_method_header(
               type: @alloc_c_func.type.type.to_s,
@@ -122,7 +135,7 @@ module Rubex
               lines << 'return TypedData_Wrap_Struct('
               lines << "#{@alloc_c_func.type.arg_list[0].entry.c_name},"
               lines << "&#{@data_type_t}, data);\n"
-
+              
               code << lines
             end
           end
@@ -368,6 +381,71 @@ module Rubex
           end
         end
 
+        # In case of user supplied allocate function, add a statement at the
+        #   beginning to declare and obtain the data variable and also add a
+        #   return statement involving TypedDataStruct at the end so that the
+        #   user is freed from needing to write these.
+        def modify_alloc_func(func)
+          stmts = []
+          stmts << data_var_cptr_decl(nil)
+          stmts.concat data_struct_allocations
+          stmts.reverse.each do |s|
+            func.statements.unshift s
+          end
+        end
+
+        # declare a pointer to a data struct.
+        def data_var_cptr_decl(value = nil)
+          Statement::CPtrDecl.new(
+            @data_struct.entry.name, 'data', value, '*', @location)
+        end
+
+        def data_struct_allocations
+          stmts = []
+          # assign malloc for top level data struct
+          rhs = Expression::CommandCall.new(
+            nil, 'xmalloc',
+            Expression::ActualArgList.new(
+              [
+                Expression::SizeOf.new(@data_struct.entry.name, '')
+              ])
+          )
+          rhs.typecast = Expression::Typecast.new(@data_struct.entry.name, '*')
+          assign_data_struct = Statement::Assign.new(
+            Expression::Name.new('data'), rhs, @location
+          )
+
+          stmts << assign_data_struct
+          stmts << xmalloc_inner_struct_member
+          stmts
+        end
+
+        def xmalloc_inner_struct_member
+          t = @scope.find(@attached_type).name
+          lhs = Expression::CommandCall.new(
+            Expression::ElementRef.new(
+              'data',
+              Expression::ActualArgList.new(
+                [
+                  Expression::Literal::Int.new('0')
+                ]
+              )
+            ),
+            t,
+            nil
+          )
+          rhs = Expression::CommandCall.new(
+            nil, 'xmalloc',
+            Expression::ActualArgList.new(
+              [
+                Expression::SizeOf.new(t, '')
+              ]
+            )
+          )
+          rhs.typecast = Expression::Typecast.new(t, '*')
+          Statement::Assign.new(lhs, rhs, @location)
+        end
+        
         # Modify the dealloc function by adding an argument of type void* so
         #   that it is compatible with what Ruby expects. This is done so that
         #   the user is not burdened with additional knowledge of knowing the

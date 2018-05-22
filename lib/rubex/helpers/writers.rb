@@ -29,8 +29,8 @@ module Rubex
         end
       end
 
-      def declare_types(code, scope)
-        scope.type_entries.each do |entry|
+      def declare_types(code, type_entries)
+        type_entries.each do |entry|
           type = entry.type
 
           if type.alias_type?
