@@ -788,14 +788,23 @@ end
 
 # Handling Strings
 
-For purposes of optimization and compatibility with C, Rubex makes certain assumptions about strings. When you assign a Ruby object to a `char*`, Rubex will automatically pass a pointer to the C string contained inside the object to the `char*`, thereby increasing the efficiency of operations on the string. The resulting string is a regular `\0` delimited C string.
+For purposes of optimization and compatibility with C, Rubex makes certain 
+assumptions about strings. When you assign a Ruby object to a `char*`, Rubex
+will automatically pass a pointer to the C string contained inside the object
+to the `char*`, thereby increasing the efficiency of operations on the string.
+The resulting string is a regular `\0` delimited C string.
 
-It should be noted that strings MUST use the double quotation syntax (`""`) and not single quotes in all cases. Single quote is reserved for use by C `char` data. For example, to assign a literal value to a C char, you can write `char a = 'b'`, to assign a literal C string to a `char*` array, use `char* a = "hello"`.
+It should be noted that strings MUST use the double quotation syntax (`""`) and
+not single quotes in all cases. Single quote is reserved for use by C `char` data. 
+For example, to assign a literal value to a C char, you can write `char a = 'b'`, 
+to assign a literal C string to a `char*` array, use `char* a = "hello"`.
 
 # Differences from C
 
-* Rubex does not have dereferencing operator (`*`). Instead use `[0]` to access values pointed to by pointers.
-* There is no `->` operator for accessing struct elements from a pointer to a struct. Use the `.` operator directly.
+* Rubex does not have dereferencing operator (`*`). Instead use `[0]` to access
+values pointed to by pointers.
+* There is no `->` operator for accessing struct elements from a pointer to a struct.
+Use the `.` operator directly.
 
 # Differences from Ruby
 

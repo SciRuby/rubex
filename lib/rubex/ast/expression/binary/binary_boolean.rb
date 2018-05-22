@@ -4,7 +4,7 @@ module Rubex
       class BinaryBoolean < Binary
         def analyse_types(local_scope)
           @left.analyse_types local_scope
-          @right.analyse_types local_scope
+          @right.analyse_for_target_type @left.type, local_scope
           if type_of(@left).object? || type_of(@right).object?
             
             @left = @left.to_ruby_object

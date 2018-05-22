@@ -13,3 +13,13 @@ end
 def string_ret
   return "This is a returned string."
 end
+
+def char_literal
+  char *s = "hello world"
+
+  if (s[0] == 'h')
+    return true
+  else
+    return false
+  end
+end
