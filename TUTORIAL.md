@@ -62,9 +62,11 @@ class String
   def blank?(string)
     char *s = string
     int i = 0
+    int a = string.size
 
-    while i < string.size do
+    while i < a do
       return false if s[i] != ' '
+      i += 1
     end
 
     return true

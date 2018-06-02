@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-describe Rubex do
+describe Rubex, hell: true do
   test_case = 'examples'
 
-  examples = ['rcsv', 'array_to_hash'].each do |example|
+  examples = ['rcsv', 'array_to_hash', "blank"].each do |example|
     context "Case: #{test_case}/#{example}" do
       before do
         @path = path_str test_case, example
@@ -39,6 +39,11 @@ describe Rubex do
           def array_to_hash
             a = ["a", "b", "c"]
             expect(a.each_with_index.to_h).to eq(Array2Hash.convert(a))
+          end
+
+          def blank
+            a = "   "
+            expect(a.blank?(a)).to eq(true)
           end
 
           setup_and_teardown_compiled_files(test_case, example) do |dir|
