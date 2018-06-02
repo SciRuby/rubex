@@ -29,7 +29,7 @@ Before starting, make sure you've installed Rubex with `gem install rubex`.
 In a Rubex file titled `hello_word.rubex` paste the following code:
 ``` ruby
 def hello_world
-  print "Hello world!"
+  print("Hello world!")
 end
 ```
 
@@ -45,9 +45,9 @@ ruby extconf.rb
 make
 ```
 
-This will generate a shared object file called `hello_world.so` that can be used in any normal Ruby script like so:
+This will generate a shared object file called `hello_world.bundle` that can be used in any normal Ruby script like so:
 ``` ruby
-require_relative 'hello_world.so'
+require_relative 'hello_world/hello_world'
 
 hello_world
 ```
