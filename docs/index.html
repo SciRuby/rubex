@@ -1,1 +1,162 @@
-<h1>Docs go here!</h1>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Rubex - Documentation</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.0/css/font-awesome.min.css">
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <!-- Material Design Bootstrap -->
+    <link href="css/mdb.min.css" rel="stylesheet">
+    <!-- custom styles (optional) -->
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/code.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+    <!-- Start project here-->
+    <div style="height: 20vh">
+        <div class="row padding-top-3per">
+            <div class="col-md-6 text-center">
+                <h1 class="h1-responsive logo">Rubex</h1>
+            </div>
+            <div class="col-md-6 col-">
+                <a class="header-link" href="about.html">About</a>
+                <a class="header-link" href="tutorial.html">Tutorial</a>
+                <a class="header-link" href="docs.html">Documentation</a>
+                <a class="header-link" href="help.html">Help</a>
+            </div>
+        </div>
+
+    </div>
+    <div class="row padding-top-5per">
+        <div class="col-md-6 text-center">
+            <h1 class="love">I love $
+                <u id="wrapper" class="lang"></u><span class="blinking-cursor">|</span></h1>
+            <br>
+            <div class="introsd">Rubex is a Ruby-like language for writing Ruby C extensions.</div>
+            <a type="" href="https://github.com/v0dro/rubex" class="btn btn-danger btn-lg">Download Rubex</a>
+
+        </div>
+        <div class="col-md-6 des">
+            " Rubex is a language that makes writing CRuby C extensions as simple as writing Ruby. It does this by providing a syntax that is the perfect blend of the elegance of Ruby and the power of C. Rubex compiles to C and implicitly interfaces with the Ruby
+            VM in a manner that is completely transparent to the programmer. Rubex keeps you happy even when writing C extensions."
+        </div>
+    </div>
+    <div class="row padding-top-5per">
+        <div class="col-md-6">
+            <h3 class="bold text-center" style="font-weight:400;">Consider this Ruby code</h3>
+            <section class="padding-top-3per">
+                <pre class="code-toolbar language-markup">
+                <code class=" language-markup">
+                    <span class="token comment" spellcheck="true"># Fibonnaci Class</span>
+                    <span class="token tag"><span class="token tag"><span class="token punctuation"></span>class</span> <span class="token attr-name"></span><span class="token attr-value"><span class="token punctuation"></span><span class="token punctuation"></span>Fibonnaci<span class="token punctuation"></span></span><span class="token punctuation"></span></span>
+                        <span class="token tag"><span class="token tag"><span class="token punctuation"></span>def</span> <span class="token attr-name"></span><span class="token attr-value"><span class="token punctuation"></span><span class="token punctuation"></span>compute(n)<span class="token punctuation"></span></span><span class="token punctuation"></span></span>                         
+                            i = 1, prev = 1, current = 1, temp
+                            arr = []
+
+                            <span class="token tag"><span class="token tag"><span class="token punctuation"></span>while</span> <span class="token attr-name"></span><span class="token attr-value"><span class="token punctuation"></span><span class="token punctuation"></span>i < n<span class="token punctuation"></span></span><span class="token punctuation"></span></span><span class="token tag"> do</span>                         
+                                temp = current
+                                current = current + prev
+                                prev = temp
+                                arr.push(prev)
+                                i += 1
+                            <span class="token tag"><span class="token punctuation"></span>end</span>
+                            arr
+                        <span class="token tag"><span class="token punctuation"></span>end</span>
+                    <span class="token tag"><span class="token punctuation"></span>end</span>
+                </code>
+            
+            </section>
+        </div>
+        <div class="col-md-6">
+            <h3 class="bold text-center" style="font-weight:400;">If you decide to port this to a C extension, the code will look like so:</h3>
+          
+            <section>
+                <pre class="code-toolbar language-markup">
+                <code class=" language-markup">
+                #include &lt;ruby.h>
+                #include &lt;stdint.h>
+
+                void Init_a ();
+                static VALUE Fibonnaci_compute (int argc,VALUE* argv,VALUE self);
+
+                static VALUE Fibonnaci_compute (int argc,VALUE* argv,VALUE self)
+                {
+                int n,i,prev,current,temp;
+                VALUE arr;
+
+                if (argc < 1) {
+                    rb_raise(rb_eArgError, "Need 1 args, not %d", argc);
+                }
+
+                n       = NUM2INT(argv[0]);
+                i       = 1;
+                prev    = 1;
+                current = 1;
+                arr     = rb_ary_new2(0);
+
+                while (i < n)
+                {
+                    temp = current;
+                    current = current + prev;
+                    prev = temp;
+                    rb_funcall(arr, rb_intern("push"), 1 ,INT2NUM(prev));
+                    i = i + 1;
+                }
+
+                return arr;
+                }
+
+                void Init_a ()
+                {
+                VALUE cls_Fibonnaci;
+
+                cls_Fibonnaci = rb_define_class("Fibonnaci", rb_cObject);
+
+                rb_define_method(cls_Fibonnaci ,"compute", Fibonnaci_compute, -1);
+                }
+           </code>
+            
+            </section>
+           
+        </div>
+
+
+        <!-- /Start project here-->
+
+        <!-- SCRIPTS -->
+        <!-- JQuery -->
+        <script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
+        <!-- Bootstrap tooltips -->
+        <script type="text/javascript" src="js/popper.min.js"></script>
+        <!-- Bootstrap core JavaScript -->
+        <script type="text/javascript" src="js/bootstrap.min.js"></script>
+        <!-- MDB core JavaScript -->
+        <script type="text/javascript" src="js/mdb.min.js"></script>
+
+        <script src="https://code.jquery.com/jquery-1.12.3.min.js" integrity="sha256-aaODHAgvwQW1bFOGXMeX+pC4PZIPsvn2h1sArYOhgXQ="
+            crossorigin="anonymous"></script>
+        <script src="js/shuffletext.jquery.js"></script>
+        <script>
+            $(function () {
+                $('#wrapper').ShuffleText([
+                    'Ruby',
+                    "C",
+                    "Rubex"
+                ], {
+                    loop: true,
+                    delay: 4000
+                });
+            });
+        </script>
+
+</body>
+
+</html>
