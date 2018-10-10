@@ -389,7 +389,7 @@ module Rubex
           stmts = []
           stmts << data_var_cptr_decl(nil)
           stmts.concat data_struct_allocations
-          stmts.reverse.each do |s|
+          stmts.reverse_each do |s|
             func.statements.unshift s
           end
         end
