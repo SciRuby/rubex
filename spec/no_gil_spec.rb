@@ -28,7 +28,8 @@ describe Rubex do
 
           n = Thread.new { work_without_gil(N) }
           m = Thread.new { work_without_gil(N) }
-          n.join; m.join
+          n.join
+          m.join
         end
       end
     end

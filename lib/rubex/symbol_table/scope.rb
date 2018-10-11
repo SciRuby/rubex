@@ -60,8 +60,8 @@ module Rubex
       end
 
       def declare_sue name:, c_name:, type:, extern:
-        entry = Rubex::SymbolTable::Entry.new(
-          name, c_name, type, nil)
+                                               entry = Rubex::SymbolTable::Entry.new(
+                                               name, c_name, type, nil)
         entry.extern = extern
         @entries[name] = entry
         @sue_entries << entry
@@ -71,7 +71,7 @@ module Rubex
       end
 
       def declare_type type:, extern:
-        entry = Rubex::SymbolTable::Entry.new(nil, nil, type, nil)
+                                entry = Rubex::SymbolTable::Entry.new(nil, nil, type, nil)
         entry.extern = extern
         @type_entries << entry
 
@@ -99,7 +99,7 @@ module Rubex
 
       # Add a Ruby class to the current scope.
       def add_ruby_class name: , c_name:, scope:, ancestor:, extern:
-        type = Rubex::DataType::RubyClass.new name, c_name, scope, ancestor
+                                                               type = Rubex::DataType::RubyClass.new name, c_name, scope, ancestor
         entry = Rubex::SymbolTable::Entry.new name, c_name, type, nil
         entry.extern = extern
         @entries[name] = entry
@@ -139,7 +139,7 @@ module Rubex
           @temp_counter += 1
           c_name = Rubex::TEMP_PREFIX + @temp_counter.to_s
           entry = Rubex::SymbolTable::Entry.new c_name, c_name, type, 
-            Expression::Literal::CNull.new('NULL')
+                                                Expression::Literal::CNull.new('NULL')
           @entries[c_name] = entry
           @temp_entries << entry
         else
@@ -157,7 +157,7 @@ module Rubex
 
       def [] entry
         @entries[entry] or raise(Rubex::SymbolNotFoundError,
-          "Symbol #{entry} does not exist in this scope.")
+                                 "Symbol #{entry} does not exist in this scope.")
       end
 
       def has_entry? entry
@@ -169,7 +169,7 @@ module Rubex
         return recursive_find(name, self)
       end
 
-    private
+      private
       def recursive_find name, scope
         if scope
           if scope.has_entry?(name)
@@ -241,7 +241,7 @@ module Rubex
 
         # args - Rubex::AST::ArgumentList. Creates sym. table entries for args.
         def add_arg name:, c_name:, type:, value:
-          entry = Rubex::SymbolTable::Entry.new name, c_name, type, value
+                                             entry = Rubex::SymbolTable::Entry.new name, c_name, type, value
           check_entry name
           @entries[name] = entry
           @arg_entries << entry
@@ -274,7 +274,7 @@ module Rubex
           end
 
           remove_global_from_local_entries
-          
+
           @outer_scope.global_entries.each do |entry| 
             entry.c_name = Rubex::GLOBAL_PREFIX + @name + entry.c_name
           end
@@ -310,22 +310,22 @@ module Rubex
         # Therefore these variables get declared inside the begin block callback
         # as well. So whenever one of these Arrays is called for this particular
         # scope, we preturn an empty array so that nothing gets declared.
-        def method_missing meth, *args, &block
-          return [] if meth == :var_entries
-          ret = @outer_scope.send(meth, *args, &block)
-          if ret.is_a?(Rubex::SymbolTable::Entry)
-            if !ret.extern?
-              if !ret.type.c_function? && !ret.type.ruby_method? &&
-                 !ret.type.ruby_class?
-                @block_entries << ret
-              end
-            end
-          end
-
+        def method_missing(method_name, *args, &block)
+          return super unless @outer_scope.respond_to?(method_name)
+          return [] if method_name == :var_entries
+          ret = @outer_scope.send(method_name, *args, &block)
+          return ret unless ret.is_a?(Rubex::SymbolTable::Entry)
+          return ret if ret.extern?
+          return ret if ret.type.c_function? || ret.type.ruby_method? || ret.type.ruby_class?
+          @block_entries << ret
           ret
         end
 
-      private
+        def respond_to_missing?(method_name, *args)
+          @outer_scope.respond_to?(method_name) || super
+        end
+
+        private
 
         def remove_global_from_local_entries
           @outer_scope.arg_entries      -= @outer_scope.global_entries
