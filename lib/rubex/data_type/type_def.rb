@@ -26,8 +26,13 @@ module Rubex
         @old_type
       end
 
-      def method_missing(meth, *args, &block)
-        @old_type.send(meth, *args, &block)
+      def method_missing(method_name, *args, &block)
+        return super unless @old_type.respond_to?(method_name)
+        @old_type.send(method_name, *args, &block)
+      end
+
+      def respond_to_missing?(method_name, *args)
+        @old_type.respond_to?(method_name) || super
       end
     end
   end
